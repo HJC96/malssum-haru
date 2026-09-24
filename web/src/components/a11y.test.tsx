@@ -1,8 +1,9 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '@/app/App';
 import { axeViolations } from '@/app/test/axe';
 import { NOW, scenario } from '@/app/test/render';
+import { SAMPLE_BIBLE } from '@/domain';
 import type { QtMockScenario } from '@/app/qt/fixtures';
 
 /** 검사 시간을 줄이려고 짧은 계획을 쓴다. */
@@ -45,5 +46,24 @@ describe('axe 접근성 검사', () => {
     }
     expect(seen.some((s) => s === 'lang:English')).toBe(true);
     expect(seen.filter((s) => s.includes('공식 페이지로 이동'))).toHaveLength(2);
+  });
+
+  it('계획 화면: 캘린더, 오류, 책 선택·개별 범위 입력, 영어에도 위반이 없다', async () => {
+    const { container } = render(<App initialLang="ko" qtFetcher={async () => scenario('mixed')} now={NOW} planInitial={SHORT} planBible={SAMPLE_BIBLE} />);
+    await screen.findAllByRole('article');
+    await userEvent.click(screen.getByRole('button', { name: '월간 캘린더' }));
+    await userEvent.click(screen.getAllByRole('button', { name: /^2026-09-2\d / })[0]!);
+    expect(await axeViolations(container)).toEqual([]);
+
+    await userEvent.click(screen.getByRole('radio', { name: '선택한 책' }));
+    expect(screen.getByRole('alert')).toBeInTheDocument(); // 책 없음 오류
+    expect(await axeViolations(container)).toEqual([]);
+    await userEvent.click(within(screen.getByRole('group', { name: '책 선택' })).getByRole('checkbox', { name: '창세기' }));
+    await userEvent.click(screen.getByRole('radio', { name: /건너뛰어 읽었습니다/ }));
+    await userEvent.click(within(screen.getByRole('group', { name: '오늘 읽은 범위 (선택)' })).getByRole('button', { name: '범위 추가' }));
+    expect(await axeViolations(container)).toEqual([]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'English' }));
+    expect(await axeViolations(container)).toEqual([]);
   });
 });

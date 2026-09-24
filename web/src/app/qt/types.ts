@@ -66,4 +66,6 @@ export interface QtTodayResponse {
   schemaVersion: '1';
   generatedAt: string;
   providers: QtProvider[];
+  /** 'mock'이면 개발용 샘플이다. 화면이 샘플 배너를 띄운다. API 응답에는 없다. */
+  origin?: 'mock';
 }

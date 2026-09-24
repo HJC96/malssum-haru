@@ -125,8 +125,9 @@ function layoutList(model: ExportModel, rows: ExportRow[], month: string | null,
   b.y -= 8;
 
   const colCheck = MARGIN;
-  const colDate = MARGIN + 24;
-  const colRange = MARGIN + 24 + 104;
+  const checkW = Math.max(24, measure(t('export.col.check'), 9) + 8);
+  const colDate = MARGIN + checkW;
+  const colRange = colDate + 104;
   const colVerses = size.width - MARGIN - 52;
   const rangeW = colVerses - colRange - 8;
   const bottom = MARGIN + FOOTER_H;

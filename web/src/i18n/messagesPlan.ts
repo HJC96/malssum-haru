@@ -5,6 +5,9 @@ export const koPlan = {
   'plan.sampleBanner': '샘플 데이터로 계산한 화면입니다. 실제 성경의 장·절 수가 아닙니다.',
   'plan.provisionalBanner': '장·절 수는 잠정 데이터이며 개역개정과 전수 대조가 끝나지 않았습니다. 일부 장·절 수가 실제와 다를 수 있습니다.',
   'plan.dataInfo': '장절 기준: {system} · 데이터 버전: {version}',
+  'plan.dataHelp.summary': '장절 기준 안내',
+  'plan.dataHelp.body': '장절 기준은 각 장의 절 수를 세는 방식입니다. 분량 계산은 이 기준의 장·절 번호를 그대로 세며, 다른 기준에서는 절 번호가 다를 수 있습니다.',
+  'plan.dataHelp.limits': '알려진 제한(잠정 데이터): 사도행전 15:25-26(병합 표시)과 24:7(개역개정에 없는 번호)은 번호 기준으로 세므로 화면에 독립된 절로 보이지 않을 수 있습니다.',
 
   'plan.scope.legend': '읽을 범위',
   'plan.scope.all': '성경 전체',
@@ -202,6 +205,9 @@ export const enPlan: Record<PlanMessageKey, string> = {
   'plan.sampleBanner': 'This screen uses sample data. The chapter and verse counts are not those of the real Bible.',
   'plan.provisionalBanner': 'Chapter and verse counts are provisional and have not been fully checked against the Korean Revised Version. Some counts may differ from the real text.',
   'plan.dataInfo': 'Versification: {system} · Data version: {version}',
+  'plan.dataHelp.summary': 'About the versification',
+  'plan.dataHelp.body': 'The versification is the way verses are counted in each chapter. The plan calculation counts chapter and verse numbers exactly as this system defines them; other systems can number verses differently.',
+  'plan.dataHelp.limits': 'Known limits (provisional data): Acts 15:25-26 (shown merged) and 24:7 (a number missing from the Korean Revised Version) are counted by number, so they may not appear as separate verses on screen.',
 
   'plan.scope.legend': 'What to read',
   'plan.scope.all': 'Whole Bible',

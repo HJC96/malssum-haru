@@ -443,7 +443,10 @@
   .export-panel,
   .plan-issues,
   .plan-section > h2,
-  .plan-section > .qt-note {
+  .plan-section > .qt-note,
+  .data-help,
+  .app-footer,
+  .qt-mock-banner {
     display: none !important;
   }
   .print-sheet {

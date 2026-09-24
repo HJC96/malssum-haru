@@ -1,12 +1,15 @@
 import { localIsoDate } from '@/i18n/format';
-import { QT_MOCK_SCENARIOS, type QtMockScenario } from './fixtures';
+import type { QtMockScenario } from './fixtures';
 import { durannoDateUrl, MAEIL_TODAY_URL } from './officialLinks';
 import { normalizeQtToday, QtResponseError } from './normalize';
 import type { QtTodayResponse } from './types';
 
 export interface FetchQtTodayOptions {
   signal?: AbortSignal;
-  /** 'mock'(기본, 지금) | 'api'(`/api/qt/today`). 미지정이면 VITE_QT_SOURCE를 따른다. */
+  /**
+   * 'api'(`/api/qt/today`) | 'mock'(개발용 샘플). 미지정이면 `resolveQtSource`가 정한다.
+   * 프로덕션 빌드에서는 mock을 요청해도 api로 처리한다(샘플 범위를 오늘 자료로 내보내지 않는다, F-01).
+   */
   source?: 'mock' | 'api';
   mockScenario?: QtMockScenario;
   /** 테스트용 fetch 주입. */
@@ -15,16 +18,27 @@ export interface FetchQtTodayOptions {
 
 export const QT_TODAY_PATH = '/api/qt/today';
 
-function resolveSource(explicit: FetchQtTodayOptions['source']): 'mock' | 'api' {
-  if (explicit) return explicit;
-  return import.meta.env.VITE_QT_SOURCE === 'api' ? 'api' : 'mock';
+export interface QtSourceEnv {
+  /** Vite 개발 서버(또는 vitest)에서만 true. 프로덕션 빌드에서는 false로 고정된다. */
+  DEV: boolean;
+  VITE_QT_SOURCE?: string | undefined;
 }
 
-function resolveScenario(explicit: QtMockScenario | undefined): QtMockScenario {
-  const fromEnv = import.meta.env.VITE_QT_MOCK_SCENARIO;
+/**
+ * QT 데이터 출처. 프로덕션 빌드의 기본은 항상 'api'이고,
+ * mock은 개발 서버이거나 빌드 때 VITE_QT_SOURCE=mock을 명시했을 때만 쓴다(F-01).
+ */
+export function resolveQtSource(explicit: FetchQtTodayOptions['source'], env: QtSourceEnv): 'mock' | 'api' {
+  const mockAllowed = env.DEV || env.VITE_QT_SOURCE === 'mock';
+  if (!mockAllowed) return 'api';
   if (explicit) return explicit;
-  return fromEnv && fromEnv in QT_MOCK_SCENARIOS ? (fromEnv as QtMockScenario) : 'mixed';
+  return env.VITE_QT_SOURCE === 'api' ? 'api' : 'mock';
 }
+
+const currentEnv = (): QtSourceEnv => ({
+  DEV: import.meta.env.DEV,
+  VITE_QT_SOURCE: import.meta.env.VITE_QT_SOURCE,
+});
 
 /**
  * 오늘 QT 상태를 계약 v1 형식으로 가져온다.
@@ -32,8 +46,14 @@ function resolveScenario(explicit: QtMockScenario | undefined): QtMockScenario {
  * - 실패(네트워크·HTTP 오류·형식 오류)는 reject로 알리고, 화면이 QT 영역만 오류로 처리한다.
  */
 export async function fetchQtToday(options: FetchQtTodayOptions = {}): Promise<QtTodayResponse> {
-  if (resolveSource(options.source) === 'mock') {
-    return normalizeQtToday(QT_MOCK_SCENARIOS[resolveScenario(options.mockScenario)]());
+  // 앞의 정적 조건은 프로덕션 빌드에서 false로 접혀 fixture 청크가 산출물에서 빠진다.
+  if ((import.meta.env.DEV || import.meta.env.VITE_QT_SOURCE === 'mock') && resolveQtSource(options.source, currentEnv()) === 'mock') {
+    // fixture는 mock을 쓸 수 있는 빌드에서만 번들에 들어가도록 지연 import한다(프로덕션 산출물에는 없다).
+    const { QT_MOCK_SCENARIOS } = await import('./fixtures');
+    const fromEnv = import.meta.env.VITE_QT_MOCK_SCENARIO;
+    const name: QtMockScenario =
+      options.mockScenario ?? (fromEnv && fromEnv in QT_MOCK_SCENARIOS ? (fromEnv as QtMockScenario) : 'mixed');
+    return { ...normalizeQtToday(QT_MOCK_SCENARIOS[name]()), origin: 'mock' };
   }
 
   const doFetch = options.fetchImpl ?? fetch;

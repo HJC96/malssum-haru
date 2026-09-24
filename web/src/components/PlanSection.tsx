@@ -63,6 +63,11 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
         </p>
       )}
       <p className="qt-note">{t('plan.dataInfo', { system: bible.versificationSystem, version: bible.dataVersion })}</p>
+      <details className="data-help">
+        <summary>{t('plan.dataHelp.summary')}</summary>
+        <p className="qt-note">{t('plan.dataHelp.body')}</p>
+        {status === 'provisional' && <p className="qt-note">{t('plan.dataHelp.limits')}</p>}
+      </details>
 
       <PlanForm form={form} onChange={setForm} bible={bible} today={today} />
 

@@ -161,3 +161,41 @@ p {
     animation: none !important;
   }
 }
+
+.app-footer {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.notices {
+  width: min(90vw, 44rem);
+  max-height: 85vh;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.notices::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+.notices__text {
+  max-height: 55vh;
+  overflow: auto;
+  margin: var(--space-3) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.data-help summary {
+  cursor: pointer;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}

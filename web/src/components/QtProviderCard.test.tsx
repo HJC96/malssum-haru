@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import { provider, renderWithLang, NOW, scenario } from '@/app/test/render';
 import type { QtProvider } from '@/app/qt/types';
-import { QtProviderCard } from './QtProviderCard';
+import { linkDateOf, QtProviderCard } from './QtProviderCard';
 
 function link(name: RegExp) {
   return screen.getByRole('link', { name });
@@ -100,6 +100,31 @@ describe('QtProviderCard 5개 상태 (AC11)', () => {
     expect(screen.getByText(/현재 사용하지 않습니다/)).toBeInTheDocument();
     expect(link(/생명의삶 공식 페이지로 이동/)).toBeInTheDocument();
     expect(screen.queryByText('오늘의 범위')).not.toBeInTheDocument();
+  });
+});
+
+describe('날짜별 링크의 날짜 표시 (F-15)', () => {
+  it('providerDate가 없는 RANGE_NOT_PERMITTED라도 date-specific 링크면 링크의 날짜를 보인다', () => {
+    renderWithLang(<QtProviderCard provider={provider('not-permitted', 1)} now={NOW} />);
+    expect(screen.getByText(/링크의 날짜: 2026-09-24/)).toBeInTheDocument();
+    expect(screen.getByText('날짜를 확인하지 못했습니다')).toBeInTheDocument(); // 제공처 날짜와는 별개다
+  });
+
+  it('today-page 링크는 링크 날짜를 붙이지 않는다', () => {
+    renderWithLang(<QtProviderCard provider={provider('not-permitted', 0)} now={NOW} />);
+    expect(screen.queryByText(/링크의 날짜/)).not.toBeInTheDocument();
+  });
+
+  it('영어 화면', () => {
+    renderWithLang(<QtProviderCard provider={provider('not-permitted', 1)} now={NOW} />, 'en');
+    expect(screen.getByText(/Date of the link: 2026-09-24/)).toBeInTheDocument();
+  });
+
+  it('linkDateOf: 날짜가 없거나 잘못된 URL이면 null', () => {
+    expect(linkDateOf('https://x.test/a?qtDate=2026-01-02')).toBe('2026-01-02');
+    expect(linkDateOf('https://x.test/a')).toBeNull();
+    expect(linkDateOf('not a url')).toBeNull();
+    expect(linkDateOf(null)).toBeNull();
   });
 });
 

@@ -81,6 +81,17 @@ describe('목록형 레이아웃 (EXP02)', () => {
     });
   });
 
+  it('머리글이 서로 겹치지 않는다(영어 "Check"가 날짜 열을 침범하지 않음)', () => {
+    for (const lang of ['ko', 'en'] as const) {
+      const pages = layoutPdf(model({}, lang), { kind: 'list', month: null, measure });
+      const heads = pages[0]!.ops.filter((o): o is Extract<PdfOp, { type: 'text' }> => o.type === 'text' && o.size === 9);
+      const sorted = [...heads].sort((a, b) => a.x - b.x);
+      for (let i = 0; i < sorted.length - 1; i++) {
+        expect(sorted[i]!.x + measure(sorted[i]!.text, 9)).toBeLessThanOrEqual(sorted[i + 1]!.x);
+      }
+    }
+  });
+
   it('부분 장이 있으면 표시한다', () => {
     const m = model({ endDate: '2026-10-10', read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 2, verse: 1 } } });
     expect(layoutText(layoutPdf(m, { kind: 'list', month: null, measure }))).toContain('부분장:');

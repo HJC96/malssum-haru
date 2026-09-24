@@ -14,6 +14,21 @@ interface Props {
   provider: QtProvider;
   /** 사용자 현지 날짜 비교용. 테스트에서 고정한다. */
   now?: Date;
+  /** 날짜가 바뀐 뒤 다시 조회하는 중이다. 이전 범위를 오늘 것으로 그리지 않는다(신선도 규칙). */
+  checking?: boolean;
+}
+
+type CardStatus = QtViewStatus | 'CHECKING';
+
+/** 링크 URL에 들어 있는 날짜(예: qtDate=2026-09-24). 날짜별 링크가 어느 날짜를 가리키는지 보이기 위한 것. */
+export function linkDateOf(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    for (const v of new URL(url).searchParams.values()) if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  } catch {
+    /* 잘못된 URL은 날짜 없음 */
+  }
+  return null;
 }
 
 /** 범위가 실제로 있을 때만 RANGE_CONFIRMED로 취급한다. 없으면 추정하지 않고 확인 못 함으로 내린다. */
@@ -26,15 +41,16 @@ function effectiveStatus(p: QtProvider): QtViewStatus {
  * 제공처 한 곳의 오늘 QT 카드. 계약 v1의 5개 상태를 모두 처리한다.
  * 이 컴포넌트는 일독 계획 상태를 알지 못하며, 열람 기록을 남기지 않는다(AC01).
  */
-export function QtProviderCard({ provider, now }: Props) {
+export function QtProviderCard({ provider, now, checking = false }: Props) {
   const { lang, t } = useI18n();
   const headingId = useId();
-  const status = effectiveStatus(provider);
+  const status: CardStatus = checking ? 'CHECKING' : effectiveStatus(provider);
   const ranges = status === 'RANGE_CONFIRMED' ? (provider.passage?.ranges ?? []) : [];
   const name = provider.providerName[lang];
 
   const localDate = localIsoDate(now ?? new Date());
-  const dateDiffers = provider.providerDate !== null && provider.providerDate !== localDate;
+  const dateDiffers = status !== 'CHECKING' && provider.providerDate !== null && provider.providerDate !== localDate;
+  const linkDate = provider.officialUrlKind === 'date-specific' ? linkDateOf(provider.officialUrl) : null;
   const isSeoul = provider.providerTimeZone === 'Asia/Seoul';
 
   const reasonKey = `qt.reason.${provider.reasonCode ?? ''}`;
@@ -51,21 +67,23 @@ export function QtProviderCard({ provider, now }: Props) {
       </header>
 
       <dl className="qt-meta">
-        <div className="qt-meta__row">
-          <dt>{t('qt.date.label')}</dt>
-          <dd>
-            {provider.providerDate ? (
-              <>
-                <time dateTime={provider.providerDate}>{formatIsoDate(provider.providerDate, lang)}</time>{' '}
-                <span className="qt-meta__basis">
-                  ({isSeoul ? t('qt.date.kst') : provider.providerTimeZone})
-                </span>
-              </>
-            ) : (
-              <span>{t('qt.date.unknown')}</span>
-            )}
-          </dd>
-        </div>
+        {status !== 'CHECKING' && (
+          <div className="qt-meta__row">
+            <dt>{t('qt.date.label')}</dt>
+            <dd>
+              {provider.providerDate ? (
+                <>
+                  <time dateTime={provider.providerDate}>{formatIsoDate(provider.providerDate, lang)}</time>{' '}
+                  <span className="qt-meta__basis">
+                    ({isSeoul ? t('qt.date.kst') : provider.providerTimeZone})
+                  </span>
+                </>
+              ) : (
+                <span>{t('qt.date.unknown')}</span>
+              )}
+            </dd>
+          </div>
+        )}
         {status === 'RANGE_CONFIRMED' && (
           <div className="qt-meta__row">
             <dt>{t('qt.passage.label')}</dt>
@@ -102,6 +120,7 @@ export function QtProviderCard({ provider, now }: Props) {
             <ExternalLinkButton href={provider.officialUrl} label={t('qt.link.go', { provider: name })} />
             <p className="qt-note">
               {provider.officialUrlKind ? `${t(`qt.link.kind.${provider.officialUrlKind}`)} ` : ''}
+              {linkDate ? `${t('qt.link.date', { date: linkDate })}. ` : ''}
               {t('qt.link.external')}
             </p>
           </>

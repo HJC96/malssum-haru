@@ -16,13 +16,31 @@ export interface BuildPdfOptions {
 
 let fontCache: Promise<Uint8Array> | null = null;
 
+/** TrueType(0x00010000)·OpenType(OTTO)·'true' 시그니처와 최소 크기를 확인한다. */
+export function assertFontBytes(bytes: Uint8Array): void {
+  const tag = String.fromCharCode(...bytes.slice(0, 4));
+  const ok = tag === '\u0000\u0001\u0000\u0000' || tag === 'OTTO' || tag === 'true';
+  if (!ok || bytes.length < 10_000) throw new Error('PDF 폰트 파일이 올바르지 않습니다.');
+}
+
+/** 테스트에서 폰트 캐시를 비운다. */
+export function resetPdfFontCache(): void {
+  fontCache = null;
+}
+
 async function loadFontBytes(): Promise<Uint8Array> {
   fontCache ??= fetch(`${import.meta.env.BASE_URL}${PDF_FONT_PATH}`, { credentials: 'omit', referrerPolicy: 'no-referrer' })
     .then((res) => {
       if (!res.ok) throw new Error(`PDF 폰트를 불러오지 못했습니다: HTTP ${res.status}`);
+      // 정적 호스트가 없는 경로에 index.html(200)을 돌려주는 경우를 걸러낸다(F-02).
+      if ((res.headers.get('content-type') ?? '').includes('text/html')) throw new Error('PDF 폰트 대신 HTML이 왔습니다.');
       return res.arrayBuffer();
     })
-    .then((buf) => new Uint8Array(buf));
+    .then((buf) => {
+      const bytes = new Uint8Array(buf);
+      assertFontBytes(bytes);
+      return bytes;
+    });
   try {
     return await fontCache;
   } catch (e) {
@@ -45,7 +63,7 @@ export async function buildPdf(model: ExportModel, options: BuildPdfOptions): Pr
 
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit as Parameters<typeof doc.registerFontkit>[0]);
-  const font = await doc.embedFont(fontBytes, { subset: true });
+  const font = await doc.embedFont(fontBytes, { subset: false, features: { liga: false, clig: false, dlig: false } });
   const supported = new Set(font.getCharacterSet());
   const clean = (text: string) =>
     Array.from(text)

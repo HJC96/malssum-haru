@@ -1,5 +1,6 @@
 import { I18nProvider, useI18n, type Lang } from '@/i18n';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { NoticesButton } from '@/components/NoticesDialog';
 import { PlanSection } from '@/components/PlanSection';
 import { QtToday } from '@/components/QtToday';
 import type { BibleData } from '@/domain';
@@ -32,6 +33,9 @@ function Shell({ qtFetcher, now, planInitial, planBible }: Pick<AppProps, 'qtFet
         <QtToday {...(qtFetcher ? { fetcher: qtFetcher } : {})} {...(now ? { now } : {})} />
         <PlanSection {...(now ? { now } : {})} {...(planInitial ? { initialForm: planInitial } : {})} {...(planBible ? { bible: planBible } : {})} />
       </main>
+      <footer className="app-footer">
+        <NoticesButton />
+      </footer>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { fallbackLinks, fetchQtToday, QT_TODAY_PATH } from './fetchQtToday';
+import { fallbackLinks, fetchQtToday, QT_TODAY_PATH, resolveQtSource } from './fetchQtToday';
 import { QT_MOCK_SCENARIOS, maeilConfirmed } from './fixtures';
 import { normalizeQtToday, QtResponseError } from './normalize';
 
@@ -136,5 +136,44 @@ describe('fallbackLinks', () => {
     expect(links.every((l) => l.url.startsWith('https://'))).toBe(true);
     expect(links[1]?.url).toBe('https://www.duranno.com/qt/view/bible.asp?qtDate=2026-09-24');
     expect(Object.keys(links[0] ?? {})).not.toContain('passage');
+  });
+});
+
+describe('fallbackLinks는 사용자 시간대와 무관하게 서울 날짜를 쓴다 (F-14)', () => {
+  const original = process.env.TZ;
+  afterEach(() => {
+    if (original === undefined) delete process.env.TZ;
+    else process.env.TZ = original;
+  });
+
+  it.each(['America/Los_Angeles', 'Pacific/Kiritimati', 'UTC', 'Asia/Seoul'])('브라우저 시간대 %s', (tz) => {
+    process.env.TZ = tz;
+    // 서울 2026-09-25 00:30 = UTC 09-24 15:30. 미국 서부에서는 09-24 08:30이다.
+    const links = fallbackLinks(new Date('2026-09-24T15:30:00Z'));
+    expect(links[1]?.url).toBe('https://www.duranno.com/qt/view/bible.asp?qtDate=2026-09-25');
+  });
+});
+
+describe('resolveQtSource: 프로덕션 기본은 api (F-01)', () => {
+  it('프로덕션 빌드(DEV=false)는 환경 변수가 없으면 api', () => {
+    expect(resolveQtSource(undefined, { DEV: false })).toBe('api');
+  });
+  it('프로덕션 빌드는 mock을 요청해도 api다(샘플 범위를 오늘 자료로 내보내지 않는다)', () => {
+    expect(resolveQtSource('mock', { DEV: false })).toBe('api');
+    expect(resolveQtSource('mock', { DEV: false, VITE_QT_SOURCE: 'api' })).toBe('api');
+  });
+  it('mock은 개발 서버이거나 VITE_QT_SOURCE=mock을 명시한 빌드에서만', () => {
+    expect(resolveQtSource(undefined, { DEV: true })).toBe('mock');
+    expect(resolveQtSource(undefined, { DEV: false, VITE_QT_SOURCE: 'mock' })).toBe('mock');
+  });
+  it('개발 서버에서도 VITE_QT_SOURCE=api면 api', () => {
+    expect(resolveQtSource(undefined, { DEV: true, VITE_QT_SOURCE: 'api' })).toBe('api');
+    expect(resolveQtSource('api', { DEV: true })).toBe('api');
+  });
+  it('mock 응답에는 origin=mock 표시가 붙고 api 응답에는 붙지 않는다', async () => {
+    const mock = await fetchQtToday({ source: 'mock', mockScenario: 'confirmed' });
+    expect(mock.origin).toBe('mock');
+    const api = await fetchQtToday({ source: 'api', fetchImpl: vi.fn(async () => new Response(JSON.stringify(QT_MOCK_SCENARIOS.mixed()), { status: 200 })) });
+    expect(api.origin).toBeUndefined();
   });
 });

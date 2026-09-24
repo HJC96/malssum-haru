@@ -33,6 +33,10 @@ describe('PDF 폰트 글리프 커버리지 (Noto Sans KR 서브셋)', () => {
     expect(missing([...Object.values(MESSAGES.ko), ...Object.values(MESSAGES.en)])).toEqual([]);
   });
 
+  it('검사 자체가 동작한다: 서브셋에 없는 글자는 없다고 나온다', () => {
+    expect(missing(['龍', '\u{1F600}'])).toEqual(['龍', '\u{1F600}']);
+  });
+
   it('범위 표기에 쓰는 기호가 있다: 숫자, 콜론, 쉼표, 세미콜론, 물음표, 괄호, 물결, 슬래시, en dash', () => {
     expect(missing(['0123456789:,;?()~/-.'])).toEqual([]);
     expect(font.hasGlyphForCodePoint(0x2013)).toBe(true);

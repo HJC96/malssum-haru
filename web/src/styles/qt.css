@@ -98,6 +98,7 @@
   background: var(--ok-bg);
   color: var(--ok-fg);
 }
+.badge--CHECKING,
 .badge--RANGE_UNAVAILABLE,
 .badge--RANGE_NOT_PERMITTED,
 .badge--UNKNOWN {
@@ -128,4 +129,12 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.qt-mock-banner {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--warn-fg);
+  border-radius: var(--radius);
+  background: var(--warn-bg);
+  color: var(--warn-fg);
 }
