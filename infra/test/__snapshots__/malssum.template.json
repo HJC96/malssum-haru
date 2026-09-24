@@ -29,6 +29,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ],
         "TimeToLiveSpecification": {
@@ -47,6 +55,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
       },
@@ -86,6 +102,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
       }
@@ -96,29 +120,7 @@
         "PolicyDocument": {
           "Statement": [
             {
-              "Action": [
-                "dynamodb:BatchGetItem",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:DescribeTable"
-              ],
-              "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::GetAtt": [
-                    "QtItems6C54E9AA",
-                    "Arn"
-                  ]
-                }
-              ]
-            },
-            {
-              "Action": [
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator"
-              ],
+              "Action": "dynamodb:GetItem",
               "Effect": "Allow",
               "Resource": [
                 {
@@ -155,9 +157,10 @@
         "Description": "PLACEHOLDER ASSET - 배포 금지: services/qt 산출물로 교체 필요",
         "Environment": {
           "Variables": {
-            "QT_ACQUISITION_ENABLED": "false",
-            "QT_PROVIDERS_MAEILSEONGYEONG_DISABLED": "false",
-            "QT_PROVIDERS_SAENGMYEONGUISAM_DISABLED": "false",
+            "QT_ACQUISITION_ENABLED": "true",
+            "QT_PROVIDER_MAEIL_SEONGYEONG": "enabled",
+            "QT_PROVIDER_SAENGMYEONG_UI_SAM": "enabled",
+            "QT_COLLECTOR_ENABLED": "enabled",
             "QT_TABLE_NAME": {
               "Ref": "QtItems6C54E9AA"
             },
@@ -183,9 +186,17 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ],
-        "Timeout": 20
+        "Timeout": 10
       },
       "DependsOn": [
         "QtApiFunctionServiceRoleDefaultPolicy67D7A306",
@@ -200,6 +211,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
       },
@@ -239,6 +258,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
       }
@@ -250,31 +277,8 @@
           "Statement": [
             {
               "Action": [
-                "dynamodb:BatchGetItem",
-                "dynamodb:Query",
                 "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable"
-              ],
-              "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::GetAtt": [
-                    "QtItems6C54E9AA",
-                    "Arn"
-                  ]
-                }
-              ]
-            },
-            {
-              "Action": [
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator"
+                "dynamodb:PutItem"
               ],
               "Effect": "Allow",
               "Resource": [
@@ -312,9 +316,10 @@
         "Description": "PLACEHOLDER ASSET - 배포 금지: services/qt 산출물로 교체 필요",
         "Environment": {
           "Variables": {
-            "QT_ACQUISITION_ENABLED": "false",
-            "QT_PROVIDERS_MAEILSEONGYEONG_DISABLED": "false",
-            "QT_PROVIDERS_SAENGMYEONGUISAM_DISABLED": "false",
+            "QT_ACQUISITION_ENABLED": "true",
+            "QT_PROVIDER_MAEIL_SEONGYEONG": "enabled",
+            "QT_PROVIDER_SAENGMYEONG_UI_SAM": "enabled",
+            "QT_COLLECTOR_ENABLED": "enabled",
             "QT_TABLE_NAME": {
               "Ref": "QtItems6C54E9AA"
             },
@@ -322,7 +327,7 @@
             "LOGGING_LEVEL_ROOT": "INFO"
           }
         },
-        "Handler": "kr.malssumharu.qt.lambda.QtCollectorHandler::handleRequest",
+        "Handler": "kr.malssumharu.qt.lambda.QtCollectHandler::handleRequest",
         "LoggingConfig": {
           "LogGroup": {
             "Ref": "QtCollectorLogs30EB1D78"
@@ -340,6 +345,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ],
         "Timeout": 60
@@ -356,7 +369,9 @@
         "Name": "HttpApi",
         "ProtocolType": "HTTP",
         "Tags": {
-          "project": "malssum-haru"
+          "project": "malssum-haru",
+          "provider-permission": "unconfirmed",
+          "stage": "private-preview"
         }
       }
     },
@@ -373,7 +388,9 @@
         },
         "StageName": "$default",
         "Tags": {
-          "project": "malssum-haru"
+          "project": "malssum-haru",
+          "provider-permission": "unconfirmed",
+          "stage": "private-preview"
         }
       }
     },
@@ -473,6 +490,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
       },
@@ -700,8 +725,52 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
+      }
+    },
+    "ResponseHeaders84BC52D6": {
+      "Type": "AWS::CloudFront::ResponseHeadersPolicy",
+      "Properties": {
+        "ResponseHeadersPolicyConfig": {
+          "Comment": "X-Robots-Tag noindex + 보안 헤더",
+          "CustomHeadersConfig": {
+            "Items": [
+              {
+                "Header": "X-Robots-Tag",
+                "Override": true,
+                "Value": "noindex, nofollow"
+              }
+            ]
+          },
+          "Name": "MalssumHaruResponseHeadersC63B9367",
+          "SecurityHeadersConfig": {
+            "ContentTypeOptions": {
+              "Override": true
+            },
+            "FrameOptions": {
+              "FrameOption": "DENY",
+              "Override": true
+            },
+            "ReferrerPolicy": {
+              "Override": true,
+              "ReferrerPolicy": "strict-origin-when-cross-origin"
+            },
+            "StrictTransportSecurity": {
+              "AccessControlMaxAgeSec": 31536000,
+              "IncludeSubdomains": true,
+              "Override": true
+            }
+          }
+        }
       }
     },
     "ApiCachePolicyF71AA3E6": {
@@ -755,12 +824,14 @@
               },
               "Compress": true,
               "PathPattern": "/api/*",
-              "ResponseHeadersPolicyId": "67f7725c-6f97-4210-82d7-5512b31e9d03",
+              "ResponseHeadersPolicyId": {
+                "Ref": "ResponseHeaders84BC52D6"
+              },
               "TargetOriginId": "MalssumHaruCdnOrigin22711AC56",
               "ViewerProtocolPolicy": "https-only"
             }
           ],
-          "Comment": "말씀하루 웹과 API 진입점",
+          "Comment": "말씀하루 웹과 API 진입점 (private-preview, provider permission unconfirmed)",
           "DefaultCacheBehavior": {
             "AllowedMethods": [
               "GET",
@@ -779,7 +850,9 @@
                 }
               }
             ],
-            "ResponseHeadersPolicyId": "67f7725c-6f97-4210-82d7-5512b31e9d03",
+            "ResponseHeadersPolicyId": {
+              "Ref": "ResponseHeaders84BC52D6"
+            },
             "TargetOriginId": "MalssumHaruCdnOrigin10AB22B8E",
             "ViewerProtocolPolicy": "redirect-to-https"
           },
@@ -838,18 +911,26 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
       }
     },
-    "QtCollectorSchedule9A26D766": {
+    "QtCollectorSchedule17DA83A94": {
       "Type": "AWS::Scheduler::Schedule",
       "Properties": {
-        "Description": "QT 제공처 오늘 장절 수집",
+        "Description": "QT 제공처 오늘 장절 수집 00:05 KST",
         "FlexibleTimeWindow": {
           "Mode": "OFF"
         },
-        "ScheduleExpression": "cron(5 0,1,6,12,18,21 * * ? *)",
+        "ScheduleExpression": "cron(5 0 * * ? *)",
         "ScheduleExpressionTimezone": "Asia/Seoul",
         "State": "ENABLED",
         "Target": {
@@ -915,6 +996,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
       }
@@ -961,6 +1050,99 @@
         ]
       }
     },
+    "QtCollectorSchedule20311B7CB": {
+      "Type": "AWS::Scheduler::Schedule",
+      "Properties": {
+        "Description": "QT 제공처 오늘 장절 수집 00:35 KST",
+        "FlexibleTimeWindow": {
+          "Mode": "OFF"
+        },
+        "ScheduleExpression": "cron(35 0 * * ? *)",
+        "ScheduleExpressionTimezone": "Asia/Seoul",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Fn::GetAtt": [
+              "QtCollectorFunction04176F86",
+              "Arn"
+            ]
+          },
+          "Input": "{\"trigger\":\"schedule\"}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 1800,
+            "MaximumRetryAttempts": 1
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTargetd21942E3AD852E",
+              "Arn"
+            ]
+          }
+        }
+      }
+    },
+    "QtCollectorSchedule310082A38": {
+      "Type": "AWS::Scheduler::Schedule",
+      "Properties": {
+        "Description": "QT 제공처 오늘 장절 수집 06:00 KST",
+        "FlexibleTimeWindow": {
+          "Mode": "OFF"
+        },
+        "ScheduleExpression": "cron(0 6 * * ? *)",
+        "ScheduleExpressionTimezone": "Asia/Seoul",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Fn::GetAtt": [
+              "QtCollectorFunction04176F86",
+              "Arn"
+            ]
+          },
+          "Input": "{\"trigger\":\"schedule\"}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 1800,
+            "MaximumRetryAttempts": 1
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTargetd21942E3AD852E",
+              "Arn"
+            ]
+          }
+        }
+      }
+    },
+    "QtCollectorSchedule4B230F1DD": {
+      "Type": "AWS::Scheduler::Schedule",
+      "Properties": {
+        "Description": "QT 제공처 오늘 장절 수집 12:00 KST",
+        "FlexibleTimeWindow": {
+          "Mode": "OFF"
+        },
+        "ScheduleExpression": "cron(0 12 * * ? *)",
+        "ScheduleExpressionTimezone": "Asia/Seoul",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Fn::GetAtt": [
+              "QtCollectorFunction04176F86",
+              "Arn"
+            ]
+          },
+          "Input": "{\"trigger\":\"schedule\"}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 1800,
+            "MaximumRetryAttempts": 1
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTargetd21942E3AD852E",
+              "Arn"
+            ]
+          }
+        }
+      }
+    },
     "AlertTopic2720D535": {
       "Type": "AWS::SNS::Topic",
       "Properties": {
@@ -969,6 +1151,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ]
       }
@@ -1068,6 +1258,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ],
         "Threshold": 3,
@@ -1101,6 +1299,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ],
         "Threshold": 1,
@@ -1134,6 +1340,14 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
+          },
+          {
+            "Key": "provider-permission",
+            "Value": "unconfirmed"
+          },
+          {
+            "Key": "stage",
+            "Value": "private-preview"
           }
         ],
         "Threshold": 3,
@@ -1212,6 +1426,9 @@
       "Value": {
         "Ref": "QtItems6C54E9AA"
       }
+    },
+    "DeploymentNotice": {
+      "Value": "private-preview: provider acquisition ON, provider permission unconfirmed. Not for public release."
     }
   }
 }

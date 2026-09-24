@@ -11,20 +11,20 @@ export interface StackConfig {
   qtLambdaAssetPath: string;
   /** services/qt README(T15)가 확정한 핸들러. 함수 이름은 핸들러 클래스가 고정하므로 환경 변수가 필요 없다. */
   qtLambdaHandler: string;
-  /** 수집 함수 핸들러. T16(qt-backend) 확정 전 임시값이다. 최종 이름을 받으면 갱신한다. */
+  /** 수집 함수 핸들러(services/qt README T16, 함수 빈 qtCollect). */
   qtCollectorHandler: string;
   /**
-   * 제공처 자동 취득 스위치(QT_ACQUISITION_ENABLED). 기본 false: 제공처에 요청하지 않고
-   * RANGE_NOT_PERMITTED + 공식 링크만 응답한다. 자동 취득 권리가 확인되기 전에는 true 로 두지 않는다.
+   * 제공처 자동 취득 스위치(QT_ACQUISITION_ENABLED). **기본 true: 사용자 혼자 쓰는 비공개 시험 운영(private-preview)
+   * 전용 결정이다.** 제공처의 자동 취득 권한은 확인되지 않았다. 끄면(false) 제공처에 요청하지 않고
+   * RANGE_NOT_PERMITTED + 공식 링크만 응답한다. 공개 전에는 권한 확인 결과에 따라 다시 정한다.
    */
   qtAcquisitionEnabled: boolean;
   /** 제공처 연동 kill switch. false 로 두면 해당 제공처는 DISABLED 상태가 된다. */
   qtProviders: { maeilSeongyeong: boolean; saengmyeongUiSam: boolean };
   /** 스케줄 수집 켜기/끄기. 끄면 마지막 자료를 오늘로 다시 보여주지 않고 서버가 날짜 불일치를 반환해야 한다. */
   collectorEnabled: boolean;
-  /** 수집 시각(Asia/Seoul 시). 비용표 기준 시나리오는 하루 6회 */
-  collectorHoursKst: number[];
-  collectorMinute: number;
+  /** 수집 시각(Asia/Seoul, 'HH:MM'). 시각마다 스케줄 하나. 비용표는 하루 4회 기준 */
+  collectorTimesKst: string[];
   collectorTimeoutSeconds: number;
   /** DynamoDB 테이블을 스택 삭제 후에도 남긴다 */
   retainData: boolean;
@@ -54,11 +54,10 @@ export const DEFAULTS: StackConfig = {
   region: 'ap-northeast-2',
   qtLambdaAssetPath: PLACEHOLDER_ASSET,
   qtLambdaHandler: 'kr.malssumharu.qt.lambda.QtLambdaHandler::handleRequest',
-  qtCollectorHandler: 'kr.malssumharu.qt.lambda.QtCollectorHandler::handleRequest',
-  qtAcquisitionEnabled: false,
+  qtCollectorHandler: 'kr.malssumharu.qt.lambda.QtCollectHandler::handleRequest',
+  qtAcquisitionEnabled: true,
   collectorEnabled: true,
-  collectorHoursKst: [0, 1, 6, 12, 18, 21],
-  collectorMinute: 5,
+  collectorTimesKst: ['00:05', '00:35', '06:00', '12:00'],
   collectorTimeoutSeconds: 60,
   retainData: true,
   qtItemTtlDays: 400,
@@ -68,7 +67,7 @@ export const DEFAULTS: StackConfig = {
   apiThrottleRatePerSecond: 20,
   apiThrottleBurst: 40,
   lambdaMemoryMb: 1024,
-  lambdaTimeoutSeconds: 20,
+  lambdaTimeoutSeconds: 10,
   logRetentionDays: 14,
   budgetMonthlyUsd: 6,
   webDistPath: '../web/dist',
@@ -124,11 +123,10 @@ export function resolveConfig(get: ContextGetter): StackConfig {
     qtLambdaHandler: asStr(get('qtLambdaHandler'), DEFAULTS.qtLambdaHandler),
     qtCollectorHandler: asStr(get('qtCollectorHandler'), DEFAULTS.qtCollectorHandler),
     collectorEnabled: asBool(get('collectorEnabled'), DEFAULTS.collectorEnabled),
-    collectorHoursKst:
-      typeof get('collectorHoursKst') === 'string' && get('collectorHoursKst') !== ''
-        ? String(get('collectorHoursKst')).split(',').map((h) => asNum(h.trim(), NaN, 'collectorHoursKst'))
-        : DEFAULTS.collectorHoursKst,
-    collectorMinute: asNum(get('collectorMinute'), DEFAULTS.collectorMinute, 'collectorMinute'),
+    collectorTimesKst:
+      typeof get('collectorTimesKst') === 'string' && get('collectorTimesKst') !== ''
+        ? String(get('collectorTimesKst')).split(',').map((h) => h.trim())
+        : DEFAULTS.collectorTimesKst,
     collectorTimeoutSeconds: asNum(get('collectorTimeoutSeconds'), DEFAULTS.collectorTimeoutSeconds, 'collectorTimeoutSeconds'),
     retainData: asBool(get('retainData'), DEFAULTS.retainData),
     qtItemTtlDays: asNum(get('qtItemTtlDays'), DEFAULTS.qtItemTtlDays, 'qtItemTtlDays'),
@@ -154,20 +152,21 @@ export function resolveConfig(get: ContextGetter): StackConfig {
 }
 
 export function validate(cfg: StackConfig): void {
-  if (cfg.collectorHoursKst.length === 0 || cfg.collectorHoursKst.some((h) => !Number.isInteger(h) || h < 0 || h > 23)) {
-    throw new Error(`collectorHoursKst 는 0~23 정수 목록이어야 한다: ${cfg.collectorHoursKst.join(',')}`);
+  if (cfg.collectorTimesKst.length === 0 || cfg.collectorTimesKst.some((t) => !/^([01]\d|2[0-3]):[0-5]\d$/.test(t))) {
+    throw new Error(`collectorTimesKst 는 HH:MM(00:00~23:59) 목록이어야 한다: ${cfg.collectorTimesKst.join(',')}`);
   }
-  if (!Number.isInteger(cfg.collectorMinute) || cfg.collectorMinute < 0 || cfg.collectorMinute > 59) {
-    throw new Error(`collectorMinute 는 0~59 정수여야 한다: ${cfg.collectorMinute}`);
-  }
+  if (new Set(cfg.collectorTimesKst).size !== cfg.collectorTimesKst.length) throw new Error('collectorTimesKst 에 중복이 있다');
   retentionFor(cfg.logRetentionDays);
   if (cfg.apiCacheMaxTtlSeconds < cfg.apiCacheDefaultTtlSeconds) {
     throw new Error('apiCacheMaxTtlSeconds 는 apiCacheDefaultTtlSeconds 이상이어야 한다');
   }
-  // qt-backend 권장: 메모리 512MB 이상, 타임아웃 20초(서비스 내부 대기 상한 15초, HTTP API 통합 상한 30초)
+  // qt-backend 권장(T16): 조회는 메모리 512MB 이상, 타임아웃 10초 안팎(DynamoDB 읽기 1회). 수집은 30초 이상(아래)
   if (cfg.lambdaMemoryMb < 512) throw new Error('lambdaMemoryMb 는 512 이상이어야 한다(qt-backend 권장)');
-  if (cfg.lambdaTimeoutSeconds < 16 || cfg.lambdaTimeoutSeconds > 30) {
-    throw new Error('lambdaTimeoutSeconds 는 16~30 이어야 한다(서비스 내부 대기 15초, HTTP API 통합 상한 30초)');
+  if (cfg.lambdaTimeoutSeconds < 3 || cfg.lambdaTimeoutSeconds > 30) {
+    throw new Error('lambdaTimeoutSeconds 는 3~30 이어야 한다(HTTP API 통합 상한 30초)');
+  }
+  if (cfg.collectorTimeoutSeconds < 30) {
+    throw new Error('collectorTimeoutSeconds 는 30 이상이어야 한다(내부 총 대기 15초 + 저장, qt-backend 권장)');
   }
   if (cfg.budgetMonthlyUsd <= 0) throw new Error('budgetMonthlyUsd 는 0보다 커야 한다');
   if (cfg.alertEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cfg.alertEmail)) {

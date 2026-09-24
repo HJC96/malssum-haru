@@ -26,7 +26,7 @@
       "staticMbPerVisit": 0.8,
       "apiCdnHitRatio": 0.3,
       "coldFraction": 0.3,
-      "checksPerProviderPerDay": 2,
+      "checksPerProviderPerDay": 4,
       "retryFactor": 0.1,
       "kbPerApiInvocation": 1.2
     },
@@ -38,7 +38,7 @@
       "staticMbPerVisit": 1.0,
       "apiCdnHitRatio": 0.6,
       "coldFraction": 0.1,
-      "checksPerProviderPerDay": 6,
+      "checksPerProviderPerDay": 4,
       "retryFactor": 0.3,
       "kbPerApiInvocation": 1.5
     },
@@ -50,7 +50,7 @@
       "staticMbPerVisit": 1.5,
       "apiCdnHitRatio": 0.7,
       "coldFraction": 0.03,
-      "checksPerProviderPerDay": 12,
+      "checksPerProviderPerDay": 4,
       "retryFactor": 1.0,
       "kbPerApiInvocation": 2.0
     }

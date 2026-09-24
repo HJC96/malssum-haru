@@ -17,6 +17,7 @@ const ALLOWED_TYPES = new Set([
   'AWS::CloudFront::Distribution',
   'AWS::CloudFront::Function',
   'AWS::CloudFront::OriginAccessControl',
+  'AWS::CloudFront::ResponseHeadersPolicy',
   'AWS::CloudWatch::Alarm',
   'AWS::DynamoDB::Table',
   'AWS::IAM::Policy',

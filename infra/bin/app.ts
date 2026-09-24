@@ -9,6 +9,8 @@ const config = resolveConfig((key) => app.node.tryGetContext(key));
 // 이 저장소의 CI에는 배포 단계가 없다. 배포는 사용자 승인 후 사람이 실행한다.
 new MalssumStack(app, 'MalssumHaru', {
   env: { region: config.region },
-  description: '말씀하루 서버리스 스택(QT 공통 데이터 전용, 개인 진도 리소스 없음)',
+  description: config.qtAcquisitionEnabled
+    ? '말씀하루 서버리스 스택 (private-preview, provider permission unconfirmed; QT 공통 데이터 전용, 개인 진도 리소스 없음)'
+    : '말씀하루 서버리스 스택(QT 공통 데이터 전용, 개인 진도 리소스 없음)',
   config,
 });

@@ -58,6 +58,11 @@ export class MalssumStack extends Stack {
     super(scope, id, props);
     const cfg = props.config;
     Tags.of(this).add('project', 'malssum-haru');
+    if (cfg.qtAcquisitionEnabled) {
+      // 자동 취득이 켜진 배포임을 리소스에서 바로 알 수 있게 한다.
+      Tags.of(this).add('stage', 'private-preview');
+      Tags.of(this).add('provider-permission', 'unconfirmed');
+    }
 
     // --- QT 공통 데이터. 개인 진도 테이블은 만들지 않는다. 키는 계약의 재수집 키 (providerId, providerDate) ---
     this.table = new dynamodb.Table(this, 'QtItems', {
@@ -73,13 +78,16 @@ export class MalssumStack extends Stack {
     this.usesPlaceholderAsset = cfg.qtLambdaAssetPath === PLACEHOLDER_ASSET;
     const code = lambda.Code.fromAsset(resolve(INFRA_ROOT, cfg.qtLambdaAssetPath));
     const bool = (v: boolean) => String(v);
+    const enabled = (v: boolean) => (v ? 'enabled' : 'disabled');
     const commonEnv: Record<string, string> = {
-      // 이름은 services/qt README(T15)와 같다. 제공처 자동 취득은 권리 확인 전까지 false.
+      // 이름은 services/qt README(T15·T16)와 같다. 기본 true 는 비공개 시험 운영 결정이며 제공처 권한은 미확인이다.
       QT_ACQUISITION_ENABLED: bool(cfg.qtAcquisitionEnabled),
       // kill switch: true 이면 해당 제공처는 계약의 DISABLED / OPERATOR_DISABLED 로 응답한다.
-      QT_PROVIDERS_MAEILSEONGYEONG_DISABLED: bool(!cfg.qtProviders.maeilSeongyeong),
-      QT_PROVIDERS_SAENGMYEONGUISAM_DISABLED: bool(!cfg.qtProviders.saengmyeongUiSam),
-      // T16(qt-backend) 저장소 계약이 확정되기 전 임시 이름이다.
+      // 제공처 kill switch. 'disabled' 이면 해당 제공처는 계약의 DISABLED / OPERATOR_DISABLED 로 응답한다.
+      QT_PROVIDER_MAEIL_SEONGYEONG: enabled(cfg.qtProviders.maeilSeongyeong),
+      QT_PROVIDER_SAENGMYEONG_UI_SAM: enabled(cfg.qtProviders.saengmyeongUiSam),
+      QT_COLLECTOR_ENABLED: enabled(cfg.collectorEnabled),
+      // QT_TABLE_NAME 이 있으면 서비스는 배포 모드(DynamoDB)로 동작한다(T16).
       QT_TABLE_NAME: this.table.tableName,
       QT_ITEM_TTL_DAYS: String(cfg.qtItemTtlDays),
       // 로그에는 본문 전문과 개인 입력을 남기지 않는다. 기본 INFO 이하
@@ -91,7 +99,7 @@ export class MalssumStack extends Stack {
 
     const apiLogs = new logs.LogGroup(this, 'QtApiLogs', { retention, removalPolicy: RemovalPolicy.DESTROY });
     this.apiFunction = new lambda.Function(this, 'QtApiFunction', {
-      description: description ?? 'GET /api/qt/today',
+      description: description ?? 'GET /api/qt/today (배포 모드에서는 DynamoDB 읽기만, 제공처 요청 없음)',
       runtime: lambda.Runtime.JAVA_21,
       architecture: lambda.Architecture.ARM_64,
       handler: cfg.qtLambdaHandler,
@@ -102,7 +110,8 @@ export class MalssumStack extends Stack {
       logGroup: apiLogs,
       environment: commonEnv,
     });
-    this.table.grantReadData(this.apiFunction); // 조회 함수는 쓰기 권한이 없다
+    // 최소 권한(qt-backend T16): 조회는 GetItem 만, Query/Scan/GSI 는 쓰지 않는다.
+    this.table.grant(this.apiFunction, 'dynamodb:GetItem');
 
     const collectorLogs = new logs.LogGroup(this, 'QtCollectorLogs', { retention, removalPolicy: RemovalPolicy.DESTROY });
     this.collectorFunction = new lambda.Function(this, 'QtCollectorFunction', {
@@ -116,7 +125,7 @@ export class MalssumStack extends Stack {
       logGroup: collectorLogs,
       environment: commonEnv,
     });
-    this.table.grantReadWriteData(this.collectorFunction);
+    this.table.grant(this.collectorFunction, 'dynamodb:GetItem', 'dynamodb:PutItem');
 
     // --- HTTP API. 라우트는 QT 공통 조회 하나뿐이다(계약 docs/contracts/qt-today.md) ---
     this.api = new apigwv2.HttpApi(this, 'HttpApi', {
@@ -159,6 +168,20 @@ export class MalssumStack extends Stack {
       ),
     });
 
+    // 검색 엔진 비노출(비공개 시험 운영) + 기본 보안 헤더
+    const responseHeaders = new cloudfront.ResponseHeadersPolicy(this, 'ResponseHeaders', {
+      comment: 'X-Robots-Tag noindex + 보안 헤더',
+      customHeadersBehavior: {
+        customHeaders: [{ header: 'X-Robots-Tag', value: 'noindex, nofollow', override: true }],
+      },
+      securityHeadersBehavior: {
+        contentTypeOptions: { override: true },
+        frameOptions: { frameOption: cloudfront.HeadersFrameOption.DENY, override: true },
+        referrerPolicy: { referrerPolicy: cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN, override: true },
+        strictTransportSecurity: { accessControlMaxAge: Duration.days(365), includeSubdomains: true, override: true },
+      },
+    });
+
     const apiCachePolicy = new cloudfront.CachePolicy(this, 'ApiCachePolicy', {
       comment: '오늘 QT 응답의 짧은 엣지 캐시. 원본 Cache-Control 을 최대 TTL 안에서 따른다',
       defaultTtl: Duration.seconds(cfg.apiCacheDefaultTtlSeconds),
@@ -173,7 +196,7 @@ export class MalssumStack extends Stack {
 
     const apiDomain = Fn.select(2, Fn.split('/', this.api.apiEndpoint));
     this.distribution = new cloudfront.Distribution(this, 'Cdn', {
-      comment: '말씀하루 웹과 API 진입점',
+      comment: '말씀하루 웹과 API 진입점 (private-preview, provider permission unconfirmed)',
       defaultRootObject: 'index.html',
       priceClass: cloudfront.PriceClass.PRICE_CLASS_200,
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
@@ -182,7 +205,7 @@ export class MalssumStack extends Stack {
         origin: origins.S3BucketOrigin.withOriginAccessControl(this.webBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        responseHeadersPolicy: cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
+        responseHeadersPolicy: responseHeaders,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
         compress: true,
         functionAssociations: [{ function: spaRewrite, eventType: cloudfront.FunctionEventType.VIEWER_REQUEST }],
@@ -192,7 +215,7 @@ export class MalssumStack extends Stack {
           origin: new origins.HttpOrigin(apiDomain, { protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY }),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
           cachePolicy: apiCachePolicy,
-          responseHeadersPolicy: cloudfront.ResponseHeadersPolicy.SECURITY_HEADERS,
+          responseHeadersPolicy: responseHeaders,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
           compress: true,
         },
@@ -212,19 +235,23 @@ export class MalssumStack extends Stack {
     }
 
     // --- 수집 스케줄(Asia/Seoul). cfg.collectorEnabled=false 이면 스케줄을 끈다 ---
-    new scheduler.Schedule(this, 'QtCollectorSchedule', {
-      description: 'QT 제공처 오늘 장절 수집',
-      schedule: scheduler.ScheduleExpression.cron({
-        minute: String(cfg.collectorMinute),
-        hour: cfg.collectorHoursKst.join(','),
-        timeZone: TimeZone.ASIA_SEOUL,
-      }),
-      target: new targets.LambdaInvoke(this.collectorFunction, {
-        retryAttempts: 1,
-        maxEventAge: Duration.minutes(30),
-        input: scheduler.ScheduleTargetInput.fromObject({ trigger: 'schedule' }),
-      }),
-      enabled: cfg.collectorEnabled,
+    // 시각마다 스케줄 하나(월 호출 수는 무료 구간 1,400만 호출 안). qt-backend 는 이미 성공한 제공처를 건너뛴다.
+    cfg.collectorTimesKst.forEach((time, i) => {
+      const [hour, minute] = time.split(':') as [string, string];
+      new scheduler.Schedule(this, `QtCollectorSchedule${i + 1}`, {
+        description: `QT 제공처 오늘 장절 수집 ${time} KST`,
+        schedule: scheduler.ScheduleExpression.cron({
+          minute: String(Number(minute)),
+          hour: String(Number(hour)),
+          timeZone: TimeZone.ASIA_SEOUL,
+        }),
+        target: new targets.LambdaInvoke(this.collectorFunction, {
+          retryAttempts: 1,
+          maxEventAge: Duration.minutes(30),
+          input: scheduler.ScheduleTargetInput.fromObject({ trigger: 'schedule' }),
+        }),
+        enabled: cfg.collectorEnabled,
+      });
     });
 
     // --- 알람(비용표는 3개 가정)과 예산. 수신 이메일이 없으면 주체를 만들지 않는다 ---
@@ -304,5 +331,10 @@ export class MalssumStack extends Stack {
 
     new CfnOutput(this, 'CloudFrontDomainName', { value: this.distribution.distributionDomainName });
     new CfnOutput(this, 'QtTableName', { value: this.table.tableName });
+    new CfnOutput(this, 'DeploymentNotice', {
+      value: cfg.qtAcquisitionEnabled
+        ? 'private-preview: provider acquisition ON, provider permission unconfirmed. Not for public release.'
+        : 'provider acquisition OFF (official links only)',
+    });
   }
 }
