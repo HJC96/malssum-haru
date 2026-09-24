@@ -34,12 +34,14 @@
 | T08 | 날짜·요일·제외일, 장/절 배분, 재계산, 진행률 | planner-core | T07 | 동일 | 계약 불변식 1~7 테스트(예시 + 무작위 property) 통과. 윤년·월 경계·빈 날·부분 장 포함 | AC03~AC06, AC08, AC23, AC24 | done(2026-09-24 lead 검증: 불변식 property 3000건, 단 실제 66권 데이터 전 SAMPLE_BIBLE 기준) |
 | T09 | 화면 골격(mock QT + mock/샘플 계획)·오늘 카드·공식 링크 대체 화면 | web-experience | T00, T01 | `web/src/{app,components,i18n,styles}/**` | mock 계약으로 5가지 상태 화면 렌더 테스트 통과 | AC11, AC18, AC26 | done(2026-09-24 lead 검증: QT 카드 5상태·i18n·axe 0건. 모바일/다크/스크린리더는 M7에서 실측) |
 | T10 | 실제 66권 데이터 확정·`web/src/data` 반영 | planner-core | T02(권고안), lead 승인 | `web/src/data/**` | 데이터 출처·버전·검증 스크립트(장 수 1189, 절 수 합계 등) 재현 가능 | M0/M2 | done(2026-09-24 lead 검증: 66권·1,189장·31,103절 직접 재계산 일치, web 214테스트 통과. 잠정 데이터, 개역개정 전수 미검증) |
-| T11 | 계획 입력·목록·캘린더·진행률·내보내기 연결 | web-experience | T08 | 위 + `web/src/export/**` | 화면·xlsx·PDF가 같은 `PlanResult` 사용, 새로고침 시 미복원 | AC10, AC17, AC20 | doing(2026-09-24 착수 승인, 실제 66권 데이터 전에는 SAMPLE_BIBLE로 개발) |
+| T11 | 계획 입력·목록·캘린더·진행률·내보내기 연결 | web-experience | T08 | 위 + `web/src/export/**` | 화면·xlsx·PDF가 같은 `PlanResult` 사용, 새로고침 시 미복원 | AC10, AC17, AC20 | done(2026-09-24 lead 검증: web 355테스트·typecheck·build, 프로덕션 번들에 fixture 없음 직접 확인, F-01·F-06·F-14·F-15 반영). 다크모드·스크린리더·색 대비는 실기 미확인 |
 | T12 | AWS 리전별 비용표(낮음/기준/증가) + 크레딧 종료 후 | platform-cost | - | `docs/cost-estimate.md` | 공식 가격 URL·확인일·환율 가정, 3 시나리오, 10,000원 대비 판정 | M0/M4 | done(2026-09-24 lead 검토: 표=모델 일치 cost:doc:check. 개역개정 사용료는 범위 밖 메모로 조정 중) |
 | T13 | 서버리스 IaC 초안 + CI | platform-cost | T05 계약 | `infra/**`, `.github/workflows/**` | `cdk synth`(또는 동등) 통과, 개인 진도 테이블/API 없음, 실제 배포는 하지 않음 | M4 | done(2026-09-24 lead 검증: infra 23테스트·typecheck·synth:ci 통과, 배포 없음. 자리표시자 산출물 배포 차단 규칙 포함) |
 | T15 | QT Lambda 진입점(Spring Cloud Function AWS 어댑터), 배포 산출물 형태 기록 | qt-backend | T05 | `services/qt/**` | 핸들러가 REST와 동일 JSON, 로컬 테스트 통과, 산출물·핸들러 문자열 문서화, 실제 AWS 호출 없음 | M4 | done(2026-09-24 lead 검증: mvn package 96통과, aws.jar 28MB. 실제 Lambda 런타임·API Gateway는 미시험) |
-| T16 | 서버리스 저장·수집 경로: DynamoDB 저장소 구현체, 스케줄 수집 함수(qtCollect), 조회 함수의 저장소 읽기·Cache-Control, IaC 환경 변수 계약 일치 | qt-backend | T13, T15 | `services/qt/**` | 인터페이스 뒤에서 메모리/DynamoDB 교체, 오늘 항목 없으면 NOT_COLLECTED_YET(어제 대체 금지), 수집 off/취득 off 동작, 테스트 통과. 실제 AWS 호출 없음 | M4 | doing |
-| T14 | M1 통합 QA | qa-review | T05, T06 | `docs/qa/**` | AC11·QT 날짜·링크·비저장 점검 결과 문서 | AC11 | doing(qa-review 검토 중) |
+| T16 | 서버리스 저장·수집 경로: DynamoDB 저장소 구현체, 스케줄 수집 함수(qtCollect), 조회 함수의 저장소 읽기·Cache-Control, IaC 환경 변수 계약 일치 | qt-backend | T13, T15 | `services/qt/**` | 인터페이스 뒤에서 메모리/DynamoDB 교체, 오늘 항목 없으면 NOT_COLLECTED_YET(어제 대체 금지), 수집 off/취득 off 동작, 테스트 통과. 실제 AWS 호출 없음 | M4 | done(2026-09-24 lead 검증: mvn package 129통과). 실제 DynamoDB·Lambda·EventBridge 연동은 미시험. 수집 skip 규칙 정정 후속 진행 |
+| T17 | AI 입력용 공개 번역본 후보 조사(KJV·WEB·ASV 등 퍼블릭 도메인/공개 라이선스, 한국어 공개 번역본 여부는 조사만) | source-rights | - | `docs/data-sources.md`(신규 절), `docs/rights-matrix.md`(신규 절) | 후보별 라이선스 근거 URL·확인일, 재배포·저장·AI 입력·AI 출력 저장 조건, 데이터 배포처(파일 형식·버전), 절 번호 체계와 개역개정 기준 QT 범위와의 대응 위험, 권고안 | M5 | done(2026-09-24 권고 WEB, ai-content 조건부 예 → 인용 금지·정렬 검사 조건으로 시작) |
+| T18 | AI 설명 서비스 골격(Java, services/ai): 캐시 키, 동일 키 단일 활성 생성, 예산·호출 제한 차단, 검토·리비전·오류 신고, 출력 검증(구절 인용 금지), WEB 입력 절 정렬 검사, 목(mock) LLM | ai-content | T17, docs/contracts/ai-explain.md | `services/ai/**` | 계약 v1 응답, AC12~AC16·AC22·AC25에 대응하는 테스트(목 LLM), 실제 LLM 호출·API 키 없음(기본 AI_GENERATION_ENABLED=false) | M5 | doing |
+| T14 | M1 통합 QA | qa-review | T05, T06 | `docs/qa/**` | AC11·QT 날짜·링크·비저장 점검 결과 문서 | AC11 | done(2026-09-24 docs/qa/M1-review.md: 차단 0, 중요 F-01·F-02(수정됨)·F-03(수정됨)·F-04~F-06 후속 배정) |
 
 ## 잠금 기준선
 

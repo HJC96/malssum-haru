@@ -193,3 +193,47 @@
 
 - 수신처(공개 안내 기준): 365qt@sarang.org, 전화 02-3489-4380(하단 표기), 문의하기 https://www.365qt.com/QT/Ask/List
 - 첫 출시 범위가 아니므로 문의 초안은 6-2와 같은 구조를 쓰되 제공처 이름과 예시 범위만 바꾸면 된다. 약관이 비영리 목적의 이용도 사전 승낙 대상으로 열거하므로 문의 시 이 점을 함께 묻는 것이 좋다. 발송 여부와 시점은 lead가 정한다.
+
+## 7. AI 입력용 공개 번역본 권리 매트릭스 (T17)
+
+- 확인일 2026-09-24. 사용자 결정: 개역개정 본문은 쓰지 않고 AI 요약·설명 입력에 무료·공개 번역본을 쓰는 방안을 검토한다.
+- 관찰과 근거만 적는다. **본문은 내려받지 않았고** 라이선스 안내와 메타데이터만 조회했다. 접근이 차단된 사이트는 조회하지 않았다. 출처, 파일, 절 번호 체계는 data-sources.md 11절에 있다.
+- 열 정의: **서버 저장·번들**은 우리 서버·DB·저장소에 본문 파일을 두는 것, **재배포**는 그 파일을 다른 사람에게 다시 내주는 것(우리는 본문을 화면에 싣지 않는 방안이지만 저장소에 파일을 두면 저장소가 재배포처가 될 수 있음), **LLM 입력**은 본문을 LLM 요청에 넣는 것, **생성 결과 저장·공개**는 그 결과를 DB에 저장하고 공개 서비스에서 재사용하는 것.
+- 상태 범례는 문서 앞부분과 같다. `확인됨`은 권리자 문서의 문구로 그 행위가 가능하다고 읽히는 경우, `미확인`은 문서에 그 행위를 다룬 문구가 없는 경우다.
+
+### 7-1. 영어 공개 번역본
+
+| 후보 | 라이선스 상태 | 서버 저장·번들·재배포 | LLM 입력 | 생성 결과 저장·공개 | 이름·상표·출처 표기 | 근거 URL |
+| --- | --- | --- | --- | --- | --- | --- |
+| WEB (`engwebp`) | 확인됨: 퍼블릭 도메인이며 저작권이 없다고 적음 | 확인됨: 복제·배포·재배포·판매·인터넷 게시·백업 등을 원하는 만큼 해도 된다고 적음 | 미확인: AI·LLM을 다룬 문구 없음(위 "use ... as much as you want" 문구는 관찰됨) | 미확인: 생성 결과를 다룬 문구 없음 | "World English Bible"은 eBible.org 상표. **본문을 실제로 바꾸면 그 결과를 WEB이라 부르지 말 것.** 출처 표기 의무는 문서에 없음 | https://ebible.org/find/details.php?id=eng-web , https://raw.githubusercontent.com/BibleNLP/ebible/main/metadata/licenses/eng-engwebp-copr.htm |
+| KJV (`eng-kjv2006`) | 확인됨: 퍼블릭 도메인 표기. 영국 내 인쇄·수입은 왕실 특허로 허가가 필요하고 영국 밖에서는 효력이 없다고 안내 | 확인됨(영국 밖 기준): 자유롭게 복사할 수 있다고 적음. 영국 관련 제한은 위 안내 | 미확인 | 미확인 | 표기 요건 없음. SWORD 모듈 `KJV`는 GPL 표기 파생물이라 쓰지 않음 | https://raw.githubusercontent.com/BibleNLP/ebible/main/metadata/licenses/eng-eng-kjv2006-copr.htm , https://crosswire.org/ftpmirror/pub/sword/raw/mods.d/kjv.conf |
+| ASV (`eng-asv`) | 확인됨: 퍼블릭 도메인 | 확인됨: 자유롭게 복사할 수 있다고 적음 | 미확인 | 미확인 | 표기 요건 없음 | https://raw.githubusercontent.com/BibleNLP/ebible/main/metadata/licenses/eng-eng-asv-copr.htm , https://crosswire.org/ftpmirror/pub/sword/raw/mods.d/asv.conf |
+| BSB (`engbsb`) | 확인됨: 2023-04-30 퍼블릭 도메인 선언 | 확인됨: 모든 사용이 자유롭게 허용된다고 적음. 파생물 재가공·상업 이용 허용 문구 있음 | 확인됨: "모든 사용" 문구(AI를 따로 언급하지는 않음) | 확인됨: 같은 문구, 결과물 저장·공개를 따로 언급하지는 않음 | 출처 표기와 링크는 "감사하나 필수 아님". 본문이 바뀐 파생물에는 Berean 이름을 쓰지 말아 달라는 요청 | https://berean.bible/licensing.htm , https://berean.bible/terms.htm |
+| BBE, Darby, YLT, Webster | 확인됨: SWORD·eBible에서 퍼블릭 도메인 표기 | 미확인(퍼블릭 도메인 표기 외 문구는 개별 확인하지 않음) | 미확인 | 미확인 | 미확인 | https://ebible.org/find/details.php?id=engbbe , https://crosswire.org/ftpmirror/pub/sword/raw/mods.d/ (`bbe.conf`, `darby.conf`, `ylt.conf`, `webster.conf`) |
+| OEB (Open English Bible) | 확인됨: SWORD에서 CC0 표기 | 확인됨(CC0 표기 기준) | 미확인 | 미확인 | 미확인 | https://crosswire.org/ftpmirror/pub/sword/raw/mods.d/oeb.conf |
+
+배포처 공통: eBible.org(USFM, USFX, SWORD 등). 대부분 `robots.txt` 제한 없음(Baiduspider만 제한). 이번에 조회한 eBible 페이지 범위에서 AI·자동 수집을 다룬 문구는 찾지 못함(`미확인`). 파일은 자주 재생성되므로 날짜와 SHA-256을 고정해야 한다(data-sources.md 11-4).
+
+### 7-2. 한국어
+
+| 후보 | 라이선스 상태 | 서버 저장·번들·재배포 | LLM 입력 | 생성 결과 저장·공개 | 이름·표기 요구 | 근거 URL |
+| --- | --- | --- | --- | --- | --- | --- |
+| Korean Bible 1910 (`kor`, eBible) | 확인됨: eBible이 Public Domain으로 표기 | 확인됨(표기 기준): eBible USFM 배포 | 미확인 | 미확인 | 미확인 | https://ebible.org/find/details.php?id=kor |
+| 개역한글판 (대한성서공회) | 확인됨(문서 문구): 저작권안내 표에 저작재산권 보호기간 소멸(2011-12-31), FAQ는 저작권료 없이 사용 가능하나 동일성유지권·성명표시권은 준수해야 한다고 안내. **이 문서는 저작권 상태를 단정하지 않음** | 미확인: 공식 오픈 배포 파일과 재배포 조건을 찾지 못함 | 미확인 | 미확인 | 성명표시·동일성 유지 준수를 안내(구체 표기 문구는 `미확인`) | https://www.bskorea.or.kr/bbs/content.php?co_id=subpage2_3_4_1 , https://www.bskorea.or.kr/bbs/board.php?bo_table=copyright_faq&wr_id=5 |
+| 개역개정 | 이 방안에서 쓰지 않음 | - | - | - | - | 2-3절 |
+
+### 7-3. 무료 API 후보
+
+| 후보 | 근거(요지) | 분류 |
+| --- | --- | --- |
+| API.Bible | 무료 Starter 플랜은 비상업 전용. 저작권 콘텐츠의 생성형 AI·LLM 학습 사용은 서면 동의 없이 금지. 캐시 30일 갱신 의무, 삭제 콘텐츠 24시간 내 제거, 하위 라이선스·제3자 배포 불가. 한국어 제공 여부 `미확인` (https://api.bible/terms-and-conditions , 확인일 2026-09-24) | 비권고 |
+| bible-api.com | IP당 30초에 15회 제한, 전체 성경 내려받기 금지 안내, 개인 취미 프로젝트, 번역본 라이선스는 "퍼블릭 도메인 또는 자유 라이선스"라고만 표기 (https://bible-api.com/) | 비권고 |
+| Bolls Bible API | 전체 성경 스크래핑 금지 문구, 라이선스 언급 없음, 저작권 번역본 혼재 (https://github.com/Bolls-Bible/bain/blob/master/docs/API.md) | 비권고 |
+| getBible | 이용 조건·호출 제한·번역본 라이선스를 찾지 못함 (https://getbible.net/) | 미확인, 근거 부족으로 비권고 |
+
+### 7-4. 관찰에서 나온 요약 (판단 아님)
+
+- 영어 후보 중 문서 문구가 LLM 입력까지 가장 넓게 읽히는 것은 BSB("모든 사용" 문구)이고, WEB·KJV·ASV는 AI를 따로 다룬 문구가 없다. 어느 후보든 이 요약은 법적 판단이 아니다.
+- WEB만 명칭 조건(상표, 본문 변경 시 명칭 사용 금지)이 있다. BSB는 변경 파생물에 이름을 쓰지 말라는 요청이 있다(의무 여부는 문서에 "요청"으로 표기).
+- 개역개정, QT 제공처의 본문·해설은 이 방안의 AI 입력 대상이 아니다.
+- 제공처(성서유니온, 두란노, 대한성서공회 등) 문의 메일은 계속 발송하지 않는다. 사용자가 며칠 써 본 뒤 결정한다는 lead 지시를 따른다.

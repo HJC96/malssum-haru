@@ -8,22 +8,22 @@
 
 ### 0-1. 비용표 결과
 
-서울 리전, 원화, 부가세 10% 포함, 환율 1,560원/USD 가정. 목표는 AWS와 LLM 합계 월 10,000원이다. **모든 사용량은 가정이며 측정값이 아니다.**
+서울 리전, 원화, 부가세 10% 포함, 환율 1,560원/USD 가정. 목표는 AWS와 LLM 합계 월 10,000원이지만, 현재 범위(오늘 장절 범위와 공식 링크만 표시, AI 보류)에서는 **AWS 단독 값이 주 판정**이고 LLM 포함 값은 보조·참고용이다. **모든 사용량은 가정이며 측정값이 아니다.**
 
 <!-- model:totals:begin -->
-| 시나리오 | AWS 정가 | AWS 크레딧 종료 후 | LLM Haiku 4.5 | LLM Sonnet 5 | 종료 후 + Haiku | 정가 + Haiku | 종료 후 + Sonnet 5 | 정가 + Sonnet 5 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 낮음 | 1,284 | 586 | 1,048 | 2,724 | 1,633 | 2,331 | 3,309 | 4,008 |
-| 기준 | 8,161 | 667 | 3,657 | 9,509 | 4,324 | 11,818 (초과) | 10,175 (초과) | 17,670 (초과) |
-| 증가(공개 직후, 한 달 내내 지속 가정) | 108,288 | 2,295 | 7,619 | 19,810 | 9,914 | 115,907 (초과) | 22,105 (초과) | 128,098 (초과) |
+| 시나리오 | **AWS 단독, 정가** (주 판정) | **AWS 단독, 크레딧 종료 후** (주 판정) | 참고(AI 보류): 종료 후 + Haiku 4.5 | 참고: 정가 + Haiku 4.5 | 참고: 종료 후 + Sonnet 5 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 낮음 | 1,309 | 586 | 1,634 | 2,357 | 3,310 |
+| 기준 | 8,131 | 666 | 4,323 | 11,788 (초과) | 10,174 (초과) |
+| 증가(공개 직후, 한 달 내내 지속 가정) | 108,108 (초과) | 2,292 | 9,911 | 115,727 (초과) | 22,101 (초과) |
 <!-- model:totals:end -->
 
-열 설명: "AWS 정가"는 무료 구간과 크레딧을 전혀 반영하지 않은 값, "AWS 크레딧 종료 후"는 신규 계정 크레딧이 끝나고 공식 페이지에 기간 제한 없이 적힌 상시 무료 구간만 반영한 값이다. LLM은 결정이 아니라 두 모델의 산식 결과이며, **AI 공개는 본문 사용 권한 확인 전까지 보류 중이다.** 도메인 등록비와 콘텐츠 사용료는 포함하지 않았다.
+열 설명: 앞의 두 열이 주 판정이다. "AWS 정가"는 무료 구간과 크레딧을 전혀 반영하지 않은 값, "AWS 크레딧 종료 후"는 신규 계정 크레딧이 끝나고 공식 페이지에 기간 제한 없이 적힌 상시 무료 구간만 반영한 값이다. 뒤의 세 열은 AI를 켤 경우를 위한 참고값으로, 두 모델의 산식 결과일 뿐 결정이 아니며 **AI 공개는 본문 사용 권한 확인 전까지 보류 중이다.** 도메인 등록비는 포함하지 않았다. **콘텐츠 사용료: 본문을 표시하지 않으므로 해당 없음**(개역개정 등 본문 표시로 범위를 넓힐 때만 재검토. 대한성서공회 요금은 미확인, 출처 확인 중이라 이 문서에서는 금액을 쓰지 않는다).
 
 읽는 법:
 
 1. **트래픽 비용은 CloudFront 전송량이 거의 전부다.** 정가 기준 시나리오에서 CloudFront 전송이 AWS 비용의 약 74%, 요청까지 합치면 약 87%다. Lambda, API Gateway, DynamoDB, Scheduler는 합쳐도 월 1달러 미만이다(5장 표).
-2. **10,000원 이내 판정은 CloudFront 상시 무료 구간(월 1TB, 요청 1,000만)에 의존한다.** 공식 페이지에 "Always Free"로 적혀 있다. 이 구간이 없다고 본 "정가" 열에서는 기준 시나리오가 AI를 더하면 초과한다. "증가" 시나리오는 무료 구간 없이는 어떤 조정으로도 예산 안에 들지 않고, 무료 구간이 있어도 Haiku 4.5 기준으로 여유가 100원도 안 된다(표의 "종료 후 + Haiku").
+2. **AWS 단독으로는 낮음·기준 시나리오가 정가에서도 10,000원 이내이고, 크레딧 종료 후에는 증가 시나리오까지 이내다.** 다만 증가 시나리오의 이내 판정은 CloudFront 상시 무료 구간(월 1TB, 요청 1,000만)에 전적으로 의존한다(공식 페이지에 "Always Free"로 적힘). 무료 구간이 없다고 본 정가에서는 증가 시나리오가 초과하며 어떤 조정으로도 예산 안에 들지 않는다. AI를 더하면(참고 열) 기준 시나리오의 정가 값이 초과하고, 증가 시나리오는 Haiku 4.5로도 여유가 100원도 안 된다.
 3. **LLM은 모델 선택이 가장 큰 변수다.** 같은 생성 횟수에서 Haiku 4.5 대비 Sonnet 5는 약 2.6배, Opus 5.5는 약 5.2배, Fable 5.1은 약 13배다(7장).
 4. **AI 비용은 방문자 수가 아니라 "서버가 생성하는 횟수"로 정해진다.** 애플리케이션이 월 생성 횟수 상한을 강제해야 예산이 지켜진다(10-1절). IaC에는 `aiMonthlyGenerationLimit` 환경 변수만 전달하며 집행은 앱 코드의 몫이다.
 5. **AWS Budgets 알림은 과금 차단 장치가 아니다.** 알림 전용으로만 만들었고, Anthropic API 비용은 AWS 청구서에 보이지 않는다(11장).
@@ -32,22 +32,22 @@
 
 ### 0-2. IaC 변경 내역 (AWS CDK, TypeScript. 배포하지 않음)
 
-`infra/` 에 작성했고 `cdk synth` 와 단위·스냅샷 테스트가 통과한다(8장의 검증 기록). CDK를 고른 근거: 계획서의 기본 후보이고 web과 같은 TypeScript 도구 체인이라 스택을 코드로 테스트할 수 있다. SAM은 Lambda 중심이라 CloudFront·Budgets 기술이 CloudFormation 원문으로 늘고, Terraform은 별도 HCL과 상태 저장소가 필요하다.
+`infra/` 에 작성했고(qt-backend T15·T16의 핸들러·환경 변수·테이블 계약에 맞춤) `cdk synth` 와 단위·스냅샷 테스트가 통과한다(8장의 검증 기록). CDK를 고른 근거: 계획서의 기본 후보이고 web과 같은 TypeScript 도구 체인이라 스택을 코드로 테스트할 수 있다. SAM은 Lambda 중심이라 CloudFront·Budgets 기술이 CloudFormation 원문으로 늘고, Terraform은 별도 HCL과 상태 저장소가 필요하다.
 
 **만들어지는 리소스(스택 `MalssumHaru`, 기본 리전 `ap-northeast-2`)**
 
 | 영역 | 리소스 | 비용 관련 메모 |
 | --- | --- | --- |
-| 정적 웹 | S3 버킷(비공개, OAC), CloudFront 배포 1개(가격 등급 200, 접속 로그 끔), 경로 재작성 CloudFront Function 1개 | 재작성 함수는 기본 동작에만 연결 |
+| 정적 웹 | S3 버킷(비공개, OAC), CloudFront 배포 1개(가격 등급 200, 접속 로그 끔), 경로 재작성 CloudFront Function 1개, 응답 헤더 정책(`X-Robots-Tag: noindex, nofollow` + 보안 헤더) | 재작성 함수는 기본 동작에만 연결. 헤더 정책 요금은 미확인 |
 | API | HTTP API 1개, 라우트는 `GET /api/qt/today` 하나, 기본 스테이지 스로틀(초당 20, 버스트 40), 액세스 로그 없음 | CloudFront `/api/*` 동작이 60초(최대 300초) 엣지 캐시 |
-| 실행 | Lambda 2개: 조회(`QtApiFunction`), 수집(`QtCollectorFunction`). Java 21, arm64, 1,024MB. 조회 함수는 DynamoDB 읽기만 가능 | 산출물은 자리표시자(아래) |
-| 데이터 | DynamoDB 테이블 1개(키 `providerId` + `providerDate`, 온디맨드, TTL 400일, 삭제 보호) | **개인 진도·계획 테이블은 없다** |
-| 일정 | EventBridge Scheduler 1개(Asia/Seoul, 하루 6회, 재시도 1회, 끄기 파라미터) | 기본 6회는 비용표 기준 시나리오와 같다 |
+| 실행 | Lambda 2개(같은 `-aws.jar`): 조회(`QtApiFunction`, 핸들러 `kr.malssumharu.qt.lambda.QtLambdaHandler::handleRequest`, 타임아웃 10초, DynamoDB `GetItem`만), 수집(`QtCollectorFunction`, 핸들러 `kr.malssumharu.qt.lambda.QtCollectHandler::handleRequest`, 타임아웃 60초, `GetItem`+`PutItem`만). Java 21, arm64, 1,024MB | 산출물은 자리표시자(아래). 배포할 산출물은 `services/qt/target/qt-service-0.0.1-SNAPSHOT-aws.jar` |
+| 데이터 | DynamoDB 테이블 1개(키 `providerId` + `providerDate`, TTL `expiresAt`, 온디맨드, 항목 보관 400일, 삭제 보호). Query/Scan/GSI 없음 | **개인 진도·계획 테이블은 없다** |
+| 일정 | EventBridge Scheduler 4개(Asia/Seoul 00:05, 00:35, 06:00, 12:00, 재시도 1회, 끄기 파라미터) | 하루 4회는 비용표와 같다. 이미 성공한 제공처는 서비스가 건너뛴다(qt-backend) |
 | 로그 | 함수별 로그 그룹 2개, 보존 14일(무기한 허용 안 함) | |
 | 알림 | CloudWatch 알람 3개(조회 오류, 수집 오류, API 5xx), 알림 이메일이 있을 때만 SNS 주제와 AWS Budgets 월 예산(알림 전용) | 알람 3개가 비용표의 고정비 |
-| 비밀 | **만들지 않음.** SSM Parameter Store 파라미터 이름만 환경 변수로 전달, AI를 켤 때만 그 파라미터 하나의 `ssm:GetParameter` 권한 | 값은 사용자가 직접 SecureString 으로 넣는다 |
+| 비밀 | **없음.** 지금 서비스는 비밀이 필요 없어 Secrets Manager, SSM 권한을 만들지 않았다(테스트가 검사). AI 서비스가 생기면 SSM SecureString 이름 참조와 단일 파라미터 읽기 권한만 추가한다 | AI는 IaC에 넣지 않았다(보류) |
 
-**설정 파라미터(`-c 이름=값`)**: `providerMaeilSeongyeong`, `providerSaengmyeongUiSam`(제공처 연동 끄기), `collectorEnabled`, `collectorHoursKst`, `aiGenerationEnabled`(기본 false)와 `aiMonthlyGenerationLimit`, `logRetentionDays`, `apiCacheDefaultTtlSeconds`, `apiThrottleRatePerSecond`, `alertEmail`, `budgetMonthlyUsd`(기본 6), `qtLambdaAssetPath`, `region`, `retainData`.
+**설정 파라미터(`-c 이름=값`)**: `qtAcquisitionEnabled`(제공처 자동 취득, **기본 true = 사용자 혼자 쓰는 비공개 시험 운영. 제공처 권한은 미확인이며 공개 전에 다시 정한다**), `providerMaeilSeongyeong`, `providerSaengmyeongUiSam`(제공처 연동 끄기), `collectorEnabled`, `collectorTimesKst`(`HH:MM` 목록), `logRetentionDays`, `apiCacheDefaultTtlSeconds`, `apiThrottleRatePerSecond`, `alertEmail`, `budgetMonthlyUsd`(기본 6), `qtLambdaAssetPath`(예: `../services/qt/target/qt-service-0.0.1-SNAPSHOT-aws.jar`), `region`, `retainData`.
 
 **안전장치**
 
@@ -59,10 +59,10 @@
 
 ### 0-3. 사용자 결정이 필요한 것
 
-- 실제 배포 전: AWS 리전(권고: 서울 `ap-northeast-2`), 계정 요금제(유료 요금제 + 신규 크레딧 권고, 6장), 도메인 포함 여부, 예산·알람 수신 이메일.
+- 실제 배포 전: AWS 리전(권고: 서울 `ap-northeast-2`), 계정 요금제(유료 요금제 + 신규 크레딧 권고, 6장), 도메인 포함 여부, 예산·알람 수신 이메일. 사용자는 본문을 표시하지 않으므로 콘텐츠 사용료 항목은 해당 없음이다.
 - AI를 켤 때: 모델, 월 생성 횟수 상한, 월 LLM 예산 상한. 이 문서는 결정하지 않는다.
 - 실제 청구 통화(USD 또는 KRW)와 세율 확인. 이 문서는 USD 단가에 환율 1,560원과 부가세 10%를 가정했다.
-- 웹 산출물의 방문당 전송 예산(정가 기준에서 가장 큰 지렛대, 10-3절).
+- 웹 산출물의 방문당 전송 예산. lead가 web-experience에 초기 로드 gzip 150KB 이하를 요청했다. 이 문서의 시나리오 가정(방문당 0.8/1.0/1.5MB)은 그보다 보수적이며, 예산이 지켜지면 11장의 0.3MB 행(정가 기준 3,938원)에 가까워진다(측정 전).
 
 ## 1. 범위와 정의
 
@@ -74,7 +74,7 @@
 
 포함: CloudFront(Functions 포함), S3, API Gateway HTTP API, Lambda(Java 21, arm64), DynamoDB(온디맨드), EventBridge Scheduler, CloudWatch Logs와 알람, Budgets, SSM Parameter Store(Standard), LLM 호출.
 
-포함하지 않음(별도 표시): 도메인 등록비(미확인), 콘텐츠 사용료(개역개정, QT 제공처 이용료: 미정), AWS WAF(사용하지 않음, 가격 미확인), AWS Support, 개발 중 CI 비용(GitHub Actions는 AWS 비용이 아님), 세금 외 결제 수수료.
+포함하지 않음(별도 표시): 도메인 등록비(미확인), 콘텐츠 사용료(본문 미표시로 **해당 없음**, 본문 표시로 넓힐 때만 재검토), AWS WAF(사용하지 않음, 가격 미확인), AWS Support, 개발 중 CI 비용(GitHub Actions는 AWS 비용이 아님), 세금 외 결제 수수료.
 
 환율·세금 가정:
 
@@ -172,7 +172,7 @@ CloudFront(리전 무관, 사용자가 접속하는 엣지 위치 기준). 한�
 | 정적 파일 요청(방문당) | 15 | 15 | 20 | 가정. 첫 방문 위주일수록 많음 |
 | 정적 전송량(방문당 MB) | 0.8 | 1.0 | 1.5 | 가정. 시스템 글꼴, 코드 분할, 내보내기 라이브러리는 필요할 때만 로드한다고 가정. 웹 산출물이 나오면 실측으로 교체 |
 | API 엣지 캐시 적중률 | 30% | 60% | 70% | 가정. `Cache-Control` 짧은 TTL을 CloudFront에 두는 설계(예: 60초). 민감도는 11절 표 |
-| QT 수집(제공처당 하루 확인) | 2 | 6 | 12 | 가정. 제공처 2곳 |
+| QT 수집(제공처당 하루 확인) | 4 | 4 | 4 | IaC 스케줄 고정: 00:05, 00:35, 06:00, 12:00 KST 4회(lead 결정). 제공처 2곳 |
 | 수집 재시도(추가 시도 비율) | 10% | 30% | 100% | 가정. 실패한 확인을 같은 호출에서 다시 시도하는 비율 |
 | Lambda 메모리 | 1,024MB | 1,024MB | 1,024MB | 가정. Spring Boot Java 21 기준. 실측 필요 |
 | Lambda 실행 시간(웜) | 150ms | 150ms | 150ms | 가정. 미측정 |
@@ -228,18 +228,18 @@ node --test infra/cost/model.test.mjs   # 산식 단위 테스트
 | API Gateway·Lambda 도달(캐시 미스) | 2,100 | 18,000 | 180,000 |
 | CloudFront 요청(정적+API) | 48,000 | 495,000 | 6,600,000 |
 | CloudFront 전송(GB) | 2.3 | 29.3 | 439.5 |
-| Lambda 요청(API+수집) | 2,220 | 18,360 | 180,720 |
-| Lambda GB-초 | 4,521 | 15,444 | 65,520 |
+| Lambda 요청(API+수집) | 2,340 | 18,240 | 180,240 |
+| Lambda GB-초 | 5,577 | 14,196 | 57,840 |
 | 콜드 스타트 수 | 630 | 1,800 | 5,400 |
-| 수집 Lambda 호출(=Scheduler 호출) | 120 | 360 | 720 |
-| 로그 수집(GB) | 0.003 | 0.027 | 0.345 |
+| 수집 Lambda 호출(=Scheduler 호출) | 240 | 240 | 240 |
+| 로그 수집(GB) | 0.003 | 0.026 | 0.344 |
 | DynamoDB 읽기 단위 | 4,200 | 36,000 | 360,000 |
-| DynamoDB 쓰기 단위 | 360 | 1,080 | 2,160 |
+| DynamoDB 쓰기 단위 | 720 | 720 | 720 |
 | 피크 시간 API 요청(초당, 엣지 포함) | 0.01 | 0.08 | 1.11 |
 | 피크 시간 API 원본 도달(초당) | 0.00 | 0.03 | 0.33 |
 <!-- model:usage:end -->
 
-피크는 초당 1건 안팎이라 API Gateway와 Lambda의 처리량이나 동시 실행은 문제가 되지 않는다. PRD의 동시 사용자 20명 검증 조건은 비용이 아니라 콜드 스타트 지연의 문제다(10-4절). 수집 Lambda 호출 수는 제공처 수 x 확인 횟수로 셌는데, IaC의 스케줄은 한 번의 호출이 두 제공처를 모두 처리하므로 실제 호출 수는 이 값의 절반이다(보수적 과대 계산).
+피크는 초당 1건 안팎이라 API Gateway와 Lambda의 처리량이나 동시 실행은 문제가 되지 않는다. PRD의 동시 사용자 20명 검증 조건은 비용이 아니라 콜드 스타트 지연의 문제다(10-4절). 수집 Lambda 호출 수는 제공처 수 x 확인 횟수(4)로 셌는데, IaC의 스케줄은 한 번의 호출이 두 제공처를 모두 처리하므로 실제 호출 수는 이 값의 절반이다(보수적 과대 계산).
 
 ## 5. AWS 비용 (서울)
 
@@ -252,18 +252,18 @@ node --test infra/cost/model.test.mjs   # 산식 단위 테스트
 | CloudFront 요청 | 0.06 | 0.59 | 7.92 |
 | CloudFront Functions | 0.0045 | 0.04 | 0.60 |
 | API Gateway | 0.0026 | 0.02 | 0.22 |
-| Lambda 요청 | 0.0004 | 0.0037 | 0.04 |
-| Lambda 실행(arm64) | 0.06 | 0.21 | 0.87 |
+| Lambda 요청 | 0.0005 | 0.0036 | 0.04 |
+| Lambda 실행(arm64) | 0.07 | 0.19 | 0.77 |
 | DynamoDB 읽기 | 0.0006 | 0.0049 | 0.05 |
-| DynamoDB 쓰기 | 0.0002 | 0.0007 | 0.0015 |
+| DynamoDB 쓰기 | 0.0005 | 0.0005 | 0.0005 |
 | DynamoDB 저장 | 0.0027 | 0.0027 | 0.0027 |
 | S3 | 0.04 | 0.04 | 0.10 |
-| CloudWatch Logs | 0.0021 | 0.02 | 0.27 |
+| CloudWatch Logs | 0.0024 | 0.02 | 0.27 |
 | CloudWatch 알람 3개 | 0.30 | 0.30 | 0.30 |
-| EventBridge Scheduler | 0.0001 | 0.0004 | 0.0008 |
+| EventBridge Scheduler | 0.0003 | 0.0003 | 0.0003 |
 | Budgets, SSM Standard(추가 요금 없음) | 0.0000 | 0.0000 | 0.0000 |
-| **합계 USD** | **0.75** | **4.76** | **63.11** |
-| **합계 원** (환율 1,560, 부가세 10%) | **1,284** | **8,161** | **108,288** |
+| **합계 USD** | **0.76** | **4.74** | **63.00** |
+| **합계 원** (환율 1,560, 부가세 10%) | **1,309** | **8,131** | **108,108** |
 <!-- model:awsList:end -->
 
 ### 5-B. 크레딧 종료 후 (상시 무료 반영: CloudFront 1TB·요청 1,000만·Functions 200만, Lambda 100만 요청·400,000 GB-초, Scheduler 1,400만, DynamoDB 저장 25GB)
@@ -278,15 +278,15 @@ node --test infra/cost/model.test.mjs   # 산식 단위 테스트
 | Lambda 요청 | 0.0000 | 0.0000 | 0.0000 |
 | Lambda 실행(arm64) | 0.0000 | 0.0000 | 0.0000 |
 | DynamoDB 읽기 | 0.0006 | 0.0049 | 0.05 |
-| DynamoDB 쓰기 | 0.0002 | 0.0007 | 0.0015 |
+| DynamoDB 쓰기 | 0.0005 | 0.0005 | 0.0005 |
 | DynamoDB 저장 | 0.0000 | 0.0000 | 0.0000 |
 | S3 | 0.04 | 0.04 | 0.10 |
-| CloudWatch Logs | 0.0021 | 0.02 | 0.27 |
+| CloudWatch Logs | 0.0024 | 0.02 | 0.27 |
 | CloudWatch 알람 3개 | 0.30 | 0.30 | 0.30 |
 | EventBridge Scheduler | 0.0000 | 0.0000 | 0.0000 |
 | Budgets, SSM Standard(추가 요금 없음) | 0.0000 | 0.0000 | 0.0000 |
 | **합계 USD** | **0.34** | **0.39** | **1.34** |
-| **합계 원** (환율 1,560, 부가세 10%) | **586** | **667** | **2,295** |
+| **합계 원** (환율 1,560, 부가세 10%) | **586** | **666** | **2,292** |
 <!-- model:awsPost:end -->
 
 이 표의 가장 큰 항목은 트래픽이 아니라 **알람 3개(월 0.30달러)** 다. CloudWatch 알람에는 무료 구간(월 10개)이 가격표에 있으나 상시 여부를 확인하지 못해 뺐다.
@@ -298,15 +298,15 @@ AWS 월 합계(원, 부가세 포함, 환율 1,560). LLM 제외.
 <!-- model:regions:begin -->
 | 리전 | 시나리오 | 정가 | 크레딧 종료 후 |
 | --- | --- | ---: | ---: |
-| 서울 ap-northeast-2 | 낮음 | 1,284 | 586 |
-| 서울 ap-northeast-2 | 기준 | 8,161 | 667 |
-| 서울 ap-northeast-2 | 증가(공개 직후, 한 달 내내 지속 가정) | 108,288 | 2,295 |
-| 도쿄 ap-northeast-1 | 낮음 | 1,285 | 587 |
-| 도쿄 ap-northeast-1 | 기준 | 8,165 | 670 |
-| 도쿄 ap-northeast-1 | 증가(공개 직후, 한 달 내내 지속 가정) | 108,319 | 2,325 |
-| 버지니아 북부 us-east-1 | 낮음 | 1,280 | 582 |
-| 버지니아 북부 us-east-1 | 기준 | 8,140 | 646 |
-| 버지니아 북부 us-east-1 | 증가(공개 직후, 한 달 내내 지속 가정) | 108,069 | 2,076 |
+| 서울 ap-northeast-2 | 낮음 | 1,309 | 586 |
+| 서울 ap-northeast-2 | 기준 | 8,131 | 666 |
+| 서울 ap-northeast-2 | 증가(공개 직후, 한 달 내내 지속 가정) | 108,108 | 2,292 |
+| 도쿄 ap-northeast-1 | 낮음 | 1,311 | 588 |
+| 도쿄 ap-northeast-1 | 기준 | 8,135 | 669 |
+| 도쿄 ap-northeast-1 | 증가(공개 직후, 한 달 내내 지속 가정) | 108,139 | 2,322 |
+| 버지니아 북부 us-east-1 | 낮음 | 1,305 | 582 |
+| 버지니아 북부 us-east-1 | 기준 | 8,110 | 645 |
+| 버지니아 북부 us-east-1 | 증가(공개 직후, 한 달 내내 지속 가정) | 107,890 | 2,074 |
 <!-- model:regions:end -->
 
 판단:
@@ -346,10 +346,10 @@ AWS 월 합계(원, 부가세 포함, 환율 1,560). LLM 제외.
 <!-- model:aiRoom:begin -->
 | 모델 (1회 원) | AWS 정가 기준 잔액(원) | 가능 횟수 | AWS 크레딧 종료 후 기준 잔액(원) | 가능 횟수 |
 | --- | ---: | ---: | ---: | ---: |
-| Claude Haiku 4.5 (31.7원) | 1,839 | 57 | 9,333 | 294 |
-| Claude Sonnet 5 (82.5원) | 1,839 | 22 | 9,333 | 113 |
-| Claude Opus 5.5 (165.1원) | 1,839 | 11 | 9,333 | 56 |
-| Claude Fable 5.1 (412.7원) | 1,839 | 4 | 9,333 | 22 |
+| Claude Haiku 4.5 (31.7원) | 1,869 | 58 | 9,334 | 294 |
+| Claude Sonnet 5 (82.5원) | 1,869 | 22 | 9,334 | 113 |
+| Claude Opus 5.5 (165.1원) | 1,869 | 11 | 9,334 | 56 |
+| Claude Fable 5.1 (412.7원) | 1,869 | 4 | 9,334 | 22 |
 <!-- model:aiRoom:end -->
 
 하루 2개 범위를 한국어·영어로 생성하면 월 최소 120회다. 표에 따르면 **Haiku 4.5는 크레딧 종료 후 기준으로 들어오고, Sonnet 5는 배치 API나 횟수 상한이 있어야 들어오며, Opus 5.5 이상은 이 예산 구조에서 매일 두 언어 생성이 어렵다.** 품질과 사람 검토 비용은 이 표에 없다.
@@ -359,7 +359,7 @@ AWS 월 합계(원, 부가세 포함, 환율 1,560). LLM 제외.
 | 검증 | 명령 | 결과 |
 | --- | --- | --- |
 | 타입 검사 | `pnpm --filter malssum-haru-infra typecheck` (`tsc --noEmit`, TypeScript 7.0.2) | 통과 |
-| 단위·스냅샷 테스트 | `pnpm --filter malssum-haru-infra test` (`node --import tsx --test`) | 23개 통과. 개인 진도·계획 리소스 부재, 리소스 유형 허용 목록, 라우트 1개, 조회 함수 쓰기 권한 없음, 비밀 값 없음, 로그 보존, S3 비공개, 설정 검증, 스냅샷, CI에 배포 단계 없음 |
+| 단위·스냅샷 테스트 | `pnpm --filter malssum-haru-infra test` (`node --import tsx --test`) | 27개 통과. 개인 진도·계획 리소스 부재, 리소스 유형 허용 목록, 라우트 1개, 조회 함수 쓰기 권한 없음, 비밀 값 없음, 로그 보존, S3 비공개, 설정 검증, noindex 헤더, 비공개 시험 운영 표시, VPC 없음·쓰기 권한 분리, 스냅샷, CI에 배포 단계 없음 |
 | 합성 | `pnpm --filter malssum-haru-infra synth:ci` (`cdk synth`, 자격 증명 없이) | 통과. 경고 2개(자리표시자 산출물, 웹 산출물 없음)는 의도한 것 |
 | 비용 모델 테스트 | `pnpm --filter malssum-haru-infra cost:test` | 6개 통과 |
 | 문서 표와 모델 일치 | `pnpm --filter malssum-haru-infra cost:doc:check` | 통과 |
@@ -407,12 +407,12 @@ AWS 월 합계(원, 부가세 포함, 환율 1,560). LLM 제외.
 <!-- model:adjust:begin -->
 | 시나리오 | 조정 | AWS 정가 | AWS 종료 후 | 정가 + Haiku 배치 | 종료 후 + Sonnet 5 배치 |
 | --- | --- | ---: | ---: | ---: | ---: |
-| 기준 | 기준 그대로 | 8,161 | 667 | 9,990 | 5,421 |
-| 기준 | 방문당 전송 0.5MB | 5,145 | 667 | 6,973 | 5,421 |
-| 기준 | 방문당 전송 0.5MB + API 캐시 90% | 4,879 | 606 | 6,707 | 5,360 |
-| 증가(공개 직후, 한 달 내내 지속 가정) | 기준 그대로 | 108,288 | 2,295 | 112,098 (초과) | 12,200 (초과) |
-| 증가(공개 직후, 한 달 내내 지속 가정) | 방문당 전송 0.5MB | 47,960 | 2,295 | 51,770 (초과) | 12,200 (초과) |
-| 증가(공개 직후, 한 달 내내 지속 가정) | 방문당 전송 0.5MB + API 캐시 90% | 46,482 | 1,682 | 50,292 (초과) | 11,586 (초과) |
+| 기준 | 기준 그대로 | 8,131 | 666 | 9,960 | 5,420 |
+| 기준 | 방문당 전송 0.5MB | 5,115 | 666 | 6,943 | 5,420 |
+| 기준 | 방문당 전송 0.5MB + API 캐시 90% | 4,849 | 605 | 6,678 | 5,360 |
+| 증가(공개 직후, 한 달 내내 지속 가정) | 기준 그대로 | 108,108 | 2,292 | 111,918 (초과) | 12,196 (초과) |
+| 증가(공개 직후, 한 달 내내 지속 가정) | 방문당 전송 0.5MB | 47,780 | 2,292 | 51,589 (초과) | 12,196 (초과) |
+| 증가(공개 직후, 한 달 내내 지속 가정) | 방문당 전송 0.5MB + API 캐시 90% | 46,302 | 1,678 | 50,111 (초과) | 11,583 (초과) |
 <!-- model:adjust:end -->
 
 - 증가 시나리오는 정가 기준으로는 위 조정을 모두 해도 예산 밖이다. 이 규모의 정가 방어는 불가능하며 상시 무료 구간이나 정액제 Free 플랜 같은 요금 모델의 특성에 기대야 한다. 증가 시나리오가 실제로 발생하면 예산 목표를 다시 검토해야 한다.
@@ -431,16 +431,17 @@ AWS 월 합계(원, 부가세 포함, 환율 1,560). LLM 제외.
 <!-- model:sensitivity:begin -->
 | 경우 (AWS만, 원) | 정가 | 크레딧 종료 후 |
 | --- | ---: | ---: |
-| 기준 | 8,161 | 667 |
-| API 엣지 캐시 0% | 8,693 | 788 |
-| API 엣지 캐시 90% | 7,895 | 606 |
-| 방문당 전송 0.5MB | 5,145 | 667 |
-| 방문당 전송 3MB | 20,227 | 667 |
-| 로그 방문당 20KB(상세 로그) | 8,583 | 1,089 |
-| SnapStart 사용(1GB, 활성 버전 1) | 16,855 | 9,360 |
-| Secrets Manager 시크릿 1개 | 8,847 | 1,353 |
-| Route 53 호스팅 영역 1개(도메인 등록비 제외) | 9,019 | 1,525 |
-| 환율 1,365원(2026-09-23 값) | 7,141 | - |
+| 기준 | 8,131 | 666 |
+| API 엣지 캐시 0% | 8,663 | 787 |
+| API 엣지 캐시 90% | 7,865 | 605 |
+| 방문당 전송 0.3MB(초기 로드 gzip 150KB 예산 + 여유) | 3,908 | 666 |
+| 방문당 전송 0.5MB | 5,115 | 666 |
+| 방문당 전송 3MB | 20,197 | 666 |
+| 로그 방문당 20KB(상세 로그) | 8,553 | 1,088 |
+| SnapStart 사용(1GB, 활성 버전 1) | 16,825 | 9,360 |
+| Secrets Manager 시크릿 1개 | 8,818 | 1,352 |
+| Route 53 호스팅 영역 1개(도메인 등록비 제외) | 8,989 | 1,524 |
+| 환율 1,365원(2026-09-23 값) | 7,115 | - |
 <!-- model:sensitivity:end -->
 
 - 정가 기준으로 가장 큰 영향은 방문당 전송량과 SnapStart다. 크레딧 종료 후 기준에서는 트래픽보다 **고정비**(알람, Route 53 영역, Secrets Manager, SnapStart)가 지배한다.
@@ -474,32 +475,57 @@ IaC의 Budgets는 알림 전용이다(테스트가 동작 리소스가 없음을
 | CloudFront 정액제 초과 시 전송 조정의 실제 영향, CDK 지원 | 미확인 |
 | AWS Budgets가 세금을 포함해 집계하는지 | 미확인 |
 | Lambda 계정 동시성 할당량(신규 계정) | 미확인 |
-| SNS 이메일 알림 요금 | 조회 안 함(소량, 비용표 미포함) |
+| SNS 이메일 알림 요금, CloudFront 응답 헤더 정책 요금 | 조회 안 함(소량 또는 추가 요금 없음으로 알려져 있으나 미확인, 비용표 미포함) |
 | AWS WAF 요금, KMS 사용자 관리 키 요금 | 조회 안 함(사용 안 함) |
 | Java Lambda 콜드 스타트 시간, 실행 시간, Spring Cloud Function 어댑터 메모리 요구량 | 미측정 |
 | Bedrock 경유 Claude 가격 | 조회 안 함 |
-| 콘텐츠(개역개정·QT 제공처) 이용료 | 미정. 예산에서 제외 |
+| 콘텐츠(개역개정·QT 제공처) 이용료 | 본문을 표시하지 않아 해당 없음. 범위를 넓힐 때 재검토(대한성서공회 요금은 미확인) |
+| 수집 Lambda의 실제 시간과 DynamoDB 첫 호출 콜드 비용 | 시도당 8초 가정, 미측정 |
 | 토크나이저 배율 1.3 | 공식 페이지의 "약 30%"를 그대로 적용. 한국어에서 실제 배율은 측정 필요 |
 | Price List 게시 후 요금 변경 | 배포 시점에 재조회 필요(`fetch-prices.mjs` 재실행 후 `update-doc.mjs`) |
 | SSM SecureString의 AWS 관리형 키(alias/aws/ssm) 사용 시 IAM 권한 | 추가 kms 권한 없이 동작한다고 가정. 배포 전 확인 |
 
-## 14. 서비스 코드와 맞춰야 하는 IaC 계약 (qt-backend·lead 확인 필요)
+## 14. 서비스 코드와 맞춰야 하는 IaC 계약 (qt-backend T15·T16 확정, 2026-09-24)
 
-IaC가 Lambda에 넣는 환경 변수와 기대는 아래와 같다. `services/qt` 가 확정되면 이 목록과 `infra/lib/config.ts` 의 기본값(핸들러, 함수 정의 이름)을 맞춘다. 지금의 이름은 임시다.
+| 이름 | 값 |
+| --- | --- |
+| 배포 산출물(두 함수 공통) | `services/qt/target/qt-service-0.0.1-SNAPSHOT-aws.jar`(shaded, 약 35MB), 런타임 java21. `-exec.jar`와 일반 jar는 배포하지 않는다 |
+| 조회 핸들러 | `kr.malssumharu.qt.lambda.QtLambdaHandler::handleRequest`(빈 `qtToday`), HTTP API payload 2.0, `GET /api/qt/today`. 응답에 `Cache-Control: public, max-age=60`(엣지 기본 TTL 60초와 일치) |
+| 수집 핸들러 | `kr.malssumharu.qt.lambda.QtCollectHandler::handleRequest`(빈 `qtCollect`), 스케줄이 `{"trigger":"schedule"}` 로 호출, 그 밖의 입력은 `IGNORED` |
+| 함수 이름 환경 변수 | 불필요(핸들러가 고정). `SPRING_CLOUD_FUNCTION_DEFINITION` 은 넣지 않는다 |
+| `QT_TABLE_NAME` | 있으면 배포 모드(DynamoDB). 조회는 서울 오늘 항목만 읽고 제공처에 요청하지 않는다 |
+| `QT_ITEM_TTL_DAYS` | 400 |
+| `QT_COLLECTOR_ENABLED`, `QT_PROVIDER_MAEIL_SEONGYEONG`, `QT_PROVIDER_SAENGMYEONG_UI_SAM` | `enabled` / `disabled`. 코드 기본은 수집 disabled이고 IaC가 enabled 로 설정한다 |
+| `QT_ACQUISITION_ENABLED` | 코드 기본값은 false이고 IaC 기본은 `true`(비공개 시험 운영, 사용자 결정. 제공처 허용 여부 미확인, 위험은 services/qt README '배포에서 취득 켜기' 절). `false` 면 조회는 `RANGE_NOT_PERMITTED`, 수집은 요청·저장 없음. 조회 함수는 이 플래그가 켜져 있어도 제공처에 요청하지 않는다 |
+| 테이블 | 파티션 `providerId`(S), 정렬 `providerDate`(S, YYYY-MM-DD), TTL `expiresAt`(N, epoch 초) |
+| IAM | 조회 `dynamodb:GetItem`, 수집 `dynamodb:GetItem`+`dynamodb:PutItem`, 테이블 ARN 한정(테스트로 검사) |
+| 자원 | 조회 512MB 이상·타임아웃 10초 안팎, 수집 512MB·30초 이상(IaC는 둘 다 1,024MB, 수집 60초) |
+| 스케줄 | 서울 자정 직후 제공처가 어제 페이지를 보일 수 있어(`DATE_MISMATCH`) 자정 이후 여러 번 돌린다: 00:05, 00:35, 06:00, 12:00. (providerId, 서울 오늘) 항목이 이미 저장돼 있으면 시간과 무관하게 그 제공처는 요청하지 않고 `ALREADY_COLLECTED` 로 건너뛴다. 실패·날짜 불일치 제공처만 다음 스케줄에서 재시도(저장 없음) |
 
-| 이름 | 값 | 의미 |
-| --- | --- | --- |
-| `QT_TABLE_NAME` | 테이블 이름 | 키는 `providerId`(S) + `providerDate`(S, `YYYY-MM-DD`), TTL 속성은 `expiresAt`(epoch 초) |
-| `QT_ITEM_TTL_DAYS` | 400 | 항목 보관 일수 |
-| `QT_PROVIDER_MAEIL_SEONGYEONG`, `QT_PROVIDER_SAENGMYEONG_UI_SAM` | `enabled` / `disabled` | `disabled` 면 계약의 `DISABLED` + `OPERATOR_DISABLED` 로 응답 |
-| `QT_COLLECTOR_ENABLED` | `enabled` / `disabled` | 스케줄도 함께 꺼진다. 끄면 마지막 자료를 오늘로 다시 보여주지 않는다 |
-| `AI_GENERATION_ENABLED`, `AI_MONTHLY_GENERATION_LIMIT`, `LLM_API_KEY_PARAMETER_NAME` | `false`, `0`(기본) | AI 스위치와 월 생성 상한. 키는 SSM 파라미터 이름 |
-| `SPRING_CLOUD_FUNCTION_DEFINITION` | `qtToday`(조회), `qtCollect`(수집) | Spring Cloud Function 빈 이름. 임시 |
-| 핸들러 | `org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest` | 어댑터 진입점. 임시 |
+미시험(qt-backend 보고): 실제 DynamoDB 동작(PutItem 덮어쓰기, TTL 삭제, IAM)은 클라이언트 대역으로만 검증됐고, 첫 DynamoDB 호출의 콜드 비용은 측정하지 못했다. JVM 스택 옵션(`-Xss` 등)은 넣지 않는다(lead: `-Xss512k` 에서 로컬 기동 실패 관찰).
 
-- 수집 함수는 스케줄이 `{"trigger":"schedule"}` 를 넘겨 호출한다. API Gateway HTTP API 이벤트가 아니다.
-- 조회 응답에 `Cache-Control: public, max-age=60` 을 넣으면 엣지가 그 값을 따른다(최대 300초). 서울 자정 전후에 캐시가 어제 응답을 잠시 낼 수 있으므로 응답의 `providerDate` 와 `generatedAt` 로 클라이언트가 판단할 수 있어야 한다(계약의 날짜 규칙).
+- **자동 취득 켜짐 표시와 끄는 방법**: 켜진 배포는 스택 설명, 리소스 태그(`stage=private-preview`, `provider-permission=unconfirmed`), 출력 `DeploymentNotice`, CloudFront 설명에 "private-preview, provider permission unconfirmed"가 들어간다. 끄는 방법: (a) 전체 — `-c qtAcquisitionEnabled=false` 로 재배포하거나 Lambda 환경 변수 `QT_ACQUISITION_ENABLED=false`, (b) 제공처별 — `-c providerMaeilSeongyeong=false` / `-c providerSaengmyeongUiSam=false`(`QT_PROVIDERS_*_DISABLED=true`), (c) 스케줄만 — `-c collectorEnabled=false`. 끄면 마지막 자료를 오늘로 다시 보여주지 않는다.
+- **검색 엔진 비노출**: CloudFront 응답 헤더로 `X-Robots-Tag: noindex, nofollow` 를 모든 응답에 붙인다(`web/public/robots.txt` 의 `Disallow: /` 는 web-experience 요청 중). 접근 제어가 아니므로 URL을 알면 접속된다.
+- 조회 함수와 수집 함수 모두 VPC 밖(NAT 불필요)이며 DynamoDB 쓰기 권한은 수집 함수에만 있다(테스트로 검사). 배포 모드의 조회 함수는 제공처에 요청하지 않으므로 외부 아웃바운드가 필요한 것은 수집 함수뿐이다(qt-backend T16 보고, 테스트로 확인됨. IAM은 아웃바운드를 제한하지 않아 코드 동작에 의존). 스케줄 호출 비용은 횟수에 비례한다(4회/일로 고정).
 - 개인 계획·진도는 어떤 환경 변수, 테이블, 라우트에도 없다.
+- JVM 스택 옵션(`-Xss` 등)은 넣지 않는다(lead: `-Xss512k` 에서 로컬 기동 실패 관찰).
+- AI 환경 변수와 SSM 권한은 이전 초안에서 뺐다(서비스가 쓰지 않는다).
+
+### 14-2. 웹 접근 제어 선택지 (혼자 쓰는 비공개 시험 운영)
+
+현재 IaC는 (a)뿐이다. 자동 취득이 켜져 있고 제공처 허용이 미확인이라, 배포 승인 때 아래 중 하나를 함께 정하도록 제시한다. 비용은 서울 기준 원화(환율 1,560, 부가세 10% 포함)이고, 단가는 2026-09-24 AWS Price List·요금 페이지 확인값이다. 이 표는 **구현하지 않은 비교**이며 IaC에는 반영하지 않았다.
+
+| 선택지 | 월 비용 영향 | 구현 복잡도 | 모바일 사용성 | 장점 | 단점·주의 |
+| --- | --- | --- | --- | --- | --- |
+| (a) 현재: `noindex` 헤더만, URL을 알면 접속 | 0원 | 없음(구현됨) | 가장 좋음 | 추가 비용·설정 없음 | 접근 제어가 아니다. URL(`*.cloudfront.net` 무작위 주소)이 새면 누구나 접속하고, API를 호출하면 DynamoDB 읽기 비용이 든다. 스로틀(초당 20)만 방어 |
+| (b) CloudFront Function 기본 인증(Basic auth) | 함수 실행 요금이 이미 있는 재작성 함수와 같은 단가(월 200만 회 무료, 초과 100만 회당 0.10달러). 인증을 API 동작에도 붙이면 실행 수가 API 호출만큼 늘지만 기준 시나리오에서 무료 구간 안(정가로 계산해도 월 0.01달러 미만). 자격 증명 저장에 KeyValueStore를 쓰면 그 요금은 **미확인** | 중간: 함수 코드 수정 + 두 동작에 연결 + 자격 증명 주입 | 좋음: 브라우저 로그인 창과 비밀번호 관리자를 쓴다. 같은 출처의 `fetch` 는 인증 정보를 자동으로 보낸다. PDF·Excel 다운로드는 브라우저 안에서 만들므로 영향 없음 | 값싸고 엣지에서 차단해 원본(Lambda·DynamoDB)을 보호한다 | **자격 증명을 함수 코드에 넣으면 템플릿과 저장소에 남는다.** 코드에 두지 말고 배포 시 주입(KeyValueStore 또는 파라미터)해야 하며, 그 방식은 미검증. 취약한 비밀번호는 무차별 대입에 약함 |
+| (c) IP 제한 | **AWS WAF 사용 시 웹 ACL 월 5달러 + 규칙 월 1달러 = 약 10,300원(가격표 확인)으로 월 예산 10,000원 자체를 넘는다.** WAF 없이 CloudFront Function에서 `event.viewer.ip` 를 검사하면 (b)와 같은 무료 수준 | WAF: 중간(us-east-1 전역 스코프 필요). Function: 낮음 | **나쁨**: 이동통신망·공용 와이파이는 IP가 자주 바뀌어 접속이 막힌다. 집 고정 IP에서만 쓸 때만 적합 | 비밀번호가 필요 없다 | IP가 바뀌면 재배포해야 하고, 자신이 차단된다. WAF는 이 예산에서 사실상 불가(정액제 Free 플랜에는 WAF 규칙 5개가 포함된다고 적혀 있으나 이 조사에서 사용 조건을 확인하지 않음: 미확인) |
+| (d-1) 무작위 비밀 경로/토큰 링크(함수가 쿠키·쿼리 토큰 확인) | (b)와 같음 | 중간 | 좋음: 링크를 한 번 열면 쿠키 유지 | 로그인 창 없이 즐겨찾기로 사용 | 토큰이 URL·기록에 남고 코드/설정 주입 문제가 (b)와 같음. 공유되면 취소 방법이 재배포뿐 |
+| (d-2) Cognito 등 인증 서비스 | 미확인(조사 안 함) | 높음 | 좋음 | 표준 인증 | **이 프로젝트는 사용자 식별·인증 리소스를 만들지 않는 원칙이라 허용 목록에서 막혀 있다**(개인 진도 비저장 원칙과 충돌 소지). 혼자 쓰는 용도에는 과함 |
+| (d-3) Lambda@Edge 인증 | Lambda@Edge에는 무료 구간이 없다고 CloudFront 페이지에 적혀 있음. 요청 백만 건당 0.60달러(Price List), 실행 시간 별도 | 높음 | 좋음 | 복잡한 검증 가능 | (b)로 충분해 비용·복잡도만 늘어남 |
+| (d-4) 원본 직접 접속 차단 | 0원 | 낮음 | 영향 없음 | CloudFront를 우회한 API 직접 호출을 줄임 | 이 표의 사용자 접근 제어와는 별개. 현재 HTTP API 주소는 공개 엔드포인트이며 비밀 헤더 검증은 구현하지 않았다(미구현) |
+
+권고(결정은 사용자): 모바일에서 쓰고 비용을 늘리지 않으려면 **(b) 기본 인증**이 가장 균형이 좋다. 다만 자격 증명 주입 방식(코드가 아닌 배포 시 입력)을 먼저 정해야 한다. 그 결정 전에는 (a)로 두되, 자동 취득을 켠 채 URL을 널리 알리지 않는다. 어느 쪽이든 인증은 접근 제어일 뿐 **제공처 자동 취득 허용 여부(미확인)** 를 해결하지 않는다.
 
 ## 15. 배포 후 실제 청구와 비교할 항목
 

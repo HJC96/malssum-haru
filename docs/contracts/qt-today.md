@@ -124,3 +124,10 @@
 - 관찰(qt-backend, 2026-09-24): 매일성경은 날짜 지정 URL이 없어 `today-page`, 생명의삶은 `qtDate` 지정 가능해 `date-specific`.
 
 - 생명의삶 `qtDate` 링크는 서버 '오늘'이 지나면 껍데기 페이지가 될 수 있다(qt-backend 관찰). 화면은 date-specific 링크도 '제공처가 그 날짜에 게시한 페이지'로 안내하고 오래된 응답을 오늘 것으로 두지 않는다(providerDate·generatedAt 표시).
+
+## 신선도 규칙 (클라이언트, qa-review F-06 반영)
+
+- 화면은 서울 기준 날짜가 `providerDate`와 달라지는 시점(탭이 자정을 넘김, 탭 재활성화 `visibilitychange`, 일정 주기)에 QT 데이터를 다시 요청한다. 재요청 전에는 이전 응답의 범위를 "오늘의 범위"로 단정해 표시하지 않고 "오늘 날짜의 범위를 다시 확인 중"임을 표시한다.
+- 응답의 `Cache-Control: public, max-age=60`, `providerDate`, `generatedAt`으로 클라이언트가 신선도를 판단할 수 있어야 한다.
+
+- 장 전체만 표기한 QT(예: 시편 23편)는 66권 장·절 수 표의 끝 절로 채워 `RANGE_CONFIRMED`로 반환한다(v1.2). 표는 잠정 데이터(`nkrv-provisional-1`, 개역개정 전수 미검증)이며 표와 어긋나 제공처의 정상 범위가 `INVALID_REFERENCE`로 거부될 수 있으나 이는 링크 대체로 떨어지는 안전한 방향이다. `displayReference`는 제공처 원문 그대로. 표가 확정되면 `provisional` 표시 필드 추가를 재논의한다.
