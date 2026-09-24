@@ -1,0 +1,7 @@
+{
+  "name": "malssum-haru",
+  "private": true,
+  "packageManager": "pnpm@9.4.0",
+  "engines": { "node": ">=20.19.0" },
+  "description": "말씀하루 — 워크스페이스 루트. 실행은 각 패키지 스크립트를 사용한다(web, infra). services/qt는 Maven."
+}

@@ -1,0 +1,50 @@
+import subprocess, shutil, os, sys, re, concurrent.futures as cf
+SP="/private/tmp/claude-501/-Users-hanjichan-Desktop-git-malssum-haru/a3bded69-4ef6-463f-9ca2-657d4d4fb0b7/scratchpad"
+SRC=SP+"/qt"
+M="src/main/java/kr/malssumharu/qt/"
+T="src/test/"
+# (id, desc, file, old, new)
+muts=[
+ ("M01","service: date-mismatch check disabled",M+"service/QtTodayService.java","if (!seoulToday.equals(found.providerDate())) {","if (false) {"),
+ ("M02","service: acquisition flag check disabled",M+"service/QtTodayService.java","if (!props.acquisitionEnabled(id)) {","if (false) {"),
+ ("M03","service: kill switch ignored",M+"service/QtTodayService.java","if (props.disabled(id)) {","if (false) {"),
+ ("M04","service: failure cache ignores seoul date",M+"service/QtTodayService.java","cached.seoulDate().equals(seoulToday) && ",""),
+ ("M05","service: confirmed cache never expires",M+"service/QtTodayService.java","now.isBefore(stored.verifiedAt().plus(props.cache().confirmedTtl()))","true"),
+ ("M06","service: no provider ordering",M+"service/QtTodayService.java",".sorted(java.util.Comparator.comparing(a -> a.id().ordinal()))",""),
+ ("M07","saeng: official url http",M+"provider/SaengmyeongUiSamAdapter.java","\"https://www.duranno.com/qt/view/bible.asp?qtDate=\"","\"http://www.duranno.com/qt/view/bible.asp?qtDate=\""),
+ ("M08","saeng: garbled check off",M+"provider/SaengmyeongUiSamAdapter.java","if (parsed == null || looksGarbled(parsed.reference)) {","if (parsed == null) {"),
+ ("M09","maeil: fallback only if both missing",M+"provider/MaeilSeongyeongAdapter.java","if (date == null || reference == null) {","if (date == null && reference == null) {"),
+ ("M10","service: empty ranges accepted as confirmed",M+"service/QtTodayService.java","if (found.ranges() == null || found.ranges().isEmpty()) {","if (false) {"),
+ ("M11","fetcher: size limit off",M+"http/JdkHttpFetcher.java","if (body.length > maxBodyBytes) {","if (false) {"),
+ ("M12","service: mismatch keeps passage (store then confirmed)",M+"service/QtTodayService.java","AdapterOutcome.Failed.unavailable(ReasonCode.DATE_MISMATCH, found.providerDate()),\n                    now);\n        }","AdapterOutcome.Failed.unavailable(ReasonCode.DATE_MISMATCH, found.providerDate()),\n                    now);\n        }\n        if (false) {}"),
+ ("M13","service: log includes provider ref",M+"service/QtTodayService.java","log.info(\"provider={} status=RANGE_CONFIRMED\", adapter.id().id());","log.info(\"provider={} status=RANGE_CONFIRMED ref={}\", adapter.id().id(), found.displayReference());"),
+ ("M14","service: store key uses date but failure not cleared",M+"service/QtTodayService.java","failures.remove(adapter.id());",""),
+ ("M15","service: seoul zone -> UTC",M+"service/QtTodayService.java","ZoneId.of(\"Asia/Seoul\")","ZoneId.of(\"UTC\")"),
+ ("M16","parser: allow overlapping ranges",M+"bible/ReferenceParser.java","cur.start().compareTo(prev.end()) <= 0","false"),
+ ("M17","maeil: officialUrl kind date-specific",M+"provider/MaeilSeongyeongAdapter.java","return OfficialUrlKind.TODAY_PAGE;","return OfficialUrlKind.DATE_SPECIFIC;"),
+ ("M18","service: notice copy on failure (leaks)",M+"service/QtTodayService.java","return entry(adapter, seoulToday, failed.providerDate(), failed.status(), failed.reason(), null, null, null, null);","return entry(adapter, seoulToday, failed.providerDate(), failed.status(), failed.reason(), null, null, null, CONFIRMED_NOTICE);"),
+ ("M19","service: failure entry carries stale store range",M+"service/QtTodayService.java","StoredDay stored = store.find(id, seoulToday).orElse(null);","StoredDay stored = store.find(id, seoulToday).orElse(null); if (stored == null) { stored = store.find(id, seoulToday.minusDays(1)).orElse(null); }"),
+ ("M20","service: await overall timeout ignored (wait forever-ish)",M+"service/QtTodayService.java","props.http().overallTimeout().toMillis()","600000L"),
+ ("M21","fixture: Korean prose with spaces added (FixtureRulesTest should reject)","src/test/resources/fixtures/maeil-today.html","</body>","<p>이 문장은 검수를 위한 임의의 설명문으로 제공처 해설을 흉내 낸 것입니다 어절마다 공백이 있어서 검사를 통과하는지 확인합니다 그래서 길이는 짧지만 문장 전체가 들어 있습니다</p></body>"),
+]
+def run(m):
+    mid,desc,f,old,new=m
+    d=f"{SP}/mut/{mid}"
+    shutil.rmtree(d,ignore_errors=True)
+    shutil.copytree(SRC,d,ignore=shutil.ignore_patterns("target"))
+    p=os.path.join(d,f)
+    s=open(p,encoding="utf-8").read()
+    if old not in s: return (mid,desc,"NOT-APPLIED","")
+    open(p,"w",encoding="utf-8").write(s.replace(old,new,1))
+    argline="-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=9 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=9"
+    r=subprocess.run(["mvn","-o","-q","-B","test",f"-DargLine={argline}"],cwd=d,capture_output=True,text=True,timeout=600)
+    out=r.stdout+r.stderr
+    failed=sorted(set(re.findall(r"^\[ERROR\]\s+(?:Failures|Errors):?.*$|^\[ERROR\]\s+(\S+Test\.\S+)",out,re.M)))
+    names=sorted(set(re.findall(r"\[ERROR\]\s+(\w+Test\.\w+)",out)))
+    comp="COMPILE" if "COMPILATION ERROR" in out else ""
+    return (mid,desc,("KILLED" if r.returncode!=0 else "SURVIVED")+(" "+comp if comp else ""),", ".join(names)[:300])
+ids=sys.argv[1:]
+sel=[m for m in muts if not ids or m[0] in ids]
+with cf.ThreadPoolExecutor(4) as ex:
+    for res in ex.map(run,sel):
+        print(" | ".join(res),flush=True)

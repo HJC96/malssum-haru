@@ -1,0 +1,91 @@
+{
+  "_comment": "모든 값은 가정이며 측정값이 아니다. 근거와 한계는 docs/cost-estimate.md 3장 참고. 단위는 이름에 표시한다.",
+  "currency": {
+    "krwPerUsd": 1560,
+    "krwPerUsdLatest": 1365,
+    "vatRate": 0.10,
+    "budgetKrw": 10000
+  },
+  "daysPerMonth": 30,
+  "common": {
+    "providers": 2,
+    "lambdaApi": { "memoryMb": 1024, "warmMs": 150, "coldInitMs": 5000, "architecture": "arm" },
+    "collector": { "memoryMb": 1024, "secondsPerAttempt": 8 },
+    "logs": { "kbPerCollectorInvocation": 3, "retentionDays": 14 },
+    "dynamodb": { "readUnitsPerApiInvocation": 2, "writeUnitsPerCollectorInvocation": 3, "storageGb": 0.01 },
+    "s3": { "storageGb": 1.05, "putRequestsPerMonth": 2000, "staticOriginMissRatio": 0.03 },
+    "alarms": 3,
+    "peakHourShare": 0.2
+  },
+  "scenarios": {
+    "low": {
+      "label": "낮음",
+      "dailyVisits": 100,
+      "apiCallsPerVisit": 1,
+      "staticRequestsPerVisit": 15,
+      "staticMbPerVisit": 0.8,
+      "apiCdnHitRatio": 0.3,
+      "coldFraction": 0.3,
+      "checksPerProviderPerDay": 2,
+      "retryFactor": 0.1,
+      "kbPerApiInvocation": 1.2
+    },
+    "base": {
+      "label": "기준",
+      "dailyVisits": 1000,
+      "apiCallsPerVisit": 1.5,
+      "staticRequestsPerVisit": 15,
+      "staticMbPerVisit": 1.0,
+      "apiCdnHitRatio": 0.6,
+      "coldFraction": 0.1,
+      "checksPerProviderPerDay": 6,
+      "retryFactor": 0.3,
+      "kbPerApiInvocation": 1.5
+    },
+    "surge": {
+      "label": "증가(공개 직후, 한 달 내내 지속 가정)",
+      "dailyVisits": 10000,
+      "apiCallsPerVisit": 2,
+      "staticRequestsPerVisit": 20,
+      "staticMbPerVisit": 1.5,
+      "apiCdnHitRatio": 0.7,
+      "coldFraction": 0.03,
+      "checksPerProviderPerDay": 12,
+      "retryFactor": 1.0,
+      "kbPerApiInvocation": 2.0
+    }
+  },
+  "ai": {
+    "_comment": "AI 공개는 본문 사용 권한 확인 전까지 보류. 토큰은 Haiku 4.5(이전 토크나이저) 기준 가정이며 신형 토크나이저 모델에는 tokenizerFactor 를 곱한다.",
+    "inputTokens": 6000,
+    "outputTokens": 2500,
+    "days": 30,
+    "scenarios": {
+      "low": { "newPassagesPerDay": 1, "languageCombos": 1, "reuseRatio": 0.0, "retryFactor": 0.1 },
+      "base": { "newPassagesPerDay": 2, "languageCombos": 2, "reuseRatio": 0.2, "retryFactor": 0.2 },
+      "surge": { "newPassagesPerDay": 2, "languageCombos": 2, "reuseRatio": 0.0, "retryFactor": 1.0 }
+    },
+    "models": {
+      "claude-haiku-4-5": { "name": "Claude Haiku 4.5", "inputPerMTok": 1, "outputPerMTok": 5, "tokenizerFactor": 1.0 },
+      "claude-sonnet-5": { "name": "Claude Sonnet 5", "inputPerMTok": 2, "outputPerMTok": 10, "tokenizerFactor": 1.3 },
+      "claude-opus-5-5": { "name": "Claude Opus 5.5", "inputPerMTok": 4, "outputPerMTok": 20, "tokenizerFactor": 1.3 },
+      "claude-fable-5-1": { "name": "Claude Fable 5.1", "inputPerMTok": 10, "outputPerMTok": 50, "tokenizerFactor": 1.3 }
+    },
+    "batchDiscount": 0.5
+  },
+  "alwaysFree": {
+    "_comment": "공식 요금 페이지에 기간 제한 없이 적힌 것만 '크레딧 종료 후' 계산에 반영한다. S3, API Gateway, CloudWatch Logs, DynamoDB 온디맨드 요청은 반영하지 않는다(기간 제한 여부 미확인 또는 12개월/크레딧 방식).",
+    "lambdaRequests": 1000000,
+    "lambdaGbSeconds": 400000,
+    "cloudfrontGb": 1024,
+    "cloudfrontRequests": 10000000,
+    "cloudfrontFunctionInvocations": 2000000,
+    "schedulerInvocations": 14000000,
+    "dynamodbStorageGb": 25
+  },
+  "optional": {
+    "route53HostedZoneUsdPerMonth": 0.5,
+    "secretsManagerUsdPerSecretPerMonth": 0.4,
+    "snapStartActiveVersions": 1
+  }
+}

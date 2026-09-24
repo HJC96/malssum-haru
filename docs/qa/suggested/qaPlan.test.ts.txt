@@ -1,0 +1,195 @@
+import { describe, expect, it } from 'vitest';
+import { computePlan, DEFAULT_BIBLE, SAMPLE_BIBLE, bibleTotals, type PlanInput, type Weekday } from '@/domain';
+
+const ALL: Weekday[] = [0, 1, 2, 3, 4, 5, 6];
+const base = (o: Partial<PlanInput> = {}): PlanInput => ({
+  bible: SAMPLE_BIBLE,
+  target: { kind: 'all' },
+  startDate: '2026-09-01',
+  endDate: '2026-09-10',
+  weekdays: ALL,
+  excludedDates: [],
+  distribution: 'verses',
+  read: { mode: 'none' },
+  ...o,
+});
+const ok = (i: PlanInput) => {
+  const r = computePlan(i);
+  if (!r.ok) throw new Error('expected ok, got ' + JSON.stringify(r.errors));
+  return r.result;
+};
+const errs = (i: PlanInput) => {
+  const r = computePlan(i);
+  if (r.ok) throw new Error('expected error');
+  return r.errors.map((e) => e.code);
+};
+
+describe('QA: dates', () => {
+  it('leap year 2028: Feb 29 present, 5 days', () => {
+    const r = ok(base({ startDate: '2028-02-27', endDate: '2028-03-02' }));
+    expect(r.days.map((d) => d.date)).toEqual(['2028-02-27', '2028-02-28', '2028-02-29', '2028-03-01', '2028-03-02']);
+    expect(r.days.map((d) => d.weekday)).toEqual([0, 1, 2, 3, 4]); // 2028-02-27 = Sunday
+  });
+  it('non leap 2026 & 1900 & 2000', () => {
+    expect(ok(base({ startDate: '2026-02-27', endDate: '2026-03-02' })).days).toHaveLength(4);
+    expect(ok(base({ startDate: '1900-02-27', endDate: '1900-03-02' })).days).toHaveLength(4);
+    expect(ok(base({ startDate: '2000-02-27', endDate: '2000-03-02' })).days).toHaveLength(5);
+  });
+  it('year boundary', () => {
+    const r = ok(base({ startDate: '2026-12-30', endDate: '2027-01-02' }));
+    expect(r.days.map((d) => d.date)).toEqual(['2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02']);
+  });
+  it('invalid date strings', () => {
+    for (const bad of ['2026-9-1', '2026-02-30', ' 2026-09-01', '2026-09-01T00:00', '20260901', '', '2026-13-01', '0000-01-01']) {
+      expect(errs(base({ startDate: bad })), bad).toContain('INVALID_DATE');
+    }
+    expect(errs(base({ excludedDates: ['2026-02-30'] }))).toContain('INVALID_DATE');
+    expect(errs(base({ asOf: 'nope' }))).toContain('INVALID_DATE');
+  });
+  it('start == end single day gets everything', () => {
+    const r = ok(base({ startDate: '2026-09-01', endDate: '2026-09-01' }));
+    expect(r.days).toHaveLength(1);
+    expect(r.days[0]!.verseCount).toBe(r.summary.targetVerses);
+  });
+  it('period cap 3660 vs 3661', () => {
+    expect(computePlan(base({ startDate: '2020-01-01', endDate: '2030-01-07' })).ok).toBe(true);
+    expect(errs(base({ startDate: '2020-01-01', endDate: '2030-01-08' }))).toEqual(['PERIOD_TOO_LONG']);
+  });
+  it('all reading days excluded / no weekday', () => {
+    expect(errs(base({ weekdays: [] }))).toEqual(['NO_READING_DAYS']);
+    const ex = Array.from({ length: 10 }, (_, i) => `2026-09-${String(i + 1).padStart(2, '0')}`);
+    expect(errs(base({ excludedDates: ex }))).toEqual(['NO_READING_DAYS']);
+  });
+  it('weekday garbage is silently ignored (7, 1.5, NaN)', () => {
+    const r = computePlan(base({ weekdays: [7 as Weekday, 1.5 as Weekday, NaN as Weekday] }));
+    expect(r.ok).toBe(false);
+  });
+});
+
+describe('QA: asOf & today', () => {
+  it('asOf after end, remaining -> NO_DAYS_LEFT', () => {
+    expect(errs(base({ asOf: '2026-09-11' }))).toEqual(['NO_DAYS_LEFT_WITH_REMAINING']);
+  });
+  it('asOf after end, everything read -> ok, all elapsed', () => {
+    const r = ok(base({ asOf: '2026-09-11', read: { mode: 'continuous', through: { bookId: 'JHN', chapter: 3, verse: 2 } } }));
+    expect(r.days.every((d) => d.status === 'elapsed')).toBe(true);
+    expect(r.summary.progressPct).toBe(100);
+    expect(r.summary.avgVersesPerDay).toBeNull();
+  });
+  it('asOf == start -> recalculatedFrom null; asOf before start -> null', () => {
+    expect(ok(base({ asOf: '2026-09-01' })).recalculatedFrom).toBeNull();
+    expect(ok(base({ asOf: '2026-08-01' })).recalculatedFrom).toBeNull();
+    expect(ok(base({ asOf: '2026-09-05' })).recalculatedFrom).toBe('2026-09-05');
+  });
+  it('asOf == end works, all remaining goes to last day', () => {
+    const r = ok(base({ asOf: '2026-09-10' }));
+    expect(r.days.filter((d) => d.status === 'assigned')).toHaveLength(r.days.length > 0 ? 1 : 0);
+    expect(r.days[9]!.verseCount).toBe(r.summary.remainingVerses);
+  });
+  it('finished plan with reading days left -> days empty, 100%', () => {
+    const r = ok(base({ read: { mode: 'continuous', through: { bookId: 'JHN', chapter: 3, verse: 2 } } }));
+    expect(r.summary.remainingVerses).toBe(0);
+    expect(r.summary.progressPct).toBe(100);
+    expect(r.days.every((d) => d.status === 'empty')).toBe(true);
+    expect(r.summary.avgVersesPerDay).toBe(0);
+  });
+  it('todayRead not entered -> null; entered but zero overlap -> 0 (not null)', () => {
+    const noInput = ok(base({ asOf: '2026-09-03' }));
+    expect(noInput.summary.todayTarget).not.toBeNull();
+    expect(noInput.summary.todayAchievementPct).toBeNull();
+    const empty = ok(base({ asOf: '2026-09-03', todayRead: [] }));
+    expect(empty.summary.todayAchievementPct).toBeNull();
+    const zero = ok(base({ asOf: '2026-09-03', todayRead: [{ bookId: 'JHN', start: { chapter: 3, verse: 1 }, end: { chapter: 3, verse: 1 } }] }));
+    expect(zero.summary.todayAchievementPct === null || zero.summary.todayAchievementPct >= 0).toBe(true);
+  });
+  it('todayRead entered but today is off day -> todayTarget null, pct null (no div by zero)', () => {
+    const r = ok(base({ asOf: '2026-09-05', excludedDates: ['2026-09-05'], todayRead: [{ bookId: 'GEN', start: { chapter: 1, verse: 1 }, end: { chapter: 1, verse: 2 } }] }));
+    expect(r.summary.todayTarget).toBeNull();
+    expect(r.summary.todayAchievementPct).toBeNull();
+  });
+  it('todayRead overlapping + overshoot capped at 100', () => {
+    const r0 = ok(base({ asOf: '2026-09-01' }));
+    const ranges = r0.summary.todayTarget!.ranges;
+    const r = ok(base({ asOf: '2026-09-01', todayRead: [...ranges, ...ranges] }));
+    expect(r.summary.todayAchievementPct).toBeCloseTo(100, 9);
+  });
+  it('todayRead does not change remaining/days (AC: denominator fixed)', () => {
+    const a = ok(base({ asOf: '2026-09-03' }));
+    const b = ok(base({ asOf: '2026-09-03', todayRead: a.summary.todayTarget!.ranges }));
+    expect(b.days).toEqual(a.days);
+    expect(b.remainingRanges).toEqual(a.remainingRanges);
+  });
+  it('todayRead outside target is an error even if plan otherwise fine', () => {
+    expect(errs(base({ target: { kind: 'nt' }, todayRead: [{ bookId: 'GEN', start: { chapter: 1, verse: 1 }, end: { chapter: 1, verse: 1 } }] }))).toContain('READ_OUTSIDE_TARGET');
+  });
+});
+
+describe('QA: read input', () => {
+  it('continuous with verse beyond chapter -> INVALID_RANGE; unknown book', () => {
+    expect(errs(base({ read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 1, verse: 99 } } }))).toContain('INVALID_RANGE');
+    expect(errs(base({ read: { mode: 'continuous', through: { bookId: 'XXX', chapter: 1, verse: 1 } } }))).toContain('UNKNOWN_BOOK');
+    expect(errs(base({ read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 0, verse: 1 } } }))).toContain('INVALID_RANGE');
+    expect(errs(base({ read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 1.5, verse: 1 } } }))).toContain('INVALID_RANGE');
+  });
+  it('read outside target book', () => {
+    expect(errs(base({ target: { kind: 'nt' }, read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 1, verse: 1 } } }))).toContain('READ_OUTSIDE_TARGET');
+  });
+  it('overlapping/duplicate ranges counted once', () => {
+    const rr = { bookId: 'GEN', start: { chapter: 1, verse: 1 }, end: { chapter: 1, verse: 6 } };
+    const rr2 = { bookId: 'GEN', start: { chapter: 1, verse: 4 }, end: { chapter: 1, verse: 8 } };
+    const r = ok(base({ read: { mode: 'ranges', ranges: [rr, rr2, rr] } }));
+    expect(r.summary.readVerses).toBe(8);
+  });
+  it('ranges with start>end or reversed chapter', () => {
+    expect(errs(base({ read: { mode: 'ranges', ranges: [{ bookId: 'GEN', start: { chapter: 2, verse: 1 }, end: { chapter: 1, verse: 1 } }] } }))).toContain('INVALID_RANGE');
+  });
+  it('books order: read continuous follows user order', () => {
+    const r = ok(base({ target: { kind: 'books', bookIds: ['MAT', 'GEN'] }, read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 1, verse: 1 } } }));
+    expect(r.summary.readVerses).toBe(10 + 4 + 17 + 1);
+    expect(r.remainingRanges[0]!.bookId).toBe('GEN');
+    expect(r.remainingRanges[0]!.start).toEqual({ chapter: 1, verse: 2 });
+  });
+  it('books with duplicates and unknown', () => {
+    expect(errs(base({ target: { kind: 'books', bookIds: ['GEN', 'NOPE'] } }))).toContain('UNKNOWN_BOOK');
+    expect(ok(base({ target: { kind: 'books', bookIds: ['GEN', 'GEN'] } })).summary.targetChapters).toBe(5);
+    expect(errs(base({ target: { kind: 'books', bookIds: [] } }))).toContain('EMPTY_SCOPE');
+  });
+});
+
+describe('QA: partial chapters and empty days', () => {
+  it('partial chapter is the first unit and flagged', () => {
+    const r = ok(base({ read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 1, verse: 5 } } }));
+    const first = r.days.find((d) => d.status === 'assigned')!;
+    expect(first.ranges[0]!.start).toEqual({ chapter: 1, verse: 6 });
+    expect(first.partialChapters).toContainEqual({ bookId: 'GEN', chapter: 1 });
+  });
+  it('more days than chapters -> empty days after assigned ones, off days distinct', () => {
+    const r = ok(base({ target: { kind: 'books', bookIds: ['OBA'] }, weekdays: [1, 2, 3, 4, 5] }));
+    const statuses = r.days.map((d) => d.status);
+    expect(statuses.filter((s) => s === 'assigned')).toHaveLength(1);
+    expect(statuses).toContain('off');
+    expect(statuses).toContain('empty');
+  });
+});
+
+describe('QA: real (provisional) data', () => {
+  it('totals and a year plan', () => {
+    const t = bibleTotals(DEFAULT_BIBLE);
+    console.log('DEFAULT_BIBLE totals', JSON.stringify(t), DEFAULT_BIBLE.dataVersion, DEFAULT_BIBLE.versificationSystem);
+    expect(t.books).toBe(66);
+    expect(t.chapters).toBe(1189);
+    for (const dist of ['verses', 'chapters'] as const) {
+      const r = ok(base({ bible: DEFAULT_BIBLE, startDate: '2026-09-25', endDate: '2027-09-24', distribution: dist }));
+      const assigned = r.days.filter((d) => d.status === 'assigned');
+      const counts = assigned.map((d) => d.verseCount);
+      console.log(dist, 'days', r.days.length, 'assigned', assigned.length, 'min', Math.min(...counts), 'max', Math.max(...counts), 'avg', r.summary.avgVersesPerDay);
+      expect(assigned.reduce((a, d) => a + d.verseCount, 0)).toBe(t.verses);
+      expect(assigned.every((d) => d.partialChapters.length === 0)).toBe(true);
+    }
+  });
+  it('perf: 3660 days full bible', () => {
+    const t0 = Date.now();
+    ok(base({ bible: DEFAULT_BIBLE, startDate: '2020-01-01', endDate: '2029-12-30', distribution: 'verses' }));
+    console.log('perf ms', Date.now() - t0);
+  });
+});

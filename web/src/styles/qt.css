@@ -1,0 +1,131 @@
+.qt-section,
+.plan-section {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.qt-intro {
+  color: var(--text);
+}
+
+.qt-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.qt-grid {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 48rem) {
+  .qt-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.qt-card {
+  display: grid;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.qt-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.qt-meta {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.qt-meta__row {
+  display: grid;
+  gap: var(--space-1);
+}
+.qt-meta dt {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.qt-meta dd {
+  margin: 0;
+}
+.qt-meta__basis {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.qt-passage {
+  display: grid;
+  gap: var(--space-1);
+}
+.qt-passage__main {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.qt-passage__ko {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.qt-card__actions {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  margin-top: auto;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--neutral-bg);
+  color: var(--neutral-fg);
+}
+.badge--RANGE_CONFIRMED {
+  background: var(--ok-bg);
+  color: var(--ok-fg);
+}
+.badge--RANGE_UNAVAILABLE,
+.badge--RANGE_NOT_PERMITTED,
+.badge--UNKNOWN {
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+}
+.badge--LINK_ERROR {
+  background: var(--err-bg);
+  color: var(--err-fg);
+}
+
+.qt-error {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-4);
+  border: 1px solid var(--err-fg);
+  border-radius: var(--radius);
+  background: var(--err-bg);
+  color: var(--err-fg);
+}
+.qt-error .qt-note {
+  color: inherit;
+}
+.qt-fallback {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

@@ -1,0 +1,5 @@
+# 로컬 실험 전용: 제공처 공식 페이지에서 장절만 읽는다. 공개 배포에서는 이 프로필을 쓰지 않는다.
+# 실행: mvn spring-boot:run -Dspring-boot.run.profiles=local-experiment
+qt:
+  acquisition:
+    enabled: true

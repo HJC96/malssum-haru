@@ -1,0 +1,136 @@
+{
+  "checkedOn": "2026-09-24",
+  "source": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/<service>/current/<region>/index.json (AWS Price List Bulk API)",
+  "publicationDates": {
+    "ap-northeast-2": {
+      "lambda": "2026-09-19T00:23:59Z",
+      "apigw": "2026-09-21T23:14:04Z",
+      "dynamodb": "2026-09-11T12:44:22Z",
+      "s3": "2026-09-18T17:47:47Z",
+      "cloudwatch": "2026-09-22T02:17:15Z",
+      "events": "2026-09-11T12:45:49Z"
+    },
+    "ap-northeast-1": {
+      "lambda": "2026-09-19T00:23:59Z",
+      "apigw": "2026-09-21T23:14:04Z",
+      "dynamodb": "2026-09-11T12:44:22Z",
+      "s3": "2026-09-18T17:47:47Z",
+      "cloudwatch": "2026-09-22T02:17:15Z",
+      "events": "2026-09-11T12:45:49Z"
+    },
+    "us-east-1": {
+      "lambda": "2026-09-19T00:23:59Z",
+      "apigw": "2026-09-21T23:14:04Z",
+      "dynamodb": "2026-09-11T12:44:22Z",
+      "s3": "2026-09-18T17:47:47Z",
+      "cloudwatch": "2026-09-22T02:17:15Z",
+      "events": "2026-09-11T12:45:49Z"
+    },
+    "cloudfront": "2026-09-16T13:22:08Z"
+  },
+  "regions": {
+    "ap-northeast-2": {
+      "label": "서울",
+      "lambda": {
+        "requestUsdPer": 2e-7,
+        "gbSecondX86": 0.0000166667,
+        "gbSecondArm": 0.0000133334,
+        "snapStartCachedGbSecond": 0.0000018383,
+        "snapStartRestoredGb": 0.0001674588
+      },
+      "apiGatewayHttpRequest": 0.00000123,
+      "dynamodbOnDemand": {
+        "writeRequestUnit": 6.8e-7,
+        "readRequestUnit": 1.355e-7,
+        "storageGbMonthBeyondFree25": 0.27075
+      },
+      "s3Standard": {
+        "storageGbMonthFirst50Tb": 0.025,
+        "putCopyPostListRequest": 0.0000045,
+        "getRequest": 3.5e-7
+      },
+      "cloudwatch": {
+        "logIngestGbStandard": 0.76,
+        "logStorageGbMonth": 0.0314,
+        "standardAlarmMonth": 0.1
+      },
+      "eventBridgeScheduler": {
+        "freeInvocationsPerMonth": 14000000,
+        "perInvocationAfterFree": 0.00000115
+      }
+    },
+    "ap-northeast-1": {
+      "label": "도쿄",
+      "lambda": {
+        "requestUsdPer": 2e-7,
+        "gbSecondX86": 0.0000166667,
+        "gbSecondArm": 0.0000133334,
+        "snapStartCachedGbSecond": 0.0000015046,
+        "snapStartRestoredGb": 0.0001397998
+      },
+      "apiGatewayHttpRequest": 0.00000129,
+      "dynamodbOnDemand": {
+        "writeRequestUnit": 7.15e-7,
+        "readRequestUnit": 1.425e-7,
+        "storageGbMonthBeyondFree25": 0.285
+      },
+      "s3Standard": {
+        "storageGbMonthFirst50Tb": 0.025,
+        "putCopyPostListRequest": 0.0000047,
+        "getRequest": 3.7e-7
+      },
+      "cloudwatch": {
+        "logIngestGbStandard": 0.76,
+        "logStorageGbMonth": 0.033,
+        "standardAlarmMonth": 0.1
+      },
+      "eventBridgeScheduler": {
+        "freeInvocationsPerMonth": 14000000,
+        "perInvocationAfterFree": 0.00000125
+      }
+    },
+    "us-east-1": {
+      "label": "버지니아 북부",
+      "lambda": {
+        "requestUsdPer": 2e-7,
+        "gbSecondX86": 0.0000166667,
+        "gbSecondArm": 0.0000133334,
+        "snapStartCachedGbSecond": 0.0000015046,
+        "snapStartRestoredGb": 0.0001397998
+      },
+      "apiGatewayHttpRequest": 0.000001,
+      "dynamodbOnDemand": {
+        "writeRequestUnit": 6.25e-7,
+        "readRequestUnit": 1.25e-7,
+        "storageGbMonthBeyondFree25": 0.25
+      },
+      "s3Standard": {
+        "storageGbMonthFirst50Tb": 0.023,
+        "putCopyPostListRequest": 0.000005,
+        "getRequest": 4e-7
+      },
+      "cloudwatch": {
+        "logIngestGbStandard": 0.5,
+        "logStorageGbMonth": 0.03,
+        "standardAlarmMonth": 0.1
+      },
+      "eventBridgeScheduler": {
+        "freeInvocationsPerMonth": 14000000,
+        "perInvocationAfterFree": 0.000001
+      }
+    }
+  },
+  "cloudfront": {
+    "edgeGroupKorea": "Asia Pacific 그룹(Hong Kong, Indonesia, Philippines, Singapore, South Korea, Taiwan, Thailand, Malaysia, Vietnam)",
+    "httpsRequestPer": 0.0000012,
+    "dataOutGbFirst10TbAsia": 0.12,
+    "dataOutGbFirst10TbJapan": 0.114,
+    "dataOutGbFirst10TbUs": 0.085,
+    "functionPerInvocation": 1e-7,
+    "alwaysFree": {
+      "dataTransferOutGb": 1024,
+      "requests": 10000000,
+      "functionInvocations": 2000000
+    }
+  }
+}

@@ -1,0 +1,58 @@
+import subprocess, shutil, os, sys, re, concurrent.futures as cf
+SP="/private/tmp/claude-501/-Users-hanjichan-Desktop-git-malssum-haru/a3bded69-4ef6-463f-9ca2-657d4d4fb0b7/scratchpad"
+SRC=SP+"/web"
+D="src/domain/"
+muts=[
+ ("W01","leap: drop 400 rule",D+"dates.ts","|| year % 400 === 0","|| false"),
+ ("W02","weekday offset",D+"dates.ts","((dayNumber + 4) % 7)","((dayNumber + 3) % 7)"),
+ ("W03","progress uses remaining",D+"plan.ts","progressPct: (readVerses * 100) / targetVerses","progressPct: (remainingVerses * 100) / targetVerses"),
+ ("W04","todayAchievement 0 when no input",D+"plan.ts","if (input.todayRead && input.todayRead.length > 0) {","if (true) {"),
+ ("W05","asOf min instead of max",D+"plan.ts","Math.max(asOfN, startN)","Math.min(asOfN, startN)"),
+ ("W06","dedupe books off",D+"plan.ts","if (seen.has(id)) continue;",""),
+ ("W07","read outside target off",D+"plan.ts","if (!targetIds.has(id)) {","if (false) {"),
+ ("W08","excluded dates ignored",D+"plan.ts","&& !excludedNumbers.has(n)",""),
+ ("W09","partial chapter <=",D+"plan.ts",".filter((u) => u.verses < u.chapterTotal)",".filter((u) => u.verses <= u.chapterTotal)"),
+ ("W10","period cap >=",D+"plan.ts","> MAX_PERIOD_DAYS",">= MAX_PERIOD_DAYS"),
+ ("W11","n<=days -> n<days",D+"distribute.ts","if (n <= days) {","if (n < days) {"),
+ ("W12","recalculatedFrom always asOf",D+"plan.ts","asOfN !== null && asOfN > startN ? input.asOf : null","asOfN !== null ? input.asOf : null"),
+ ("W13","avg null->0",D+"plan.ts","avgVersesPerDay: readingDayNumbers.length === 0 ? null : remainingVerses / readingDayNumbers.length","avgVersesPerDay: readingDayNumbers.length === 0 ? 0 : remainingVerses / readingDayNumbers.length"),
+ ("W14","elapsed as off",D+"plan.ts","days.push({ ...base, status: 'elapsed', ...empty });","days.push({ ...base, status: 'off', ...empty });"),
+ ("W15","empty as off",D+"plan.ts","} else if (dayUnits.length === 0) {\n      days.push({ ...base, status: 'empty', ...empty });","} else if (dayUnits.length === 0) {\n      days.push({ ...base, status: 'off', ...empty });"),
+ ("W16","continuous read off-by-one",D+"plan.ts","set.set(b.bookId, [[0, ord + 1]]);","set.set(b.bookId, [[0, ord]]);"),
+ ("W17","chapters: remainder to back",D+"distribute.ts","sizes[i] = i < r ? q + 1 : q;","sizes[i] = i >= days - r ? q + 1 : q;"),
+ ("W18","todayRead subtracts from remaining? (denominator)",D+"plan.ts","const remaining: VerseSet = new Map();","const remaining: VerseSet = new Map(); if (input.todayRead && input.todayRead.length>0) { for (const r of input.todayRead) { const b=index.books.get(r.bookId); if (b) { read.set(r.bookId, [...(read.get(r.bookId) ?? []), [pointOrdinal(b,r.start) ?? 0, (pointOrdinal(b,r.end) ?? 0)+1] as [number,number]]); } } }"),
+ ("W19","year month days 30/31 swap",D+"dates.ts","month === 4 || month === 6 || month === 9 || month === 11 ? 30 : 31","month === 4 || month === 6 || month === 11 ? 30 : 31"),
+ ("W20","normalize: allow http official url",  "src/app/qt/normalize.ts","new URL(url).protocol === 'https:'","new URL(url).protocol.startsWith('http')"),
+ ("W21","normalize: keep passage for any status","src/app/qt/normalize.ts","if (status === 'RANGE_CONFIRMED') {\n    passage = parsePassage(v.passage);","if (true) {\n    passage = parsePassage(v.passage);"),
+ ("W22","card: show range regardless of status","src/components/QtProviderCard.tsx","const ranges = status === 'RANGE_CONFIRMED' ? (provider.passage?.ranges ?? []) : [];","const ranges = provider.passage?.ranges ?? [];"),
+ ("W23","external link: drop rel","src/components/ExternalLinkButton.tsx",' rel="noopener noreferrer"',''),
+ ("W24","card: drop en Korean notice","src/components/QtProviderCard.tsx","{lang === 'en' && <p className=\"qt-note\">{t('qt.passage.sourceKorean')}</p>}",""),
+ ("W25","card: date differs never","src/components/QtProviderCard.tsx","const dateDiffers = provider.providerDate !== null && provider.providerDate !== localDate;","const dateDiffers = false;"),
+ ("W26","normalize: reject schema check off","src/app/qt/normalize.ts","if (json.schemaVersion !== '1') {","if (false) {"),
+ ("W27","fetch: credentials include","src/app/qt/fetchQtToday.ts","credentials: 'omit'","credentials: 'include'"),
+ ("W28","fallback: seoul tz dropped","src/app/qt/fetchQtToday.ts","localIsoDate(now, 'Asia/Seoul')","localIsoDate(now)"),
+ ("W29","normalize: range validity ignored (start>end)","src/app/qt/normalize.ts","if (s.chapter > e.chapter || (s.chapter === e.chapter && s.verse > e.verse)) return null;",""),
+ ("W30","normalize: unknown bookId accepted","src/app/qt/normalize.ts","if (typeof bookId !== 'string' || !isKnownBookId(bookId)) return null;","if (typeof bookId !== 'string') return null;"),
+]
+def run(m):
+    mid,desc,f,old,new=m
+    d=f"{SP}/wmut/{mid}"
+    shutil.rmtree(d,ignore_errors=True)
+    os.makedirs(d)
+    subprocess.run(["rsync","-a","--exclude","node_modules","--exclude","src/qa","--exclude","dist",SRC+"/",d+"/"],check=True)
+    os.symlink("/Users/hanjichan/Desktop/git/malssum-haru/node_modules",d+"/../node_modules") if not os.path.exists(d+"/../node_modules") else None
+    os.symlink("/Users/hanjichan/Desktop/git/malssum-haru/web/node_modules",d+"/node_modules")
+    p=os.path.join(d,f)
+    s=open(p,encoding="utf-8").read()
+    if old not in s: return (mid,desc,"NOT-APPLIED","")
+    open(p,"w",encoding="utf-8").write(s.replace(old,new,1))
+    r=subprocess.run(["npx","vitest","run"],cwd=d,capture_output=True,text=True,timeout=300)
+    out=r.stdout+r.stderr
+    names=sorted(set(re.findall(r"FAIL\s+(\S+\.test\.tsx?)",out)))
+    n=re.findall(r"Tests\s+(.*)",out)
+    return (mid,desc,"KILLED" if r.returncode!=0 else "SURVIVED",(", ".join(names)+" "+(n[0] if n else ""))[:250])
+ids=sys.argv[1:]
+sel=[m for m in muts if not ids or m[0] in ids]
+with cf.ThreadPoolExecutor(4) as ex:
+    for res in ex.map(run,sel):
+        print(" | ".join(res),flush=True)

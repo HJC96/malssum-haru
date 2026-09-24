@@ -1,0 +1,32 @@
+{
+  "name": "malssum-haru-infra",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "말씀하루 서버리스 배포 정의(AWS CDK). 이 패키지는 배포 명령을 스크립트로 제공하지 않는다.",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "test:update-snapshot": "UPDATE_SNAPSHOT=1 node --import tsx --test test/stack.snapshot.test.ts",
+    "synth": "cdk synth --quiet",
+    "diff": "cdk diff",
+    "cost": "node cost/model.mjs",
+    "cost:test": "node --test cost/model.test.mjs",
+    "synth:ci": "cdk synth --quiet -c alertEmail=ci@example.com",
+    "cost:doc": "node cost/update-doc.mjs",
+    "cost:doc:check": "node cost/update-doc.mjs --check"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.270.0",
+    "constructs": "10.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "aws-cdk": "2.1143.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: qt-service
+
+server:
+  port: 8081
+
+qt:
+  # 제공처 자동 취득 허용이 확인되기 전까지 기본 off. 이 상태에서는 RANGE_NOT_PERMITTED + 공식 링크만 나간다.
+  acquisition:
+    enabled: false
+  # 운영자 kill switch 예: qt.providers.maeil-seongyeong.disabled=true (DISABLED, 공식 링크만)

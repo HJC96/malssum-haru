@@ -1,0 +1,471 @@
+.plan-section {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.plan-banner {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--warn-fg);
+  border-radius: var(--radius);
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+}
+
+.plan-form {
+  display: grid;
+  gap: var(--space-4);
+}
+.plan-form fieldset {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-width: 0;
+}
+.plan-form legend {
+  padding: 0 var(--space-2);
+  font-weight: 700;
+}
+.form-block {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.choice-row,
+.field-row,
+.chip-list,
+.range-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: end;
+}
+.chip-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chip-list li,
+.order-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.order-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap);
+}
+.choice input {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+.field--inline {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+.field--num input {
+  width: 5.5rem;
+}
+.field > span,
+.field-title {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+.field input,
+.field select {
+  min-height: var(--tap);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.range-rows {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+.range-row {
+  padding: var(--space-3);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+
+.btn--small {
+  min-height: 36px;
+  padding: 0.2rem var(--space-3);
+  font-size: 0.9rem;
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.plan-issues {
+  padding: var(--space-4);
+  border: 1px solid var(--err-fg);
+  border-radius: var(--radius);
+  background: var(--err-bg);
+  color: var(--err-fg);
+}
+.plan-issues ul {
+  margin: var(--space-2) 0 0;
+  padding-left: 1.25rem;
+}
+
+.plan-result {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.plan-summary {
+  display: grid;
+  gap: var(--space-3);
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+.stat {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.stat dt {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.stat dd {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.chart {
+  margin: 0;
+}
+.chart__svg {
+  display: block;
+  width: 100%;
+  height: 1.75rem;
+}
+.chart__remaining {
+  fill: var(--neutral-bg);
+  stroke: var(--border);
+}
+.chart__read {
+  fill: var(--accent);
+}
+.chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.chart__key {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-left: var(--space-3);
+}
+.chart__key:first-child {
+  margin-left: 0;
+}
+.chart__key--read {
+  background: var(--accent);
+}
+.chart__key--remaining {
+  background: var(--neutral-bg);
+}
+
+.compare {
+  border-collapse: collapse;
+  max-width: 28rem;
+}
+.compare caption {
+  text-align: left;
+  font-weight: 700;
+  padding-bottom: var(--space-2);
+}
+.compare th,
+.compare td {
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.view-tabs {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  justify-self: start;
+}
+.view-tabs__btn {
+  min-height: var(--tap);
+  padding: 0 var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.view-tabs__btn[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+/* 날짜별 목록: 모바일에서는 행을 카드처럼 쌓는다 */
+.day-list {
+  width: 100%;
+  border-collapse: collapse;
+}
+.day-list thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.day-list tr {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+.day-list th,
+.day-list td {
+  padding: 0;
+  text-align: left;
+  font-weight: 400;
+}
+.day-row__date {
+  font-weight: 700;
+}
+.day-row__range {
+  grid-column: 1 / -1;
+}
+.day-row__num {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.day-row--off,
+.day-row--empty,
+.day-row--elapsed {
+  color: var(--text-muted);
+}
+.day-row__partial {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+@media (min-width: 48rem) {
+  .day-list thead {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+  }
+  .day-list tr {
+    display: table-row;
+  }
+  .day-list th,
+  .day-list td {
+    display: table-cell;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .day-row__range {
+    grid-column: auto;
+  }
+}
+
+.calendar {
+  display: grid;
+  gap: var(--space-3);
+}
+.calendar__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.calendar__title {
+  margin: 0 var(--space-2);
+  min-width: 8rem;
+  text-align: center;
+  font-size: 1.05rem;
+}
+.calendar__grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.calendar__grid th {
+  padding: var(--space-1);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.cal-cell {
+  height: 4.25rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  vertical-align: top;
+  background: var(--surface);
+}
+.cal-cell--blank,
+.cal-cell--outside {
+  background: var(--neutral-bg);
+  color: var(--text-muted);
+}
+.cal-cell--outside .cal-cell__num {
+  display: block;
+  padding: 2px 4px;
+}
+.cal-cell__btn {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+.cal-cell__btn[aria-pressed='true'] {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+.cal-cell__btn[aria-current='date'] .cal-cell__num {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cal-cell__num {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.cal-cell__text {
+  font-size: 0.7rem;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.cal-cell--off .cal-cell__text,
+.cal-cell--empty .cal-cell__text,
+.cal-cell--elapsed .cal-cell__text {
+  color: var(--text-muted);
+}
+.calendar__detail {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.calendar__detail h4 {
+  margin: 0 0 var(--space-1);
+}
+
+.export-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.export-panel__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.export-panel__status {
+  min-height: 1.5rem;
+}
+
+/* 인쇄: 계획표만 출력한다 */
+.print-sheet {
+  display: none;
+}
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .app-header,
+  .skip-link,
+  .qt-section,
+  .plan-form,
+  .plan-banner,
+  .plan-summary,
+  .view-tabs,
+  .day-list,
+  .calendar,
+  .export-panel,
+  .plan-issues,
+  .plan-section > h2,
+  .plan-section > .qt-note {
+    display: none !important;
+  }
+  .print-sheet {
+    display: block;
+  }
+  .print-sheet table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11pt;
+  }
+  .print-sheet th,
+  .print-sheet td {
+    padding: 3pt 6pt;
+    border-bottom: 0.5pt solid #999;
+    text-align: left;
+    vertical-align: top;
+  }
+  .print-sheet tr {
+    break-inside: avoid;
+  }
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+}

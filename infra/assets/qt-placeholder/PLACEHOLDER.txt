@@ -1,0 +1,3 @@
+자리표시자 Lambda 산출물. 실제 배포 산출물이 아니다.
+services/qt 의 Spring Cloud Function AWS 산출물(zip 또는 shaded jar)이 준비되면
+`cdk synth -c qtLambdaAssetPath=<산출물 경로>` 로 교체한다.

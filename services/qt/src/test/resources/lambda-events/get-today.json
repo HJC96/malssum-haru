@@ -1,0 +1,20 @@
+{
+  "version": "2.0",
+  "routeKey": "GET /api/qt/today",
+  "rawPath": "/api/qt/today",
+  "rawQueryString": "plan=GEN-1&date=2000-01-01",
+  "headers": { "accept": "application/json", "host": "example.execute-api.ap-northeast-2.amazonaws.com" },
+  "queryStringParameters": { "plan": "GEN-1", "date": "2000-01-01" },
+  "requestContext": {
+    "accountId": "000000000000",
+    "apiId": "example",
+    "domainName": "example.execute-api.ap-northeast-2.amazonaws.com",
+    "http": { "method": "GET", "path": "/api/qt/today", "protocol": "HTTP/1.1", "sourceIp": "203.0.113.1", "userAgent": "test" },
+    "requestId": "test-request-id",
+    "routeKey": "GET /api/qt/today",
+    "stage": "$default",
+    "time": "24/Sep/2026:01:00:00 +0000",
+    "timeEpoch": 1790125200000
+  },
+  "isBase64Encoded": false
+}
