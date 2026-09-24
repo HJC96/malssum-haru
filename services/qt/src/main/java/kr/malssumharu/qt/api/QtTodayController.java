@@ -1,6 +1,8 @@
 package kr.malssumharu.qt.api;
 
+import kr.malssumharu.qt.lambda.QtLambdaFunctions;
 import kr.malssumharu.qt.service.QtTodayService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,7 +17,9 @@ public class QtTodayController {
     }
 
     @GetMapping("/api/qt/today")
-    public QtTodayResponse today() {
-        return service.today();
+    public ResponseEntity<QtTodayResponse> today() {
+        return ResponseEntity.ok()
+                .header("Cache-Control", QtLambdaFunctions.CACHE_CONTROL)
+                .body(service.today());
     }
 }

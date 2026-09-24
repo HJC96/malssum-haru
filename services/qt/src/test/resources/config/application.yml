@@ -1,0 +1,8 @@
+# 테스트 안전망: 스프링 컨텍스트를 띄우는 모든 테스트에서 제공처 요청 대상을 죽은 로컬 주소로 고정한다.
+# 취득 플래그가 실수로 켜져도 실제 제공처로 나가지 않는다. 목 서버를 쓰는 테스트는 자기 설정으로 덮어쓴다.
+qt:
+  providers:
+    maeil-seongyeong:
+      fetch-origin: "http://127.0.0.1:9"
+    saengmyeong-ui-sam:
+      fetch-origin: "http://127.0.0.1:9"

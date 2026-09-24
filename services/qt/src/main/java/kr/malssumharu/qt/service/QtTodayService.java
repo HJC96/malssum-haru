@@ -126,6 +126,10 @@ public class QtTodayService {
                     adapter, seoulToday, AvailabilityStatus.RANGE_NOT_PERMITTED, ReasonCode.PERMISSION_UNCONFIRMED);
         }
 
+        if (props.storage().deployed()) {
+            return storedEntry(adapter, seoulToday);
+        }
+
         ReentrantLock lock = locks.computeIfAbsent(id, k -> new ReentrantLock());
         lock.lock();
         try {
@@ -148,6 +152,18 @@ public class QtTodayService {
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * 배포 모드: 조회는 저장소에서 서울 오늘 키의 항목만 읽는다. 제공처에는 요청하지 않는다.
+     * 항목이 없으면 NOT_COLLECTED_YET이며 어제 항목으로 대체하지 않는다.
+     */
+    private ProviderEntry storedEntry(QtProviderAdapter adapter, LocalDate seoulToday) {
+        return store.find(adapter.id(), seoulToday)
+                .filter(stored -> seoulToday.equals(stored.providerDate())) // 키가 맞아도 한 번 더 확인
+                .map(stored -> confirmedEntry(adapter, seoulToday, stored))
+                .orElseGet(() -> failureEntry(
+                        adapter, seoulToday, AdapterOutcome.Failed.unavailable(ReasonCode.NOT_COLLECTED_YET, null)));
     }
 
     private ProviderEntry handleFound(QtProviderAdapter adapter, LocalDate seoulToday, AdapterOutcome.Found found, Instant now) {

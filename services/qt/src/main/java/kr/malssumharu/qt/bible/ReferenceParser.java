@@ -179,11 +179,21 @@ public final class ReferenceParser {
         if (start.compareTo(end) > 0) {
             throw invalid("range start is after end");
         }
-        OptionalInt lastOfEndChapter = verseCounts.lastVerse(book, c2);
-        if (lastOfEndChapter.isPresent() && v2 > lastOfEndChapter.getAsInt()) {
+        // 표가 그 책을 알면 그 책의 장·절 수로 검증한다(표가 없으면 위의 절대 상한만 적용)
+        OptionalInt chapters = verseCounts.chapterCount(book);
+        if (chapters.isPresent() && c2 > chapters.getAsInt()) {
+            throw invalid("chapter beyond the book's last chapter");
+        }
+        checkVerse(book, c1, v1);
+        checkVerse(book, c2, v2);
+        out.add(new BibleRange(book, start, end));
+    }
+
+    private void checkVerse(String book, int chapter, int verse) throws ReferenceException {
+        OptionalInt last = verseCounts.lastVerse(book, chapter);
+        if (last.isPresent() && verse > last.getAsInt()) {
             throw invalid("verse beyond chapter end");
         }
-        out.add(new BibleRange(book, start, end));
     }
 
     private static int num(String digits) throws ReferenceException {

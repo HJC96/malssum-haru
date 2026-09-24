@@ -15,5 +15,7 @@ public enum ReasonCode {
     PERMISSION_UNCONFIRMED,
     OPERATOR_DISABLED,
     LINK_UNREACHABLE,
+    /** 저장소 조회형 배포에서 서울 오늘 항목이 아직 수집되지 않음(계약 v1.2). 어제 항목으로 대체하지 않는다. */
+    NOT_COLLECTED_YET,
     INTERNAL_ERROR
 }

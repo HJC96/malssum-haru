@@ -10,3 +10,15 @@ qt:
   acquisition:
     enabled: false
   # 운영자 kill switch 예: qt.providers.maeil-seongyeong.disabled=true (DISABLED, 공식 링크만)
+
+  # 배포(Lambda) 환경 변수 매핑. 값이 비어 있으면 로컬 기본 동작(메모리 저장, 요청 시 취득)이다.
+  storage:
+    table-name: ${QT_TABLE_NAME:}
+    item-ttl-days: ${QT_ITEM_TTL_DAYS:400}
+  collector:
+    enabled: ${QT_COLLECTOR_ENABLED:disabled}
+  providers:
+    maeil-seongyeong:
+      state: ${QT_PROVIDER_MAEIL_SEONGYEONG:enabled}
+    saengmyeong-ui-sam:
+      state: ${QT_PROVIDER_SAENGMYEONG_UI_SAM:enabled}

@@ -140,4 +140,22 @@ class SaengmyeongUiSamAdapterTest {
             assertThat(slow.saengmyeong.fetch(TODAY)).isEqualTo(AdapterOutcome.Failed.linkError(ReasonCode.UPSTREAM_TIMEOUT));
         }
     }
+
+    @Test
+    void calendarImpossibleSeptember31IsParseFailed() {
+        String html = Fixtures.durannoPage(TODAY, "역대상  14 : 1~17").replace("2026.09.24 <span>", "2026.09.31 <span>");
+        rig.upstream.on("GET", PATH, Reply.eucKrHtml(html));
+
+        assertThat(rig.saengmyeong.fetch(TODAY))
+                .isEqualTo(AdapterOutcome.Failed.unavailable(ReasonCode.PARSE_FAILED, null));
+    }
+
+    @Test
+    void oversizedResponseIsRefusedAsALinkError() {
+        byte[] huge = new byte[600 * 1024];
+        java.util.Arrays.fill(huge, (byte) 'x');
+        rig.upstream.on("GET", PATH, Reply.ok("text/html;charset=EUC-KR", huge));
+
+        assertThat(rig.saengmyeong.fetch(TODAY)).isEqualTo(AdapterOutcome.Failed.linkError(ReasonCode.UPSTREAM_HTTP_ERROR));
+    }
 }

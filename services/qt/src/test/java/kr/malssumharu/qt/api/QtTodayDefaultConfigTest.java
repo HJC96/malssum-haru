@@ -7,6 +7,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.junit.jupiter.api.Test;
+import kr.malssumharu.qt.bible.ResourceVerseCountTable;
+import kr.malssumharu.qt.bible.VerseCountTable;
+import kr.malssumharu.qt.config.QtProperties;
+import kr.malssumharu.qt.domain.ProviderId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import tools.jackson.databind.JsonNode;
@@ -18,6 +23,27 @@ class QtTodayDefaultConfigTest {
 
     @Value("${local.server.port}")
     int port;
+
+    @Autowired
+    QtProperties props;
+
+    @Autowired
+    VerseCountTable verseCounts;
+
+    @Test
+    void theApplicationUsesTheGeneratedVerseCountTable() {
+        assertThat(verseCounts).isInstanceOf(ResourceVerseCountTable.class);
+        assertThat(((ResourceVerseCountTable) verseCounts).versificationSystem()).isEqualTo("nkrv-provisional-1");
+    }
+
+    /** 취득 플래그가 실수로 켜져도 테스트가 실제 제공처로 요청하지 않도록 test 설정이 요청 대상을 죽은 로컬 주소로 고정한다(F-12). */
+    @Test
+    void testContextsNeverPointAtTheRealProviders() {
+        for (ProviderId id : ProviderId.values()) {
+            assertThat(props.fetchOrigin(id, "https://real.example")).startsWith("http://127.0.0.1:");
+        }
+        assertThat(props.acquisitionEnabled(ProviderId.MAEIL_SEONGYEONG)).isFalse();
+    }
 
     @Test
     void defaultsToNotPermittedWithOfficialLinksOnly() throws Exception {

@@ -1,0 +1,99 @@
+package kr.malssumharu.qt.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import kr.malssumharu.qt.api.QtTodayResponse;
+import kr.malssumharu.qt.api.QtTodayResponse.ProviderEntry;
+import kr.malssumharu.qt.domain.AvailabilityStatus;
+import kr.malssumharu.qt.domain.ReasonCode;
+import kr.malssumharu.qt.support.Fixtures;
+import kr.malssumharu.qt.support.MockUpstream.Reply;
+import kr.malssumharu.qt.support.Rig;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+/** qa-review(F-04)가 제안한 서울 자정 경계 시나리오. 확인 캐시 TTL 안에서의 자정 넘김 등 기존 테스트가 못 잡던 변이(M19, M04)를 잡는다. */
+class QaBoundaryTest {
+    static final LocalDate D24 = LocalDate.of(2026, 9, 24);
+    static final LocalDate D25 = LocalDate.of(2026, 9, 25);
+    Rig rig;
+
+    @BeforeEach void up() { rig = new Rig(); }
+    @AfterEach void down() { rig.close(); }
+
+    void serve(LocalDate d) {
+        rig.upstream.on("GET", "/bible/today", Reply.html(Fixtures.maeilPage(d, "요한복음 3:1 - 3:21")));
+        rig.upstream.on("GET", "/qt/view/bible.asp", Reply.eucKrHtml(Fixtures.durannoPage(d, "역대상  14 : 1~17")));
+    }
+
+    /** 23:50 KST에 확인 -> 00:10 KST(TTL 30분 안)에 제공처가 아직 어제 페이지 */
+    @Test void confirmedAt2350ThenAt0010WithStaleProviderIsNeverServedAsToday() {
+        rig.clock.set(Instant.parse("2026-09-24T14:50:00Z")); // 23:50 KST 09-24
+        serve(D24);
+        QtTodayResponse first = rig.service.today();
+        for (ProviderEntry p : first.providers()) assertThat(p.availabilityStatus()).isEqualTo(AvailabilityStatus.RANGE_CONFIRMED);
+
+        rig.clock.set(Instant.parse("2026-09-24T15:10:00Z")); // 00:10 KST 09-25 (verifiedAt + 20분)
+        QtTodayResponse second = rig.service.today();
+        for (ProviderEntry p : second.providers()) {
+            assertThat(p.availabilityStatus()).as(p.providerId()).isEqualTo(AvailabilityStatus.RANGE_UNAVAILABLE);
+            assertThat(p.reasonCode()).isEqualTo(ReasonCode.DATE_MISMATCH);
+            assertThat(p.passage()).isNull();
+            assertThat(p.verifiedAt()).isNull();
+            assertThat(p.displayReference()).isNull();
+        }
+        // 제공처가 오늘(09-25)을 게시하면 새 키로 확인된다(실패 캐시 2분 뒤)
+        rig.clock.advance(Duration.ofMinutes(3));
+        serve(D25);
+        QtTodayResponse third = rig.service.today();
+        for (ProviderEntry p : third.providers()) {
+            assertThat(p.availabilityStatus()).isEqualTo(AvailabilityStatus.RANGE_CONFIRMED);
+            assertThat(p.providerDate()).isEqualTo(D25);
+        }
+        assertThat(rig.store.size()).isEqualTo(4);
+    }
+
+    /** 23:59:59.999 / 00:00:00.000 정확한 경계 */
+    @Test void exactMidnightBoundary() {
+        serve(D24);
+        rig.clock.set(Instant.parse("2026-09-24T14:59:59.999Z"));
+        assertThat(rig.service.today().providers().get(0).providerDate()).isEqualTo(D24);
+        serve(D25);
+        rig.clock.set(Instant.parse("2026-09-24T15:00:00Z"));
+        QtTodayResponse r = rig.service.today();
+        assertThat(rig.upstream.requests()).contains("GET /qt/view/bible.asp?qtDate=2026-09-25");
+        for (ProviderEntry p : r.providers()) assertThat(p.providerDate()).isEqualTo(D25);
+    }
+
+    /** 자정 직전 실패 캐시가 자정 후 새 날에 재사용되지 않는가 */
+    @Test void failureCachedBeforeMidnightIsNotReusedAfterMidnight() {
+        rig.upstream.on("GET", "/bible/today", Reply.status(500));
+        rig.upstream.on("GET", "/qt/view/bible.asp", Reply.status(500));
+        rig.clock.set(Instant.parse("2026-09-24T14:59:30Z"));
+        rig.service.today();
+        serve(D25);
+        rig.clock.set(Instant.parse("2026-09-24T15:00:10Z")); // 실패 캐시 TTL(2m) 안
+        QtTodayResponse r = rig.service.today();
+        for (ProviderEntry p : r.providers()) assertThat(p.availabilityStatus()).as(p.providerId()).isEqualTo(AvailabilityStatus.RANGE_CONFIRMED);
+    }
+
+    /** 성공 응답의 notice는 성공 때만, 실패 항목 notice는 null */
+    @Test void failureEntriesHaveNullNotice() {
+        rig.upstream.on("GET", "/bible/today", Reply.status(500));
+        rig.upstream.on("GET", "/qt/view/bible.asp", Reply.eucKrHtml(Fixtures.load("duranno-shell.html")));
+        for (ProviderEntry p : rig.service.today().providers()) assertThat(p.notice()).isNull();
+    }
+
+    /** 제공처가 미래 날짜를 표시 -> DATE_MISMATCH */
+    @Test void providerAheadOfSeoulIsMismatch() {
+        serve(D25);
+        for (ProviderEntry p : rig.service.today().providers()) {
+            assertThat(p.reasonCode()).isEqualTo(ReasonCode.DATE_MISMATCH);
+            assertThat(p.passage()).isNull();
+        }
+    }
+}

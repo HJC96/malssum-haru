@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Map;
 import kr.malssumharu.qt.domain.ProviderId;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
@@ -28,6 +29,10 @@ public record QtProperties(
         @DefaultValue Storage storage,
         @DefaultValue Collector collector,
         Map<String, ProviderSettings> providers) {
+
+    @ConstructorBinding
+    public QtProperties {
+    }
 
     /** 기존 테스트·로컬 코드용: 저장소·수집기 설정은 기본값(메모리 저장, 수집 꺼짐). */
     public QtProperties(Acquisition acquisition, Http http, Cache cache, Map<String, ProviderSettings> providers) {
@@ -73,6 +78,10 @@ public record QtProperties(
      */
     public record ProviderSettings(
             @DefaultValue("false") boolean disabled, Boolean acquisition, String fetchOrigin, String state) {
+
+        @ConstructorBinding
+        public ProviderSettings {
+        }
 
         public ProviderSettings(boolean disabled, Boolean acquisition, String fetchOrigin) {
             this(disabled, acquisition, fetchOrigin, null);

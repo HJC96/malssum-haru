@@ -333,4 +333,24 @@ class QtTodayServiceTest {
             assertThat(e.getThrowableProxy()).isNull(); // 스택트레이스에 예외 메시지가 실리지 않게 한다
         });
     }
+
+    @Test
+    void successPathLogsContainOnlyProviderStatusAndNeverTheReference() {
+        bothOk(TODAY);
+        var logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(QtTodayService.class);
+        var appender = new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            QtTodayResponse r = rig.service.today();
+            assertThat(entry(r, ProviderId.MAEIL_SEONGYEONG).availabilityStatus()).isEqualTo(AvailabilityStatus.RANGE_CONFIRMED);
+        } finally {
+            logger.detachAppender(appender);
+        }
+
+        assertThat(appender.list).isNotEmpty();
+        assertThat(appender.list).allSatisfy(e -> assertThat(e.getFormattedMessage())
+                .doesNotContain("요한복음").doesNotContain("역대상").doesNotContain("3:1").doesNotContain("14 : 1")
+                .doesNotContain("ref="));
+    }
 }

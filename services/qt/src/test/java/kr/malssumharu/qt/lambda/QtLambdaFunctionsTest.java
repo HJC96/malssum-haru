@@ -94,6 +94,8 @@ class QtLambdaFunctionsTest {
         assertThat(rest.statusCode()).isEqualTo(200);
         assertThat(lambda.getStatusCode()).isEqualTo(200);
         assertThat(lambda.getHeaders()).containsEntry("Content-Type", "application/json");
+        assertThat(lambda.getHeaders()).containsEntry("Cache-Control", "public, max-age=60");
+        assertThat(rest.headers().firstValue("Cache-Control")).contains("public, max-age=60");
         assertThat(lambda.getIsBase64Encoded()).isFalse();
         assertThat(lambda.getBody()).isEqualTo(rest.body());
         assertThat(lambda.getBody()).contains("\"RANGE_CONFIRMED\"").doesNotContain("GEN-1").doesNotContain("2000-01-01");

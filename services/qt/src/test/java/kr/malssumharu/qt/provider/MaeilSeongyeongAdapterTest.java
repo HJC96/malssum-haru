@@ -168,4 +168,50 @@ class MaeilSeongyeongAdapterTest {
 
         assertThat(adapter.fetch(TODAY)).isEqualTo(AdapterOutcome.Failed.linkError(ReasonCode.LINK_UNREACHABLE));
     }
+
+    @Test
+    void partialRenderWithDateButNoReferenceFallsBackToJsonInsteadOfFailing() {
+        String dateOnly = Fixtures.maeilPage(TODAY, "요한복음 3:1 - 3:21").replaceAll("본문 : .*?찬송가", "찬송가");
+        page(PAGE, Reply.html(dateOnly));
+        page(DETAIL, Reply.json(Fixtures.maeilDetailJson(TODAY, "사사기(Judges)", "11:1 - 11:11")));
+
+        assertThat(rig.maeil.fetch(TODAY)).isInstanceOfSatisfying(AdapterOutcome.Found.class,
+                found -> assertThat(found.ranges().getFirst().bookId()).isEqualTo("JDG"));
+        assertThat(rig.upstream.countRequests("POST /Ajax/Bible/BodyMatterDetail")).isEqualTo(1);
+    }
+
+    @Test
+    void partialRenderWithReferenceButNoDateTakesTheDateFromJsonNotFromNowhere() {
+        String referenceOnly = Fixtures.maeilPage(TODAY, "요한복음 3:1 - 3:21")
+                .replaceAll("\\$\\(\"#base_de\"\\)\\.val\\(\"[^\"]*\"\\);", "")
+                .replaceAll("매일성경 +\\d{4}\\.\\d{2}\\.\\d{2}", "매일성경");
+        page(PAGE, Reply.html(referenceOnly));
+        page(DETAIL, Reply.json(Fixtures.maeilDetailJson(TODAY, "요한복음(John)", "3:1 - 3:21")));
+
+        assertThat(rig.maeil.fetch(TODAY)).isInstanceOfSatisfying(AdapterOutcome.Found.class,
+                found -> assertThat(found.providerDate()).isEqualTo(TODAY));
+
+        page(DETAIL, Reply.status(500)); // 날짜를 어디서도 못 얻으면 확정하지 않는다
+        assertThat(rig.maeil.fetch(TODAY)).isInstanceOfSatisfying(AdapterOutcome.Failed.class,
+                failed -> assertThat(failed.reason()).isEqualTo(ReasonCode.DYNAMIC_CONTENT_UNAVAILABLE));
+    }
+
+    @Test
+    void impossibleCalendarDateInTheFirstHtmlIsNotAccepted() {
+        page(PAGE, Reply.html(Fixtures.maeilPage(TODAY, "요한복음 3:1 - 3:21")
+                .replace("\"2026-09-24\"", "\"2026-09-31\"").replace("2026.09.24", "2026.09.31")));
+        page(DETAIL, Reply.status(500));
+
+        assertThat(rig.maeil.fetch(TODAY)).isInstanceOfSatisfying(AdapterOutcome.Failed.class,
+                failed -> assertThat(failed.status()).isEqualTo(AvailabilityStatus.RANGE_UNAVAILABLE));
+    }
+
+    @Test
+    void oversizedResponseIsRefusedAsALinkErrorNotParsed() {
+        byte[] huge = new byte[600 * 1024]; // Rig의 제한은 512KB
+        java.util.Arrays.fill(huge, (byte) 'x');
+        page(PAGE, Reply.ok("text/html; charset=utf-8", huge));
+
+        assertThat(rig.maeil.fetch(TODAY)).isEqualTo(AdapterOutcome.Failed.linkError(ReasonCode.UPSTREAM_HTTP_ERROR));
+    }
 }

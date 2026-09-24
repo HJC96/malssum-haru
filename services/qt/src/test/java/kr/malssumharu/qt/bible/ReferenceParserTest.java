@@ -115,4 +115,23 @@ class ReferenceParserTest {
         assertThat(ranges).hasSize(1);
         assertThatThrownBy(() -> ranges.add(ranges.getFirst())).isInstanceOf(UnsupportedOperationException.class);
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"시편 151:1-3", "창세기 1:1-177", "창세기 200:1", "요한복음 3:178"})
+    void chapterAndVerseAboveTheAbsoluteBoundsAreRejectedEvenWithoutATable(String text) {
+        assertThatThrownBy(() -> parser.parse(text))
+                .isInstanceOfSatisfying(ReferenceException.class,
+                        e -> assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_REFERENCE));
+    }
+
+    @Test
+    void knownLimitWithoutAVerseCountTableBookSpecificImpossibleRangesPassTheAbsoluteBounds() throws Exception {
+        // 절 수 표(VerseCountTable)가 연결되기 전의 알려진 한계(README '한계'): 책마다의 장·절 수는 검증하지 못한다.
+        // 창세기 1장은 31절뿐이지만 절대 상한(장 150, 절 176) 안이라 통과한다. 표가 연결되면 이 테스트는 실패해야 하며 그때 갱신한다.
+        assertThat(parser.parse("창세기 1:1-99")).containsExactly(range("GEN", 1, 1, 1, 99));
+        VerseCountTable table = (book, chapter) -> book.equals("GEN") && chapter == 1 ? OptionalInt.of(31) : OptionalInt.empty();
+        assertThatThrownBy(() -> new ReferenceParser(table).parse("창세기 1:1-99"))
+                .isInstanceOfSatisfying(ReferenceException.class,
+                        e -> assertThat(e.reason()).isEqualTo(ReasonCode.INVALID_REFERENCE));
+    }
 }
