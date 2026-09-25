@@ -1,0 +1,555 @@
+{
+  "translation": {
+    "id": "WEB",
+    "name": "World English Bible",
+    "ebibleId": "engwebp",
+    "license": "Public Domain",
+    "language": "en",
+    "edition": "2020 stable text edition (eBible.org engwebp, 66-book protocanon)"
+  },
+  "source": {
+    "sourceUrl": "https://ebible.org/Scriptures/engwebp_usfm.zip",
+    "downloadedAt": "2026-09-24T02:42:45Z",
+    "bytes": 2903449,
+    "sha256": "be82e7f179328032b7492592eb434ccd13f1a18b05642360b5747e8655b2023b"
+  },
+  "sourceLastModified": "Tue, 22 Sep 2026 04:27:16 GMT",
+  "transformation": "USFM markup removal and whitespace normalization only (Strong's markup, footnotes, cross references, section headings and speaker labels removed; no word changed). Psalm superscriptions (\\d) are kept apart as chapter titles, not verses.",
+  "totals": {
+    "books": 66,
+    "chapters": 1189,
+    "verses": 31103
+  },
+  "coprHtmSha256": "02504727fe6d711e53d472053825db5d7386d94e4ab5bbc58e49c70d3d88a3b2",
+  "books": {
+    "GEN": {
+      "sha256": "57a68dccaf57c0f0fb7dc0d71ab56c482099070ab4341ecb8b8c63b319222211",
+      "bytes": 202182,
+      "chapters": 50,
+      "verses": 1533,
+      "sourceFile": "02-GENengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "EXO": {
+      "sha256": "c7b00aab0d8fe965028b3056ee103f11e4e6d80af282a5db04582e934c283b57",
+      "bytes": 171803,
+      "chapters": 40,
+      "verses": 1213,
+      "sourceFile": "03-EXOengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "LEV": {
+      "sha256": "c57a1be216c96d85b9de530dacd03cf0ad32e2fb413419daeb033d366e86844e",
+      "bytes": 129123,
+      "chapters": 27,
+      "verses": 859,
+      "sourceFile": "04-LEVengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "NUM": {
+      "sha256": "0a4b51cfd9b33198f8ac150f0e45315ead046548159ed2e9af3e04d55639246d",
+      "bytes": 178064,
+      "chapters": 36,
+      "verses": 1288,
+      "sourceFile": "05-NUMengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "DEU": {
+      "sha256": "6c2d011d42c430f10322c7727a8c261512228b432ecc7ff934faa41bbb43092f",
+      "bytes": 148645,
+      "chapters": 34,
+      "verses": 959,
+      "sourceFile": "06-DEUengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JOS": {
+      "sha256": "1461fc6b8cb2d335e5d909dbf95d3fddf14d567f5b53acd2adb097fe0b801b29",
+      "bytes": 101165,
+      "chapters": 24,
+      "verses": 658,
+      "sourceFile": "07-JOSengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JDG": {
+      "sha256": "c572acfc33b2426268ef30791f93c4c01f5563a616bb08cf63aa11602d94148f",
+      "bytes": 100196,
+      "chapters": 21,
+      "verses": 618,
+      "sourceFile": "08-JDGengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "RUT": {
+      "sha256": "f5860a145330712c7f3639e9e63a3347b36d4a37b192e9d35b4c3ec306105b22",
+      "bytes": 13533,
+      "chapters": 4,
+      "verses": 85,
+      "sourceFile": "09-RUTengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "1SA": {
+      "sha256": "bebe7737b7888998c32eced15e21b7543c3f9b7ac31662229510d5a674fcb03f",
+      "bytes": 131550,
+      "chapters": 31,
+      "verses": 810,
+      "sourceFile": "10-1SAengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "2SA": {
+      "sha256": "e6ecceb85f1d80d04187224068f370934f58ad2de548d29c107ea588d30083c9",
+      "bytes": 108401,
+      "chapters": 24,
+      "verses": 695,
+      "sourceFile": "11-2SAengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "1KI": {
+      "sha256": "2cb76bc682b56157483bcc672232691a39d70a4ab4d55acedea8adc55b375d7d",
+      "bytes": 128518,
+      "chapters": 22,
+      "verses": 816,
+      "sourceFile": "12-1KIengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "2KI": {
+      "sha256": "7a0bb028a5745c8f52c4b4746cbb78fba953971b4cf4e92e151a9a4809535e22",
+      "bytes": 123259,
+      "chapters": 25,
+      "verses": 719,
+      "sourceFile": "13-2KIengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "1CH": {
+      "sha256": "fe18aee8f58899c759fa8ba9ce6c69d6fd3f5855629b1682fde147641338159b",
+      "bytes": 114280,
+      "chapters": 29,
+      "verses": 942,
+      "sourceFile": "14-1CHengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "2CH": {
+      "sha256": "26649df0568ebab0031d6793c5963ac3158e8347843d92fb5173083d114e38dd",
+      "bytes": 141390,
+      "chapters": 36,
+      "verses": 822,
+      "sourceFile": "15-2CHengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "EZR": {
+      "sha256": "60f7ae710e6423714c323f3215672b265f49d788660f9a54760c4fb2807cfa1c",
+      "bytes": 41322,
+      "chapters": 10,
+      "verses": 280,
+      "sourceFile": "16-EZRengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "NEH": {
+      "sha256": "f51a224dd9e080db3057696974b8e15afab2231d8fb4f074a28b84fa1bf2b384",
+      "bytes": 58588,
+      "chapters": 13,
+      "verses": 406,
+      "sourceFile": "17-NEHengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "EST": {
+      "sha256": "7e893473d7c20c2b371597e869c073350b00f4401c364b2e8126e7c41ef7c510",
+      "bytes": 30837,
+      "chapters": 10,
+      "verses": 167,
+      "sourceFile": "18-ESTengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JOB": {
+      "sha256": "c50b20fa21839f5624a9da6fc490d612d4e92fb9b0cff643dd7c28bdad4a749b",
+      "bytes": 100349,
+      "chapters": 42,
+      "verses": 1070,
+      "sourceFile": "19-JOBengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "PSA": {
+      "sha256": "a1a18a21d347407adcbb00c500ea522d1eb0a947a2b9579340468884e127cc07",
+      "bytes": 243330,
+      "chapters": 150,
+      "verses": 2461,
+      "sourceFile": "20-PSAengwebp.usfm",
+      "titlesAfterFirstVerse": 21
+    },
+    "PRO": {
+      "sha256": "88201697d4a1bf333afc503982bf82ab85404d20e63eecdd7407335f6d254324",
+      "bytes": 84456,
+      "chapters": 31,
+      "verses": 915,
+      "sourceFile": "21-PROengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "ECC": {
+      "sha256": "2d2789aa32d68cc7d8a694c2f89a0d65c003401b38f5de3760daee903dece7f3",
+      "bytes": 29632,
+      "chapters": 12,
+      "verses": 222,
+      "sourceFile": "22-ECCengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "SNG": {
+      "sha256": "88621be3ec4ac21b6be6b3372b175ba4c14c43cde4b72926e89b8e5935c8f7e6",
+      "bytes": 14331,
+      "chapters": 8,
+      "verses": 117,
+      "sourceFile": "23-SNGengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "ISA": {
+      "sha256": "66a4f1dd4b17b615eb6e7a3feba8ab44be4597fe816ce5ce335ad110c2247e22",
+      "bytes": 199089,
+      "chapters": 66,
+      "verses": 1292,
+      "sourceFile": "24-ISAengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JER": {
+      "sha256": "9a48ec51d106d83cf0da8cf67567b52ff9e3a5c98c6bffae624b9c01edfbc2f1",
+      "bytes": 230980,
+      "chapters": 52,
+      "verses": 1364,
+      "sourceFile": "25-JERengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "LAM": {
+      "sha256": "0d51d2b90ce873288c0ee44bed8de9dc3db6f62ad2d6ab2f9c7f61c4b13a376f",
+      "bytes": 19206,
+      "chapters": 5,
+      "verses": 154,
+      "sourceFile": "26-LAMengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "EZK": {
+      "sha256": "744f03e9c82af59dc40b66e16c4dd0dd3fb42c81531df47a205830800c1dfb37",
+      "bytes": 209457,
+      "chapters": 48,
+      "verses": 1273,
+      "sourceFile": "27-EZKengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "DAN": {
+      "sha256": "f84fc7d0fff8eacd7cb8878e9e5fbf5206d4b6b4e7f7db4f79e4d36947bb9a6f",
+      "bytes": 63449,
+      "chapters": 12,
+      "verses": 357,
+      "sourceFile": "28-DANengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "HOS": {
+      "sha256": "d9d2031bd4989b947d8ec59b6b9cd53a117af6c4371883eedacf6ca274c5909d",
+      "bytes": 28689,
+      "chapters": 14,
+      "verses": 197,
+      "sourceFile": "29-HOSengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JOL": {
+      "sha256": "afc5b637f318ed66ba583f5daf4437f7d9cc9e8da3306b8f0b5c0574cd12e1d2",
+      "bytes": 10996,
+      "chapters": 3,
+      "verses": 73,
+      "sourceFile": "30-JOLengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "AMO": {
+      "sha256": "7d1cacf261947203f607946043c534824415d2e5570867fe7a39094a1bc66df6",
+      "bytes": 22581,
+      "chapters": 9,
+      "verses": 146,
+      "sourceFile": "31-AMOengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "OBA": {
+      "sha256": "045ee64bf00c65a39a8d77ff7267795cc1adf62454c547bc4cd693979a0d7e66",
+      "bytes": 3525,
+      "chapters": 1,
+      "verses": 21,
+      "sourceFile": "32-OBAengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JON": {
+      "sha256": "96237438b8deb7cb4ddb37b827a31ca5fab24a53eb4850936f59aeca8a99d2cd",
+      "bytes": 6978,
+      "chapters": 4,
+      "verses": 48,
+      "sourceFile": "33-JONengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "MIC": {
+      "sha256": "1c84087e850d307dfca59ba41a691899e6fad21ce144a2b1417d45266530aab9",
+      "bytes": 16533,
+      "chapters": 7,
+      "verses": 105,
+      "sourceFile": "34-MICengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "NAM": {
+      "sha256": "040f4e52c20ddabc353fad2749f59cd500b176ec8d9ab04087b80ab3902ffea6",
+      "bytes": 6939,
+      "chapters": 3,
+      "verses": 47,
+      "sourceFile": "35-NAMengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "HAB": {
+      "sha256": "12949a98be5b259e20ab7a8373b3380c80e8de91f28e790ec12f716bf0e3310a",
+      "bytes": 7889,
+      "chapters": 3,
+      "verses": 56,
+      "sourceFile": "36-HABengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "ZEP": {
+      "sha256": "6e1ef362dc167a16ca7204a177b6bd4d8c78741ca92b3d09ac75245f9bbc0b14",
+      "bytes": 8766,
+      "chapters": 3,
+      "verses": 53,
+      "sourceFile": "37-ZEPengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "HAG": {
+      "sha256": "479f2e182a60bb2874a7ff1a17966385699d41af8615feb28b95b1634808a188",
+      "bytes": 6005,
+      "chapters": 2,
+      "verses": 38,
+      "sourceFile": "38-HAGengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "ZEC": {
+      "sha256": "e2c6d71e5352dc476281ec2c803d033b2dbe3cc7abba2a793873422b0e281a8c",
+      "bytes": 33615,
+      "chapters": 14,
+      "verses": 211,
+      "sourceFile": "39-ZECengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "MAL": {
+      "sha256": "c8c2a293a9fba4fa996ce909b84369af6c2cd85911dff6893bdac08b5803bdf0",
+      "bytes": 9682,
+      "chapters": 4,
+      "verses": 55,
+      "sourceFile": "40-MALengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "MAT": {
+      "sha256": "745c57f48021fd5e0b95a2e76bdcae4a0e40b4a8fc76ce4225d3e4a5d5a063af",
+      "bytes": 131111,
+      "chapters": 28,
+      "verses": 1071,
+      "sourceFile": "70-MATengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "MRK": {
+      "sha256": "df6a08818820edda98d6c32ee958d2d047152319b0ffebe6dcdc5d06d4696898",
+      "bytes": 82130,
+      "chapters": 16,
+      "verses": 678,
+      "sourceFile": "71-MRKengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "LUK": {
+      "sha256": "a70125264fd4d4cea313129cccdb468452cb9527bebf06fdc020b0fb2ecfe469",
+      "bytes": 139139,
+      "chapters": 24,
+      "verses": 1151,
+      "sourceFile": "72-LUKengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JHN": {
+      "sha256": "3e3b7695d5b3bb6c59945c35e40314962324e597940243d1132c89151ec24e33",
+      "bytes": 105450,
+      "chapters": 21,
+      "verses": 879,
+      "sourceFile": "73-JHNengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "ACT": {
+      "sha256": "b346d4c62caad478a4317e3a34ce2f60aa7700d7cf2635d7e6baeaa5fbb9564a",
+      "bytes": 133699,
+      "chapters": 28,
+      "verses": 1007,
+      "sourceFile": "74-ACTengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "ROM": {
+      "sha256": "4f9dd68ff2b9b05f6c63e80f12c406eb95e3ee202ca0b5d9a56911f04ff5050e",
+      "bytes": 54014,
+      "chapters": 16,
+      "verses": 434,
+      "sourceFile": "75-ROMengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "1CO": {
+      "sha256": "7e808f670146f875e798c7f986a4449dcb45b5e32a804bf67e7212c1e7488dc1",
+      "bytes": 52643,
+      "chapters": 16,
+      "verses": 437,
+      "sourceFile": "76-1COengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "2CO": {
+      "sha256": "9d2a441fa12af3a0fc5906793b4610c5c6f51d7d35545607f00bc96e1c9a4a57",
+      "bytes": 34250,
+      "chapters": 13,
+      "verses": 257,
+      "sourceFile": "77-2COengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "GAL": {
+      "sha256": "2135f6592597ea1e8323f867e718961bde10ccaba94ce77ebc681394e5af90d9",
+      "bytes": 17713,
+      "chapters": 6,
+      "verses": 149,
+      "sourceFile": "78-GALengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "EPH": {
+      "sha256": "8d629f71117279c03b855bdb565a451a75aaa911a0d147c377b80e6896a2242a",
+      "bytes": 17704,
+      "chapters": 6,
+      "verses": 155,
+      "sourceFile": "79-EPHengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "PHP": {
+      "sha256": "c1f1554c58dc89a752e041f8f5603e5723782f29eb29d98b2c42be776aadc89e",
+      "bytes": 12467,
+      "chapters": 4,
+      "verses": 104,
+      "sourceFile": "80-PHPengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "COL": {
+      "sha256": "8272534bbb17702f3760ceead5af4fbc1f37c1b966dbff5649a1ec6ac6afe9af",
+      "bytes": 11556,
+      "chapters": 4,
+      "verses": 95,
+      "sourceFile": "81-COLengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "1TH": {
+      "sha256": "e7a0a80c81294c116289ece560396b4b62e64c90bc527a0411372377f2e90f34",
+      "bytes": 10425,
+      "chapters": 5,
+      "verses": 89,
+      "sourceFile": "82-1THengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "2TH": {
+      "sha256": "5e9ed91fee104795382608b88b84e48532f1a95bcc581afe8cf6657c9fc77dd5",
+      "bytes": 5884,
+      "chapters": 3,
+      "verses": 47,
+      "sourceFile": "83-2THengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "1TI": {
+      "sha256": "b1193e534867a5c9563534e8db2441f8fc9ae497cf727ffe8154643990922ab1",
+      "bytes": 13712,
+      "chapters": 6,
+      "verses": 113,
+      "sourceFile": "84-1TIengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "2TI": {
+      "sha256": "44a83fe9343e19b1e77fd6248d5cc4b4386581fde7b041702b80a734001826a6",
+      "bytes": 9615,
+      "chapters": 4,
+      "verses": 83,
+      "sourceFile": "85-2TIengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "TIT": {
+      "sha256": "7e244c1b6ff4e2f362c03dd8e6365cb9b12807a5bb35bd2f17cc41574de96102",
+      "bytes": 5597,
+      "chapters": 3,
+      "verses": 46,
+      "sourceFile": "86-TITengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "PHM": {
+      "sha256": "2ef046123c6a77b965e4503cc672b1ea677ff8566529cf858099cf22a12e635c",
+      "bytes": 2516,
+      "chapters": 1,
+      "verses": 25,
+      "sourceFile": "87-PHMengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "HEB": {
+      "sha256": "04794394e340eb867ce449a47d347f29f69d232ba4f728db823109d5a8a9c0ed",
+      "bytes": 40011,
+      "chapters": 13,
+      "verses": 303,
+      "sourceFile": "88-HEBengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JAS": {
+      "sha256": "86ed52e068a54d1f3d5116ebdb7a930a0272912dc8b2f5fe9d9eb693e12dbc25",
+      "bytes": 12920,
+      "chapters": 5,
+      "verses": 108,
+      "sourceFile": "89-JASengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "1PE": {
+      "sha256": "2f543f696804bbd59a9051e7a247f86b15467cbfe94e0692fad996235c25f9f9",
+      "bytes": 14170,
+      "chapters": 5,
+      "verses": 105,
+      "sourceFile": "90-1PEengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "2PE": {
+      "sha256": "132a9978d712b35ce8c2cc2fe1dd9c7c92be95fcf2eb1fdef2178490bb3caf66",
+      "bytes": 9040,
+      "chapters": 3,
+      "verses": 61,
+      "sourceFile": "91-2PEengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "1JN": {
+      "sha256": "1db376e4d2aade825ad1f7caf40071807806d690bdfd6e5c2d9f7604da2dbe18",
+      "bytes": 13423,
+      "chapters": 5,
+      "verses": 105,
+      "sourceFile": "92-1JNengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "2JN": {
+      "sha256": "a40129fe7d5a7dfc93ffeecac5f4be5ce3e281d1dcb188dd7bd097c8295b0497",
+      "bytes": 1704,
+      "chapters": 1,
+      "verses": 13,
+      "sourceFile": "93-2JNengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "3JN": {
+      "sha256": "e35557477f690c3d92c1b5ef1dee0b066e3df6709e5fc7fe222ff87f202bbbde",
+      "bytes": 1691,
+      "chapters": 1,
+      "verses": 14,
+      "sourceFile": "94-3JNengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "JUD": {
+      "sha256": "af19db193e0c7e4b9b599f55fb8641ce23ae17df95b562c4cce8aae9e19f8c54",
+      "bytes": 3731,
+      "chapters": 1,
+      "verses": 25,
+      "sourceFile": "95-JUDengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    },
+    "REV": {
+      "sha256": "a8734e3c4436d165975d610f413874845f66cac5899b1c17d862a7fc9c11f147",
+      "bytes": 62893,
+      "chapters": 22,
+      "verses": 404,
+      "sourceFile": "96-REVengwebp.usfm",
+      "titlesAfterFirstVerse": 0
+    }
+  },
+  "dataSha256": "e096838af025b99e47235aa999fccc1438dd683c4781f5440daf8b857bd582f3"
+}

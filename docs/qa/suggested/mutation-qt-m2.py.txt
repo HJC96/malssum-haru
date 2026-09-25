@@ -1,0 +1,55 @@
+import subprocess, shutil, os, sys, re, concurrent.futures as cf
+SP="/private/tmp/claude-501/-Users-hanjichan-Desktop-git-malssum-haru/a3bded69-4ef6-463f-9ca2-657d4d4fb0b7/scratchpad"
+SRC=SP+"/s2/qt"
+M="src/main/java/kr/malssumharu/qt/"
+T="src/test/"
+# (id, desc, file, old, new)
+muts=[
+ ("M01","service: date-mismatch check disabled (rejectionFor)",M+"provider/AdapterOutcome.java","if (!seoulToday.equals(providerDate)) {","if (false) {"),
+ ("M02","service: acquisition flag check disabled",M+"service/QtTodayService.java","if (!props.acquisitionEnabled(id)) {","if (false) {"),
+ ("M04","service: failure cache ignores seoul date",M+"service/QtTodayService.java","cached.seoulDate().equals(seoulToday) && ",""),
+ ("M09","maeil: fallback only if both missing",M+"provider/MaeilSeongyeongAdapter.java","if (date == null || reference == null) {","if (date == null && reference == null) {"),
+ ("M11","fetcher: size limit off",M+"http/JdkHttpFetcher.java","if (body.length > maxBodyBytes) {","if (false) {"),
+ ("M13","service: log includes provider ref",M+"service/QtTodayService.java","log.info(\"provider={} status=RANGE_CONFIRMED\", adapter.id().id());","log.info(\"provider={} status=RANGE_CONFIRMED ref={}\", adapter.id().id(), found.displayReference());"),
+ ("M18","service: notice copy on failure",M+"service/QtTodayService.java","return entry(adapter, seoulToday, failed.providerDate(), failed.status(), failed.reason(), null, null, null, null);","return entry(adapter, seoulToday, failed.providerDate(), failed.status(), failed.reason(), null, null, null, CONFIRMED_NOTICE);"),
+ ("M19","service: stale store lookup fallback",M+"service/QtTodayService.java","StoredDay stored = store.find(id, seoulToday).orElse(null);","StoredDay stored = store.find(id, seoulToday).orElse(null); if (stored == null) { stored = store.find(id, seoulToday.minusDays(1)).orElse(null); }"),
+ ("M21","fixture: Korean prose with spaces","src/test/resources/fixtures/maeil-today.html","</body>","<p>이 문장은 검수를 위한 임의의 설명문으로 제공처 해설을 흉내 낸 것입니다 어절마다 공백이 있어서 검사를 통과하는지 확인합니다 그래서 길이는 짧지만 문장 전체가 들어 있습니다</p></body>"),
+ ("T02","stored: fall back to yesterday item",M+"service/QtTodayService.java",".orElseGet(() -> failureEntry(\n                        adapter, seoulToday, AdapterOutcome.Failed.unavailable(ReasonCode.NOT_COLLECTED_YET, null)));",".or(() -> store.find(adapter.id(), seoulToday.minusDays(1))).map(stored -> confirmedEntry(adapter, seoulToday, stored)).orElseGet(() -> failureEntry(\n                        adapter, seoulToday, AdapterOutcome.Failed.unavailable(ReasonCode.NOT_COLLECTED_YET, null)));"),
+ ("T03","query: deployed mode ignored (live fetch on query)",M+"service/QtTodayService.java","if (props.storage().deployed()) {","if (false) {"),
+ ("T04","collector: idempotency removed",M+"service/QtCollectorService.java","if (store.find(id, seoulToday).isPresent()) {","if (false) {"),
+ ("T05","collector: date mismatch stored",M+"service/QtCollectorService.java","if (rejection != null) {\n            log.warn(\"provider={} collect rejected","if (false) {\n            log.warn(\"provider={} collect rejected"),
+ ("T06","collector: acquisition flag ignored",M+"service/QtCollectorService.java","if (!props.acquisitionEnabled(id)) {","if (false) {"),
+ ("T07","collector: collector switch ignored",M+"service/QtCollectorService.java","if (!props.collector().isEnabled()) {","if (false) {"),
+ ("T08","collector: provider disabled ignored",M+"service/QtCollectorService.java","if (props.disabled(id)) {","if (false) {"),
+ ("T09","dynamo: find date minus 1",M+"service/DynamoDbQtDayStore.java",".key(key(providerId, providerDate))",".key(key(providerId, providerDate.minusDays(1)))"),
+ ("T10","collector: seoul->UTC",M+"service/QtCollectorService.java","QtTodayService.SEOUL","java.time.ZoneOffset.UTC"),
+ ("T11","lambda: collect ignores trigger check",M+"lambda/QtLambdaFunctions.java","!\"schedule\".equals(input.get(\"trigger\"))","false"),
+ ("T12","lambda: no cache-control",M+"lambda/QtLambdaFunctions.java","Map.of(\"Cache-Control\", CACHE_CONTROL)","Map.of()"),
+ ("T13","collector: log reference",M+"service/QtCollectorService.java","log.info(\"provider={} collect result=STORED\", id.id());","log.info(\"provider={} collect result=STORED ref={}\", id.id(), found.displayReference());"),
+ ("T14","props: env name normalisation off",M+"config/QtProperties.java","key.replaceAll(\"[-_]\", \"\")","key"),
+ ("T15","dynamo: save persists displayReference under extra body attr",M+"service/DynamoDbQtDayStore.java","item.put(SOURCE_VERSION, s(day.sourceVersion()));","item.put(SOURCE_VERSION, s(day.sourceVersion())); item.put(\"body\", s(day.displayReference()));"),
+ ("T16","dynamo: ttl attr dropped",M+"service/DynamoDbQtDayStore.java","item.put(EXPIRES_AT,","if (false) item.put(EXPIRES_AT,"),
+ ("T17","service: deployed store errors propagate as NOT_COLLECTED",M+"service/QtTodayService.java","} catch (Throwable t) {\n            log.error(\"provider={} unexpected failure","} catch (IllegalStateException t) {\n            log.error(\"provider={} unexpected failure"),
+ ("T18","collector: store even when Failed outcome (mismatch ignoring providerDate)",M+"provider/AdapterOutcome.java","if (ranges == null || ranges.isEmpty()) {","if (false) {"),
+]
+def run(m):
+    mid,desc,f,old,new=m
+    d=f"{SP}/mut3/{mid}"
+    shutil.rmtree(d,ignore_errors=True)
+    shutil.copytree(SRC,d,ignore=shutil.ignore_patterns("target"))
+    p=os.path.join(d,f)
+    s=open(p,encoding="utf-8").read()
+    if old not in s: return (mid,desc,"NOT-APPLIED","")
+    open(p,"w",encoding="utf-8").write(s.replace(old,new,1))
+    argline="-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=9 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=9"
+    r=subprocess.run(["mvn","-o","-q","-B","test",f"-DargLine={argline}"],cwd=d,capture_output=True,text=True,timeout=600)
+    out=r.stdout+r.stderr
+    failed=sorted(set(re.findall(r"^\[ERROR\]\s+(?:Failures|Errors):?.*$|^\[ERROR\]\s+(\S+Test\.\S+)",out,re.M)))
+    names=sorted(set(re.findall(r"\[ERROR\]\s+(\w+Test\.\w+)",out)))
+    comp="COMPILE" if "COMPILATION ERROR" in out else ""
+    return (mid,desc,("KILLED" if r.returncode!=0 else "SURVIVED")+(" "+comp if comp else ""),", ".join(names)[:300])
+ids=sys.argv[1:]
+sel=[m for m in muts if not ids or m[0] in ids]
+with cf.ThreadPoolExecutor(4) as ex:
+    for res in ex.map(run,sel):
+        print(" | ".join(res),flush=True)

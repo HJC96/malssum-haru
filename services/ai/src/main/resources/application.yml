@@ -1,0 +1,42 @@
+server:
+  port: ${AI_PORT:8082}
+
+ai:
+  generation:
+    enabled: ${AI_GENERATION_ENABLED:false}
+    monthly-limit: ${AI_MONTHLY_GENERATION_LIMIT:0}
+    max-attempts: ${AI_MAX_ATTEMPTS:2}
+    call-timeout: ${AI_CALL_TIMEOUT:30s}
+    retry-delay: ${AI_RETRY_DELAY:1s}
+    failure-backoff: ${AI_FAILURE_BACKOFF:60s}
+    request-wait: ${AI_REQUEST_WAIT:0s}
+    worker-threads: ${AI_WORKER_THREADS:2}
+    queue-capacity: ${AI_QUEUE_CAPACITY:8}
+  budget:
+    monthly-units: ${AI_MONTHLY_BUDGET_UNITS:0}
+    estimated-units-per-generation: ${AI_ESTIMATED_UNITS_PER_GENERATION:1}
+  qt:
+    base-url: ${QT_BASE_URL:http://localhost:8081}
+    connect-timeout: ${QT_CONNECT_TIMEOUT:2s}
+    request-timeout: ${QT_REQUEST_TIMEOUT:5s}
+  llm:
+    model-id: ${AI_MODEL_ID:unconfigured}
+    settings-version: ${AI_MODEL_SETTINGS_VERSION:s1}
+    reference-material-version: ${AI_REFERENCE_VERSION:none}
+  storage:
+    table-name: ${AI_TABLE_NAME:}
+  rate-limit:
+    generations-per-client: ${AI_RATE_GENERATIONS_PER_CLIENT:3}
+    generations-global: ${AI_RATE_GENERATIONS_GLOBAL:10}
+    reports-per-client: ${AI_RATE_REPORTS_PER_CLIENT:5}
+    window: ${AI_RATE_WINDOW:1m}
+    trust-forwarded-header: ${AI_TRUST_FORWARDED_HEADER:false}
+  report:
+    severe-threshold: ${AI_REPORT_SEVERE_THRESHOLD:3}
+  admin:
+    enabled: ${AI_ADMIN_ENABLED:false}
+    token: ${AI_ADMIN_TOKEN:}
+  input:
+    context-verses: ${AI_CONTEXT_VERSES:5}
+  cache:
+    ttl: ${AI_CACHE_TTL:30s}

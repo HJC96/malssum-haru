@@ -1,0 +1,130 @@
+{
+  "generatedBy": "tools/alignment_report.py",
+  "structureTable": {
+    "id": "nkrv-provisional-1",
+    "dataVersion": "eng.vrs@71c66cb+REV12=17",
+    "canonicalSha256": "06d08cd442227dab417f059804dc042a9039f4decd8ed7c4b69385721e55e3b5",
+    "source": "web/src/data/nkrvProvisional.ts (planner-core, read-only)"
+  },
+  "webDataSha256": "e096838af025b99e47235aa999fccc1438dd683c4781f5440daf8b857bd582f3",
+  "comparedChapters": 1189,
+  "differingChapters": [
+    {
+      "bookId": "LUK",
+      "chapter": 17,
+      "tableVerses": 37,
+      "webVerseMarkers": 37,
+      "webNonEmptyVerses": 36,
+      "webMaxVerse": 37
+    },
+    {
+      "bookId": "ACT",
+      "chapter": 8,
+      "tableVerses": 40,
+      "webVerseMarkers": 40,
+      "webNonEmptyVerses": 39,
+      "webMaxVerse": 40
+    },
+    {
+      "bookId": "ACT",
+      "chapter": 15,
+      "tableVerses": 41,
+      "webVerseMarkers": 41,
+      "webNonEmptyVerses": 40,
+      "webMaxVerse": 41
+    },
+    {
+      "bookId": "ACT",
+      "chapter": 24,
+      "tableVerses": 27,
+      "webVerseMarkers": 27,
+      "webNonEmptyVerses": 26,
+      "webMaxVerse": 27
+    },
+    {
+      "bookId": "ROM",
+      "chapter": 14,
+      "tableVerses": 23,
+      "webVerseMarkers": 26,
+      "webNonEmptyVerses": 26,
+      "webMaxVerse": 26
+    },
+    {
+      "bookId": "ROM",
+      "chapter": 16,
+      "tableVerses": 27,
+      "webVerseMarkers": 25,
+      "webNonEmptyVerses": 24,
+      "webMaxVerse": 25
+    },
+    {
+      "bookId": "3JN",
+      "chapter": 1,
+      "tableVerses": 15,
+      "webVerseMarkers": 14,
+      "webNonEmptyVerses": 14,
+      "webMaxVerse": 14
+    }
+  ],
+  "emptyVerseMarkers": [
+    {
+      "bookId": "LUK",
+      "chapter": 17,
+      "verse": 36
+    },
+    {
+      "bookId": "ACT",
+      "chapter": 8,
+      "verse": 37
+    },
+    {
+      "bookId": "ACT",
+      "chapter": 15,
+      "verse": 34
+    },
+    {
+      "bookId": "ACT",
+      "chapter": 24,
+      "verse": 7
+    },
+    {
+      "bookId": "ROM",
+      "chapter": 16,
+      "verse": 25
+    }
+  ],
+  "absentInWeb": [
+    {
+      "bookId": "ROM",
+      "chapter": 16,
+      "verse": 26
+    },
+    {
+      "bookId": "ROM",
+      "chapter": 16,
+      "verse": 27
+    },
+    {
+      "bookId": "3JN",
+      "chapter": 1,
+      "verse": 15
+    }
+  ],
+  "webOnlyVerses": [
+    {
+      "bookId": "ROM",
+      "chapter": 14,
+      "verse": 24
+    },
+    {
+      "bookId": "ROM",
+      "chapter": 14,
+      "verse": 25
+    },
+    {
+      "bookId": "ROM",
+      "chapter": 14,
+      "verse": 26
+    }
+  ]
+}

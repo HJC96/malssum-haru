@@ -1,0 +1,38 @@
+import subprocess, shutil, os, sys, re, concurrent.futures as cf
+SP="/private/tmp/claude-501/-Users-hanjichan-Desktop-git-malssum-haru/a3bded69-4ef6-463f-9ca2-657d4d4fb0b7/scratchpad"
+SRC=SP+"/s2/web"
+D="src/domain/"
+muts=[
+ ("F01","freshness: checking never","src/app/qt/freshness.ts","if (fetchedSeoul < nowSeoul) return 'checking';","if (false) return 'checking';"),
+ ("F02","freshness: mismatch removed","src/app/qt/freshness.ts","if (p.providerDate < fetchedSeoul) return 'mismatch';",""),
+ ("F03","QtToday: day roll refetch off","src/components/QtToday.tsx","fetchedSeoul !== null && fetchedSeoul < nowSeoul;","fetchedSeoul !== null && false;"),
+ ("F04","QtToday: visibilitychange ignored","src/components/QtToday.tsx","if (document.visibilityState === 'visible') tick();",""),
+ ("F05","QtToday: error keeps stale data always","src/components/QtToday.tsx","prev.kind === 'ready' && seoulDate(prev.fetchedAtMs) === seoulDate(readClock().getTime())","prev.kind === 'ready'"),
+ ("F06","freshness: seoulDate uses local tz","src/app/qt/freshness.ts","localIsoDate(new Date(ms), SEOUL_TZ)","localIsoDate(new Date(ms))"),
+ ("F07","QtToday: refetch min gap removed","src/components/QtToday.tsx","nowMs - lastFetchStartMs.current >= MIN_REFETCH_GAP_MS","true"),
+ ("F08","QtToday: periodic refresh removed","src/components/QtToday.tsx","setAttempt((n) => n + 1);\n    }, refreshIntervalMs);","void 0;\n    }, refreshIntervalMs);"),
+ ("F09","fetch: prod builds may use mock via explicit source","src/app/qt/fetchQtToday.ts","if (!mockAllowed) return 'api';",""),
+ ("F10","pdf font path back to dot","src/export/pdf.ts","NotoSansKR-Regular-subset.ttf","NotoSansKR-Regular.subset.ttf"),
+]
+def run(m):
+    mid,desc,f,old,new=m
+    d=f"{SP}/wmut3/{mid}"
+    shutil.rmtree(d,ignore_errors=True)
+    os.makedirs(d)
+    subprocess.run(["rsync","-a","--exclude","node_modules","--exclude","dist",SRC+"/",d+"/"],check=True)
+    os.symlink("/Users/hanjichan/Desktop/git/malssum-haru/node_modules",d+"/../node_modules") if not os.path.exists(d+"/../node_modules") else None
+    os.symlink("/Users/hanjichan/Desktop/git/malssum-haru/web/node_modules",d+"/node_modules")
+    p=os.path.join(d,f)
+    s=open(p,encoding="utf-8").read()
+    if old not in s: return (mid,desc,"NOT-APPLIED","")
+    open(p,"w",encoding="utf-8").write(s.replace(old,new,1))
+    r=subprocess.run(["npx","vitest","run"],cwd=d,capture_output=True,text=True,timeout=300)
+    out=r.stdout+r.stderr
+    names=sorted(set(re.findall(r"FAIL\s+(\S+\.test\.tsx?)",out)))
+    n=re.findall(r"Tests\s+(.*)",out)
+    return (mid,desc,"KILLED" if r.returncode!=0 else "SURVIVED",(", ".join(names)+" "+(n[0] if n else ""))[:250])
+ids=sys.argv[1:]
+sel=[m for m in muts if not ids or m[0] in ids]
+with cf.ThreadPoolExecutor(4) as ex:
+    for res in ex.map(run,sel):
+        print(" | ".join(res),flush=True)

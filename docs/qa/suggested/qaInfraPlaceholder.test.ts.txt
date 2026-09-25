@@ -1,0 +1,10 @@
+import { test } from 'node:test';
+import { build } from './helpers.js';
+for (const p of ['assets/qt-placeholder', 'assets/../assets/qt-placeholder', './assets/qt-placeholder', 'assets/qt-placeholder/', 'test/fixtures/real-artifact', '../services/qt']) {
+  test('asset ' + p, () => {
+    try {
+      const j = build({ alertEmail: 'a@b.co', qtLambdaAssetPath: p }).json;
+      console.log('QA', p, '=> placeholderRule:', !!(j.Rules && 'RequireRealQtArtifact' in j.Rules));
+    } catch (e) { console.log('QA', p, '=> throws', String(e).slice(0, 80)); }
+  });
+}
