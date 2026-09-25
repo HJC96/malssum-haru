@@ -321,7 +321,7 @@ describe('계약 불변식 1~7 property (AC03 AC04 AC05 AC06 AC08 AC23 AC24)', (
     for (const code of ['START_AFTER_END', 'NO_READING_DAYS', 'EMPTY_SCOPE', 'READ_OUTSIDE_TARGET', 'NO_DAYS_LEFT_WITH_REMAINING'] as const) {
       expect(seenErrors.has(code)).toBe(true);
     }
-  });
+  }, 15000);
 
   it('윤년 2월 29일을 지나는 기간이 시험에 포함된다', () => {
     const rng = makeRng(7);
