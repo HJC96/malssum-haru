@@ -284,11 +284,12 @@ describe('재계산 (AC08)', () => {
   });
 });
 
-describe('언어 전환은 입력과 결과를 바꾸지 않는다 (AC18)', () => {
-  it('영어로 바꿔도 입력값과 계산 결과와 날짜별 배정이 그대로다', async () => {
+describe('일독 계획 상태 보존', () => {
+  it('오늘의 QT와 오가도 입력값과 계산 결과와 날짜별 배정이 그대로다', async () => {
     const { container } = render(
       <App
         initialLang="ko"
+        initialService="plan"
         now={LOCAL_NOON}
         planBible={SAMPLE_BIBLE}
         qtFetcher={async () => scenario('mixed')}
@@ -304,16 +305,12 @@ describe('언어 전환은 입력과 결과를 바꾸지 않는다 (AC18)', () =
     const before = { numbers: numbers(), rows: rows() };
     expect(before.numbers[1]).toBe('15');
 
-    await userEvent.click(screen.getByRole('button', { name: 'English' }));
+    await userEvent.click(screen.getByRole('tab', { name: '오늘의 QT' }));
+    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
 
-    expect(screen.getByLabelText('Start date')).toHaveValue('2026-09-25');
-    await userEvent.click(screen.getByRole('button', { name: 'Custom dates' }));
-    expect(screen.getByLabelText('End date')).toHaveValue('2026-10-24');
-    expect(screen.getByLabelText('Chapter')).toHaveValue('2');
+    expect(screen.getByLabelText('시작일')).toHaveValue('2026-09-25');
     expect(numbers()).toEqual(before.numbers);
     expect(rows()).toEqual(before.rows);
-    // 이름과 문구만 영어로 바뀐다
-    expect(document.querySelector('tr.day-row--assigned .day-row__range')?.textContent).toMatch(/Genesis/);
-    expect(stat(container, 'plan.summary.readVerses')).toBe('15 verses');
+    expect(stat(container, 'plan.summary.readVerses')).toBe('15절');
   });
 });

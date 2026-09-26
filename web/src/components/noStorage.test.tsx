@@ -6,13 +6,13 @@ import { LOCAL_NOON, fillRange, setDate } from '@/app/test/planUi';
 import { scenario } from '@/app/test/render';
 
 const app = () => (
-  <App initialLang="ko" now={LOCAL_NOON} planBible={SAMPLE_BIBLE} qtFetcher={async () => scenario('mixed')} planInitial={{ endDate: '2026-10-23' }} />
+  <App initialLang="ko" initialService="qt" now={LOCAL_NOON} planBible={SAMPLE_BIBLE} qtFetcher={async () => scenario('mixed')} planInitial={{ endDate: '2026-10-23' }} />
 );
 
 describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('입력·재계산·언어 전환·오류 상황 어디서도 저장소·쿠키·URL에 쓰지 않는다', async () => {
+  it('입력·재계산·테마 전환·오류 상황 어디서도 저장소·쿠키·URL에 쓰지 않는다', async () => {
     const writes = [
       vi.spyOn(Storage.prototype, 'setItem'),
       vi.spyOn(Storage.prototype, 'removeItem'),
@@ -36,8 +36,8 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     await userEvent.click(screen.getByRole('button', { name: '이 일정으로 적용' }));
     await userEvent.click(within(screen.getByRole('group', { name: '오늘 읽은 범위 (선택)' })).getByRole('button', { name: '범위 추가' }));
     await userEvent.click(screen.getByRole('button', { name: '월간 캘린더' }));
-    await userEvent.click(screen.getByRole('button', { name: 'English' }));
-    setDate('End date', '2026-01-01'); // 오류 화면
+    await userEvent.click(screen.getByRole('button', { name: /모드로 전환/ }));
+    setDate('마감일', '2026-01-01'); // 오류 화면
     expect(screen.getByRole('alert')).toBeInTheDocument();
 
     for (const spy of writes) expect(spy).not.toHaveBeenCalled();

@@ -5,11 +5,17 @@ import { fallbackLinks } from '@/app/qt/fetchQtToday';
 import type { DailyWordContent, DailyWordEntry } from '@/app/dailyWord/types';
 import { translationDisplayName } from '@/app/dailyWord/translations';
 import { ExternalLinkButton } from './ExternalLinkButton';
+import { ScriptureIcon, type ScriptureIconName } from './ScriptureIcon';
 
-export function bibleSocietyPassageUrl(reference: DailyWordEntry['reference']): string {
+export type BibleSocietyTranslationVersion = 'SAENEW' | 'GAE';
+
+export function bibleSocietyPassageUrl(
+  reference: DailyWordEntry['reference'],
+  version: BibleSocietyTranslationVersion,
+): string {
   const url = new URL('https://www.bskorea.or.kr/bible/korbibReadpage.php');
   url.search = new URLSearchParams({
-    version: 'SAENEW',
+    version,
     book: reference.bookId.toLowerCase(),
     chap: String(reference.chapter),
     sec: String(reference.verse),
@@ -33,25 +39,55 @@ interface Props {
 function VerseCard({ entry, testament }: { entry: DailyWordEntry; testament: 'old' | 'new' }) {
   const { lang, t } = useI18n();
   const headingId = useId();
+  const translationLinksId = useId();
+  const [translationLinksOpen, setTranslationLinksOpen] = useState(false);
   const reference = `${bookName(entry.reference.bookId, lang)} ${entry.reference.chapter}:${entry.reference.verse}`;
   return (
     <article className={`daily-word-card daily-word-card--${testament}`} aria-labelledby={headingId}>
       <header className="daily-word-card__header">
-        <p className="daily-word-card__eyebrow">{t(testament === 'old' ? 'dailyWord.oldTestament' : 'dailyWord.newTestament')}</p>
+        <p className={`daily-word-card__eyebrow daily-word-card__eyebrow--${testament}`}>
+          <ScriptureIcon name="book" />
+          {t(testament === 'old' ? 'dailyWord.oldTestament' : 'dailyWord.newTestament')}
+        </p>
         <h3 id={headingId}>{reference}</h3>
       </header>
       <p className="daily-word-card__text" lang={entry.textLanguage}>{entry.text}</p>
-      <p className="daily-word-card__translation">{translationDisplayName(entry.translationId)}</p>
-      <a
-        className="daily-word__translation-link"
-        href={bibleSocietyPassageUrl(entry.reference)}
-        target="_blank"
-        rel="noopener noreferrer"
+      <div
+        className="daily-word-card__translation-wrap"
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setTranslationLinksOpen(false);
+        }}
+        onMouseEnter={() => setTranslationLinksOpen(true)}
+        onMouseLeave={(event) => {
+          if (!event.currentTarget.contains(document.activeElement)) setTranslationLinksOpen(false);
+        }}
       >
-        {t('dailyWord.otherTranslations')}<span className="visually-hidden"> {t('qt.link.newTab')}</span>
-      </a>
+        <button
+          aria-controls={translationLinksId}
+          aria-expanded={translationLinksOpen}
+          className="daily-word-card__translation"
+          onBlur={(event) => {
+            if (!event.currentTarget.parentElement?.contains(event.relatedTarget as Node | null)) setTranslationLinksOpen(false);
+          }}
+          onFocus={() => setTranslationLinksOpen(true)}
+          onClick={() => setTranslationLinksOpen(true)}
+          type="button"
+        >
+          {translationDisplayName(entry.translationId)}
+        </button>
+        {translationLinksOpen && (
+          <div className="daily-word-card__translation-options" id={translationLinksId}>
+            <a href={bibleSocietyPassageUrl(entry.reference, 'SAENEW')} target="_blank" rel="noopener noreferrer">
+              {t('dailyWord.translation.new')}<span className="visually-hidden"> {t('qt.link.newTab')}</span>
+            </a>
+            <a href={bibleSocietyPassageUrl(entry.reference, 'GAE')} target="_blank" rel="noopener noreferrer">
+              {t('dailyWord.translation.revised')}<span className="visually-hidden"> {t('qt.link.newTab')}</span>
+            </a>
+          </div>
+        )}
+      </div>
       <div className="daily-word-card__explanation">
-        <h4>{t('dailyWord.explanation')}</h4>
+        <h4><ScriptureIcon name="seedling" />{t('dailyWord.explanation')}</h4>
         <p lang={entry.explanation.language}>{entry.explanation.text}</p>
       </div>
     </article>
@@ -179,12 +215,24 @@ export function DailyWordSection({ date, content, status, now, onRetry }: Props)
       )}
 
       <section className="daily-word__providers" aria-labelledby="daily-word-providers-heading">
-        <h3 id="daily-word-providers-heading">{t('dailyWord.providersHeading')}</h3>
+        <h3 id="daily-word-providers-heading"><ScriptureIcon name="books" />{t('dailyWord.providersHeading')}</h3>
         <p>{t('dailyWord.providersIntro')}</p>
         <ul>
-          {links.map((link) => <li key={link.providerId}>
-            <ExternalLinkButton href={link.url} label={link.providerName[lang]} />
-          </li>)}
+          {links.map((link) => {
+            const iconName: ScriptureIconName = link.providerId === 'maeil-seongyeong'
+              ? 'leaf'
+              : link.providerId === 'saengmyeong-ui-sam' ? 'seedling' : 'waves';
+            return (
+              <li key={link.providerId}>
+                <ExternalLinkButton
+                  href={link.url}
+                  label={link.providerName[lang]}
+                  icon={<ScriptureIcon name={iconName} />}
+                  className={`daily-word__provider-button daily-word__provider-button--${link.providerId}`}
+                />
+              </li>
+            );
+          })}
         </ul>
       </section>
       {selectionHelp}

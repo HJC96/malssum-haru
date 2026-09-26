@@ -30,7 +30,7 @@ const TEST_ONLY_NOT_SCRIPTURE: DailyWordContent = {
 const TODAY = new Date('2026-09-26T03:00:00.000Z');
 
 describe('DailyWordSection', () => {
-  it('shows the Old and New Testament cards, translation label, and comparison link without exposing source metadata', () => {
+  it('shows the Old and New Testament cards and translation chooser without exposing source metadata', async () => {
     renderWithLang(<DailyWordSection date="2026-09-26" content={TEST_ONLY_NOT_SCRIPTURE} status="ready" now={TODAY} />);
 
     expect(screen.getByRole('region', { name: /오늘의 말씀/ })).toHaveAttribute('aria-busy', 'false');
@@ -45,10 +45,20 @@ describe('DailyWordSection', () => {
     expect(screen.queryByText('신약 말씀')).not.toBeInTheDocument();
     expect(screen.queryByText('Test-only source')).not.toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(2);
-    const translationLinks = screen.getAllByRole('link', { name: /다른 번역본 보기/ });
-    expect(translationLinks).toHaveLength(2);
-    expect(translationLinks[0]).toHaveAttribute('href', bibleSocietyPassageUrl({ bookId: 'GEN', chapter: 1, verse: 1 }));
-    expect(translationLinks[1]).toHaveAttribute('href', bibleSocietyPassageUrl({ bookId: 'MAT', chapter: 1, verse: 1 }));
+    expect(screen.queryByText('다른 번역본 보기')).not.toBeInTheDocument();
+    const oldCard = screen.getByRole('article', { name: '창세기 1:1' });
+    await userEvent.click(within(oldCard).getByRole('button', { name: '개역한글판' }));
+    expect(within(oldCard).getByRole('link', { name: /새번역/ })).toHaveAttribute(
+      'href', bibleSocietyPassageUrl({ bookId: 'GEN', chapter: 1, verse: 1 }, 'SAENEW'),
+    );
+    expect(within(oldCard).getByRole('link', { name: /개역개정/ })).toHaveAttribute(
+      'href', bibleSocietyPassageUrl({ bookId: 'GEN', chapter: 1, verse: 1 }, 'GAE'),
+    );
+    const newCard = screen.getByRole('article', { name: '마태복음 1:1' });
+    await userEvent.hover(within(newCard).getByRole('button', { name: '개역한글판' }));
+    expect(within(newCard).getByRole('link', { name: /새번역/ })).toHaveAttribute(
+      'href', bibleSocietyPassageUrl({ bookId: 'MAT', chapter: 1, verse: 1 }, 'SAENEW'),
+    );
     expect(screen.getByRole('heading', { name: '다른 QT 교재의 오늘 본문' })).toBeInTheDocument();
   });
 
@@ -104,13 +114,13 @@ describe('DailyWordSection', () => {
 });
 
 describe('대한성서공회 구절 링크', () => {
-  it('책·장·절을 대한성서공회 URL 매개변수에 넣는다', () => {
-    const url = new URL(bibleSocietyPassageUrl({ bookId: 'DAN', chapter: 1, verse: 1 }));
+  it('번역본·책·장·절을 대한성서공회 URL 매개변수에 넣는다', () => {
+    const url = new URL(bibleSocietyPassageUrl({ bookId: 'PSA', chapter: 23, verse: 1 }, 'GAE'));
     expect(url.origin).toBe('https://www.bskorea.or.kr');
     expect(url.pathname).toBe('/bible/korbibReadpage.php');
-    expect(url.searchParams.get('version')).toBe('SAENEW');
-    expect(url.searchParams.get('book')).toBe('dan');
-    expect(url.searchParams.get('chap')).toBe('1');
+    expect(url.searchParams.get('version')).toBe('GAE');
+    expect(url.searchParams.get('book')).toBe('psa');
+    expect(url.searchParams.get('chap')).toBe('23');
     expect(url.searchParams.get('sec')).toBe('1');
   });
 });

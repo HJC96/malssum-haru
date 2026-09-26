@@ -58,26 +58,24 @@ describe('오늘의 말씀 화면', () => {
 });
 
 describe('페이지 전환과 비저장', () => {
-  it('언어 전환과 탭 왕복은 오늘 말씀 자료를 재요청하지 않는다', async () => {
+  it('탭 왕복은 오늘 말씀 자료를 재요청하지 않는다', async () => {
     const loader = vi.fn(async (date: string) => testContent(date));
-    render(<App initialLang="ko" dailyWordLoader={loader} now={TODAY} />);
+    render(<App initialLang="ko" initialService="qt" dailyWordLoader={loader} now={TODAY} />);
     await screen.findByRole('article', { name: '창세기 1:1' });
-    await userEvent.click(screen.getByRole('button', { name: 'English' }));
-    expect(screen.getByRole('heading', { name: /Today's Word/ })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('tab', { name: 'Reading plan' }));
-    await userEvent.click(screen.getByRole('tab', { name: "Today's QT" }));
+    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
+    await userEvent.click(screen.getByRole('tab', { name: '오늘의 QT' }));
     expect(loader).toHaveBeenCalledTimes(1);
   });
 
-  it('QT 표시와 언어 전환은 브라우저 저장소·쿠키·URL에 쓰지 않는다', async () => {
+  it('QT 표시와 테마 전환은 브라우저 저장소·쿠키·URL에 쓰지 않는다', async () => {
     const setItem = vi.spyOn(Storage.prototype, 'setItem');
     const cookie = vi.spyOn(document, 'cookie', 'set');
     const push = vi.spyOn(history, 'pushState');
     const replace = vi.spyOn(history, 'replaceState');
     const before = window.location.href;
-    render(<App initialLang="ko" dailyWordLoader={async () => null} now={TODAY} />);
+    render(<App initialLang="ko" initialService="qt" dailyWordLoader={async () => null} now={TODAY} />);
     await screen.findByRole('status');
-    await userEvent.click(screen.getByRole('button', { name: 'English' }));
+    await userEvent.click(screen.getByRole('button', { name: /모드로 전환/ }));
     expect(setItem).not.toHaveBeenCalled();
     expect(cookie).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();

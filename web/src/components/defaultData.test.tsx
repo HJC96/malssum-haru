@@ -9,7 +9,7 @@ const qtFetcher = async () => scenario('mixed');
 
 describe('앱 기본 데이터(잠정 66권)', () => {
   it('잠정 데이터임을 표시하고 장절 기준·데이터 버전을 보인다', async () => {
-    render(<App initialLang="ko" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
+    render(<App initialLang="ko" initialService="plan" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
     await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
     expect(screen.getByRole('note')).toHaveTextContent('잠정 데이터');
     expect(screen.getByText(new RegExp(`장절 기준: ${DEFAULT_BIBLE.versificationSystem}`))).toHaveTextContent(DEFAULT_BIBLE.dataVersion);
@@ -17,14 +17,14 @@ describe('앱 기본 데이터(잠정 66권)', () => {
   });
 
   it('영어 화면에서도 잠정 데이터 안내가 영어로 나온다', async () => {
-    render(<App initialLang="en" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
+    render(<App initialLang="en" initialService="plan" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
     await userEvent.click(screen.getByRole('tab', { name: 'Reading plan' }));
     expect(screen.getByRole('note')).toHaveTextContent(/provisional/);
   });
 
   it('66권 전체 1년 계획: 1,189장·31,103절, 3초 안에 계산·표시', async () => {
     const t0 = performance.now();
-    const { container } = render(<App initialLang="ko" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
+    const { container } = render(<App initialLang="ko" initialService="plan" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
     await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
     const elapsed = performance.now() - t0;
     expect(stat(container, 'plan.summary.targetChapters')).toBe('1,189장');
@@ -34,7 +34,7 @@ describe('앱 기본 데이터(잠정 66권)', () => {
   });
 
   it('입력을 바꿀 때마다 다시 계산해도 빠르다(66권, 1년)', async () => {
-    render(<App initialLang="ko" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
+    render(<App initialLang="ko" initialService="plan" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
     await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
     const t0 = performance.now();
     setDate('마감일', '2027-06-30');

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { I18nProvider, useI18n, type Lang } from '@/i18n';
-import { LanguageSwitch } from '@/components/LanguageSwitch';
+import { ThemeSwitch } from '@/components/ThemeSwitch';
 import { PlanSection } from '@/components/PlanSection';
 import { QtToday } from '@/components/QtToday';
 import { ServiceTabs, type ServiceTab } from '@/components/ServiceTabs';
@@ -18,37 +18,90 @@ interface AppProps {
   planInitial?: Partial<PlanFormState>;
   /** 테스트에서 성경 데이터를 바꾼다. */
   planBible?: BibleData;
+  /** 테스트에서 시작 화면을 건너뛰고 특정 서비스를 연다. 실제 기본 진입은 환영 화면이다. */
+  initialService?: ServiceTab;
 }
 
-function Shell({ qtFetcher, dailyWordLoader, now, planInitial, planBible }: Pick<AppProps, 'qtFetcher' | 'dailyWordLoader' | 'now' | 'planInitial' | 'planBible'>) {
+function Shell({ qtFetcher, dailyWordLoader, now, planInitial, planBible, initialService }: Pick<AppProps, 'qtFetcher' | 'dailyWordLoader' | 'now' | 'planInitial' | 'planBible' | 'initialService'>) {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<ServiceTab>('qt');
+  const [activeTab, setActiveTab] = useState<ServiceTab>(initialService ?? 'qt');
+  const [started, setStarted] = useState(initialService !== undefined);
+  const [hasEntered, setHasEntered] = useState(initialService !== undefined);
+  const serviceStepRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!started) return;
+    const frame = window.requestAnimationFrame(() => {
+      serviceStepRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeTab, started]);
+
+  const begin = (tab: ServiceTab) => {
+    setActiveTab(tab);
+    setHasEntered(true);
+    setStarted(true);
+  };
+
   return (
     <>
       <a className="skip-link" href="#main">
         {t('app.skipToMain')}
       </a>
-      <header className="app-header">
-        <h1>{t('app.title')}</h1>
-        <LanguageSwitch />
-      </header>
       <main id="main" className="app-main" tabIndex={-1}>
-        <ServiceTabs value={activeTab} onChange={setActiveTab} />
-        <div id="service-panel-qt" className="service-panel" role="tabpanel" aria-labelledby="service-tab-qt" hidden={activeTab !== 'qt'}>
-          <QtToday isActive={activeTab === 'qt'} {...(dailyWordLoader ? { dailyWordLoader } : {})} {...(qtFetcher ? { fetcher: qtFetcher } : {})} {...(now ? { now } : {})} />
-        </div>
-        <div id="service-panel-plan" className="service-panel" role="tabpanel" aria-labelledby="service-tab-plan" hidden={activeTab !== 'plan'}>
-          <PlanSection {...(now ? { now } : {})} {...(planInitial ? { initialForm: planInitial } : {})} {...(planBible ? { bible: planBible } : {})} />
-        </div>
+        <section className="welcome-hero" id="welcome" aria-labelledby="welcome-heading">
+          <header className="app-header">
+            <ThemeSwitch />
+          </header>
+          <div className="welcome-hero__content">
+            <p className="welcome-hero__eyebrow">{t('welcome.eyebrow')}</p>
+            <h2 id="welcome-heading">{t('welcome.heading')}</h2>
+            <p className="welcome-hero__intro">{t('welcome.intro')}</p>
+            <div className="welcome-hero__actions">
+              <button className="welcome-hero__button welcome-hero__button--primary" onClick={() => begin('qt')} type="button">
+                {t('welcome.qt')}
+                <span aria-hidden="true">→</span>
+              </button>
+              <button className="welcome-hero__button welcome-hero__button--secondary" onClick={() => begin('plan')} type="button">
+                {t('welcome.plan')}
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="service-step" aria-label={t('welcome.stepLabel')} ref={serviceStepRef}>
+          <div className="service-step__navigation">
+            <ServiceTabs value={activeTab} onChange={(tab) => { setActiveTab(tab); setHasEntered(true); }} />
+          </div>
+          <div
+            id="service-panel-qt"
+            className="service-panel"
+            role="tabpanel"
+            aria-labelledby="service-tab-qt"
+            hidden={activeTab !== 'qt'}
+          >
+            <QtToday isActive={activeTab === 'qt'} {...(dailyWordLoader ? { dailyWordLoader } : {})} {...(qtFetcher ? { fetcher: qtFetcher } : {})} {...(now ? { now } : {})} />
+          </div>
+          <div
+            id="service-panel-plan"
+            className="service-panel"
+            role="tabpanel"
+            aria-labelledby="service-tab-plan"
+            hidden={activeTab !== 'plan'}
+          >
+            {hasEntered && <PlanSection {...(now ? { now } : {})} {...(planInitial ? { initialForm: planInitial } : {})} {...(planBible ? { bible: planBible } : {})} />}
+          </div>
+        </section>
       </main>
     </>
   );
 }
 
-export function App({ initialLang, qtFetcher, dailyWordLoader, now, planInitial, planBible }: AppProps) {
+export function App({ initialLang, qtFetcher, dailyWordLoader, now, planInitial, planBible, initialService }: AppProps) {
   return (
     <I18nProvider {...(initialLang ? { initialLang } : {})}>
-      <Shell {...(qtFetcher ? { qtFetcher } : {})} {...(dailyWordLoader ? { dailyWordLoader } : {})} {...(now ? { now } : {})} {...(planInitial ? { planInitial } : {})} {...(planBible ? { planBible } : {})} />
+      <Shell {...(qtFetcher ? { qtFetcher } : {})} {...(dailyWordLoader ? { dailyWordLoader } : {})} {...(now ? { now } : {})} {...(planInitial ? { planInitial } : {})} {...(planBible ? { planBible } : {})} {...(initialService ? { initialService } : {})} />
     </I18nProvider>
   );
 }

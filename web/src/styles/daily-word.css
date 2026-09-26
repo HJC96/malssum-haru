@@ -1,4 +1,5 @@
 .daily-word {
+  position: relative;
   display: grid;
   width: min(100%, 58rem);
   margin-inline: auto;
@@ -8,12 +9,20 @@
   border-radius: 1.75rem;
   background: var(--daily-word-card-bg);
   box-shadow: 0 12px 32px rgb(31 41 55 / 0.1);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.daily-word > * {
+  position: relative;
+  z-index: 1;
 }
 
 .daily-word__heading {
   display: grid;
   padding: 1.35rem 1.5rem;
   background: var(--daily-word-header-bg);
+  backdrop-filter: blur(2px);
   text-align: center;
 }
 
@@ -37,10 +46,40 @@
 
 .daily-word__eyebrow,
 .daily-word-card__eyebrow {
-  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  color: #456446;
   font-size: 0.82rem;
   font-weight: 750;
   letter-spacing: 0.04em;
+}
+
+.daily-word-card__eyebrow {
+  min-height: 2rem;
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  background: rgb(227 235 202 / 0.8);
+}
+
+.daily-word-card__eyebrow--new {
+  color: #9a4c2e;
+  background: rgb(255 224 204 / 0.82);
+}
+
+.daily-word-card__eyebrow svg,
+.daily-word__providers h3 svg,
+.daily-word-card__explanation h4 svg,
+.btn__leading-icon svg {
+  display: block;
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .daily-word__cards,
@@ -64,6 +103,8 @@
   .daily-word__cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: repeat(5, auto);
+    gap: 0;
+    padding: 0.8rem;
   }
 
   .daily-word__cards > li {
@@ -77,7 +118,7 @@
 
   .daily-word__cards > li + li > .daily-word-card {
     border-top: 0;
-    border-left: 1px solid var(--daily-word-border);
+    border-left: 1px dashed var(--daily-word-border);
   }
 }
 
@@ -85,15 +126,16 @@
   display: grid;
   gap: 0.85rem;
   padding: 1.4rem clamp(1.1rem, 5vw, 1.75rem);
-  background: var(--daily-word-card-bg);
+  /* Let the parent card provide the translucent cream wash only once. */
+  background: transparent;
 }
 
 .daily-word-card--old {
-  background: var(--daily-word-card-bg);
+  background: transparent;
 }
 
 .daily-word-card--new {
-  background: var(--daily-word-muted-bg);
+  background: transparent;
 }
 
 .daily-word-card__header {
@@ -113,14 +155,73 @@
   white-space: pre-wrap;
 }
 
+.daily-word-card__translation-wrap {
+  position: relative;
+  justify-self: center;
+  z-index: 2;
+}
+
 .daily-word-card__translation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   justify-self: center;
   padding: 0.2rem 0.75rem;
+  border: 0;
   border-radius: 999px;
-  background: var(--daily-word-header-bg);
-  color: var(--accent);
+  background: rgb(240 235 219 / 0.82);
+  color: #48574b;
+  font: inherit;
   font-size: 0.85rem;
   font-weight: 650;
+  cursor: pointer;
+}
+
+.daily-word-card__translation:focus-visible {
+  outline: 2px solid #52705d;
+  outline-offset: 2px;
+}
+
+.daily-word-card__translation-options {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 0.5rem);
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 2rem));
+  gap: 0.3rem;
+  padding: 0.35rem;
+  border: 1px solid var(--daily-word-border);
+  border-radius: 0.8rem;
+  background: rgb(255 252 242 / 0.9);
+  box-shadow: 0 7px 20px rgb(42 47 35 / 0.18);
+  transform: translateY(-50%);
+}
+
+@media (max-width: 28rem) {
+  .daily-word-card__translation-options {
+    top: calc(100% + 0.4rem);
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+}
+
+.daily-word-card__translation-options a {
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.55rem;
+  color: #315f81;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.daily-word-card__translation-options a:hover,
+.daily-word-card__translation-options a:focus-visible {
+  background: #e8f1f4;
+  text-decoration: underline;
 }
 
 .daily-word-card__explanation {
@@ -129,11 +230,15 @@
   padding: 1rem;
   border: 1px dashed var(--daily-word-border);
   border-radius: 1rem;
-  background: var(--bg);
+  background: rgb(255 252 241 / 0.56);
   color: var(--text);
 }
 
 .daily-word-card__explanation h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #4c673f;
   margin: 0;
   font-size: 0.9rem;
 }
@@ -166,6 +271,7 @@
   justify-items: center;
   padding: 1.35rem 1.25rem 1.5rem;
   border-top: 1px solid var(--daily-word-border);
+  border-radius: 0 0 1.75rem 1.75rem;
   background: var(--daily-word-muted-bg);
   text-align: center;
 }
@@ -175,13 +281,16 @@
   font-size: 0.9rem;
 }
 
-.daily-word__translation-link {
-  justify-self: center;
-  margin: -0.45rem 0 0.25rem;
-  color: var(--accent);
-  font-size: 0.92rem;
-  font-weight: 650;
-  text-underline-offset: 0.18em;
+.daily-word__providers h3 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  color: #67452d;
+}
+
+.daily-word__providers h3 svg {
+  color: #9a6033;
 }
 
 .daily-word__providers ul {
@@ -192,14 +301,49 @@
 }
 
 .daily-word__providers .btn--external {
-  border-color: var(--accent);
-  background: var(--accent);
-  box-shadow: 0 3px 8px rgb(31 41 55 / 0.16);
+  border-width: 1px;
+  box-shadow: 0 3px 9px rgb(59 56 38 / 0.12);
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .daily-word__providers .btn--external:hover:not(:disabled) {
-  border-color: #4f46e5;
-  background: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgb(59 56 38 / 0.18);
+}
+
+.daily-word__provider-button--maeil-seongyeong {
+  border-color: #c7d7b8;
+  background: rgb(238 246 229 / 0.82);
+  color: #355b3b;
+}
+
+.daily-word__provider-button--saengmyeong-ui-sam {
+  border-color: #bfd7e9;
+  background: rgb(231 244 253 / 0.82);
+  color: #225a87;
+}
+
+.daily-word__provider-button--nal-som-sam {
+  border-color: #efc8b5;
+  background: rgb(255 237 226 / 0.82);
+  color: #8c4836;
+}
+
+.daily-word__provider-button--maeil-seongyeong:hover:not(:disabled) {
+  background: #e4efd9;
+}
+
+.daily-word__provider-button--saengmyeong-ui-sam:hover:not(:disabled) {
+  background: #dceefa;
+}
+
+.daily-word__provider-button--nal-som-sam:hover:not(:disabled) {
+  background: #ffdfce;
+}
+
+.btn__leading-icon {
+  display: inline-flex;
+  align-items: center;
 }
 
 @media (max-width: 28rem) {

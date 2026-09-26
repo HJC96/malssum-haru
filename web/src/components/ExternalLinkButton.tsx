@@ -1,13 +1,15 @@
 import { useI18n } from '@/i18n';
+import type { ReactNode } from 'react';
 
 /**
  * 제공처(외부 사이트)로 이동하는 링크 버튼. 이동한다는 사실을 문구(공식 페이지로 이동)와
  * 아이콘, 스크린리더용 "(새 창에서 열림)"으로 모두 드러낸다.
  */
-export function ExternalLinkButton({ href, label }: { href: string; label: string }) {
+export function ExternalLinkButton({ href, label, icon, className }: { href: string; label: string; icon?: ReactNode; className?: string }) {
   const { t } = useI18n();
   return (
-    <a className="btn btn--external" href={href} target="_blank" rel="noopener noreferrer">
+    <a className={`btn btn--external${className ? ` ${className}` : ''}`} href={href} target="_blank" rel="noopener noreferrer">
+      {icon && <span className="btn__leading-icon" aria-hidden="true">{icon}</span>}
       <span>{label}</span>
       <span className="visually-hidden"> {t('qt.link.newTab')}</span>
       <svg className="btn__icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
