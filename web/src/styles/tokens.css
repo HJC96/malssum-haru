@@ -1,15 +1,15 @@
 :root {
   color-scheme: light dark;
 
-  --font-sans: system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
 
-  --bg: #f3f5f9;
+  --bg: #f3f4f6;
   --surface: #ffffff;
   --surface-soft: #eff6ff;
   --text: #1f2937;
   --text-muted: #4b5563;
   --border: #d7deea;
-  --accent: #4f46e5;
+  --accent: #6366f1;
   --accent-contrast: #ffffff;
   --focus: #1a56db;
   --card-shadow: 0 8px 24px rgb(31 41 55 / 0.06);
@@ -28,9 +28,15 @@
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-6: 1.5rem;
-  --radius: 20px;
+  --radius: 24px;
   --radius-control: 12px;
   --tap: 44px;
+
+  --daily-word-card-bg: rgb(255 255 255 / 0.94);
+  --daily-word-header-bg: rgb(239 246 255 / 0.93);
+  --daily-word-muted-bg: rgb(249 250 251 / 0.93);
+  --daily-word-border: rgb(229 231 235 / 0.9);
+  --daily-word-heading-muted: #586477;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,6 +51,11 @@
     --accent-contrast: #111827;
     --focus: #8ab4ff;
     --card-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+    --daily-word-card-bg: rgb(31 41 55 / 0.96);
+    --daily-word-header-bg: rgb(30 51 80 / 0.96);
+    --daily-word-muted-bg: rgb(17 24 39 / 0.96);
+    --daily-word-border: rgb(71 85 105 / 0.9);
+    --daily-word-heading-muted: #c0cad8;
 
     --ok-bg: #173424;
     --ok-fg: #bfe8cf;

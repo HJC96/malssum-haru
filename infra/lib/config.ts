@@ -14,16 +14,16 @@ export interface StackConfig {
   /** 수집 함수 핸들러(services/qt README T16, 함수 빈 qtCollect). */
   qtCollectorHandler: string;
   /**
-   * 제공처 자동 취득 스위치(QT_ACQUISITION_ENABLED). **기본 true: 사용자 혼자 쓰는 비공개 시험 운영(private-preview)
-   * 전용 결정이다.** 제공처의 자동 취득 권한은 확인되지 않았다. 끄면(false) 제공처에 요청하지 않고
-   * RANGE_NOT_PERMITTED + 공식 링크만 응답한다. 공개 전에는 권한 확인 결과에 따라 다시 정한다.
+   * 레거시 QT 범위 API의 제공처 자동 취득 스위치(QT_ACQUISITION_ENABLED).
+   * 현재 메인 화면은 날짜별 정적 말씀 자료와 공식 링크를 사용하므로 기본값은 false다.
+   * 별도 private preview에서 제공처 권리 확인 후 명시적으로 켜는 경우에만 true로 둔다.
    */
   qtAcquisitionEnabled: boolean;
   /** 제공처 연동 kill switch. false 로 두면 해당 제공처는 DISABLED 상태가 된다. */
   qtProviders: { maeilSeongyeong: boolean; saengmyeongUiSam: boolean };
   /** 스케줄 수집 켜기/끄기. 끄면 마지막 자료를 오늘로 다시 보여주지 않고 서버가 날짜 불일치를 반환해야 한다. */
   collectorEnabled: boolean;
-  /** 수집 시각(Asia/Seoul, 'HH:MM'). 시각마다 스케줄 하나. 비용표는 하루 4회 기준 */
+  /** 레거시 QT 범위 수집 시각. collectorEnabled를 명시적으로 켠 경우에만 스케줄에 사용한다. */
   collectorTimesKst: string[];
   collectorTimeoutSeconds: number;
   /** DynamoDB 테이블을 스택 삭제 후에도 남긴다 */
@@ -55,13 +55,13 @@ export const DEFAULTS: StackConfig = {
   qtLambdaAssetPath: PLACEHOLDER_ASSET,
   qtLambdaHandler: 'kr.malssumharu.qt.lambda.QtLambdaHandler::handleRequest',
   qtCollectorHandler: 'kr.malssumharu.qt.lambda.QtCollectHandler::handleRequest',
-  qtAcquisitionEnabled: true,
-  collectorEnabled: true,
+  qtAcquisitionEnabled: false,
+  collectorEnabled: false,
   collectorTimesKst: ['00:05', '00:35', '06:00', '12:00'],
   collectorTimeoutSeconds: 60,
   retainData: true,
   qtItemTtlDays: 400,
-  qtProviders: { maeilSeongyeong: true, saengmyeongUiSam: true },
+  qtProviders: { maeilSeongyeong: false, saengmyeongUiSam: false },
   apiCacheDefaultTtlSeconds: 60,
   apiCacheMaxTtlSeconds: 300,
   apiThrottleRatePerSecond: 20,

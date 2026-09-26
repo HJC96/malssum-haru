@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "lab-fixture-v1",
+  "date": "2026-09-26",
+  "timeZone": "Asia/Seoul",
+  "contentVersion": "no-scripture-fixture-v1",
+  "status": "NO_SCRIPTURE_CONTENT",
+  "message": "Local architecture fixture only. No Bible text or explanation is bundled."
+}

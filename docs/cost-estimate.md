@@ -42,12 +42,12 @@
 | API | HTTP API 1개, 라우트는 `GET /api/qt/today` 하나, 기본 스테이지 스로틀(초당 20, 버스트 40), 액세스 로그 없음 | CloudFront `/api/*` 동작이 60초(최대 300초) 엣지 캐시 |
 | 실행 | Lambda 2개(같은 `-aws.jar`): 조회(`QtApiFunction`, 핸들러 `kr.malssumharu.qt.lambda.QtLambdaHandler::handleRequest`, 타임아웃 10초, DynamoDB `GetItem`만), 수집(`QtCollectorFunction`, 핸들러 `kr.malssumharu.qt.lambda.QtCollectHandler::handleRequest`, 타임아웃 60초, `GetItem`+`PutItem`만). Java 21, arm64, 1,024MB | 산출물은 자리표시자(아래). 배포할 산출물은 `services/qt/target/qt-service-0.0.1-SNAPSHOT-aws.jar` |
 | 데이터 | DynamoDB 테이블 1개(키 `providerId` + `providerDate`, TTL `expiresAt`, 온디맨드, 항목 보관 400일, 삭제 보호). Query/Scan/GSI 없음 | **개인 진도·계획 테이블은 없다** |
-| 일정 | EventBridge Scheduler 4개(Asia/Seoul 00:05, 00:35, 06:00, 12:00, 재시도 1회, 끄기 파라미터) | 하루 4회는 비용표와 같다. 이미 성공한 제공처는 서비스가 건너뛴다(qt-backend) |
+| 일정 | EventBridge Scheduler 4개(Asia/Seoul 00:05, 00:35, 06:00, 12:00, 재시도 1회, 기본 disabled) | 하루 4회 호출은 레거시 QT 취득을 명시적으로 opt-in한 시나리오의 비용이다. 현재 기본 웹 경험은 정적 말씀 파일과 공식 QT 링크를 쓴다. |
 | 로그 | 함수별 로그 그룹 2개, 보존 14일(무기한 허용 안 함) | |
 | 알림 | CloudWatch 알람 3개(조회 오류, 수집 오류, API 5xx), 알림 이메일이 있을 때만 SNS 주제와 AWS Budgets 월 예산(알림 전용) | 알람 3개가 비용표의 고정비 |
 | 비밀 | **없음.** 지금 서비스는 비밀이 필요 없어 Secrets Manager, SSM 권한을 만들지 않았다(테스트가 검사). AI 서비스가 생기면 SSM SecureString 이름 참조와 단일 파라미터 읽기 권한만 추가한다 | AI는 IaC에 넣지 않았다(보류) |
 
-**설정 파라미터(`-c 이름=값`)**: `qtAcquisitionEnabled`(제공처 자동 취득, **기본 true = 사용자 혼자 쓰는 비공개 시험 운영. 제공처 권한은 미확인이며 공개 전에 다시 정한다**), `providerMaeilSeongyeong`, `providerSaengmyeongUiSam`(제공처 연동 끄기), `collectorEnabled`, `collectorTimesKst`(`HH:MM` 목록), `logRetentionDays`, `apiCacheDefaultTtlSeconds`, `apiThrottleRatePerSecond`, `alertEmail`, `budgetMonthlyUsd`(기본 6), `qtLambdaAssetPath`(예: `../services/qt/target/qt-service-0.0.1-SNAPSHOT-aws.jar`), `region`, `retainData`.
+**설정 파라미터(`-c 이름=값`)**: `qtAcquisitionEnabled`(레거시 제공처 자동 취득, **기본 false**), `providerMaeilSeongyeong`, `providerSaengmyeongUiSam`(제공처별 취득, 기본 false), `collectorEnabled`(기본 false), `collectorTimesKst`(`HH:MM` 목록), `logRetentionDays`, `apiCacheDefaultTtlSeconds`, `apiThrottleRatePerSecond`, `alertEmail`, `budgetMonthlyUsd`(기본 6), `qtLambdaAssetPath`(예: `../services/qt/target/qt-service-0.0.1-SNAPSHOT-aws.jar`), `region`, `retainData`. 제공처 수집은 권리 확인 뒤 비공개 실험을 위해 명시적으로 opt-in할 때만 켠다.
 
 **안전장치**
 
@@ -59,7 +59,7 @@
 
 ### 0-3. 사용자 결정이 필요한 것
 
-- 실제 배포 전: AWS 리전(권고: 서울 `ap-northeast-2`), 계정 요금제(유료 요금제 + 신규 크레딧 권고, 6장), 도메인 포함 여부, 예산·알람 수신 이메일. 사용자는 본문을 표시하지 않으므로 콘텐츠 사용료 항목은 해당 없음이다.
+- 실제 배포 전: AWS 리전(권고: 서울 `ap-northeast-2`), 계정 요금제(유료 요금제 + 신규 크레딧 권고, 6장), 도메인 포함 여부, 예산·알람 수신 이메일. 날짜별 성경 콘텐츠는 승인된 본문만 공개 artifact에 넣고, 비용·권리 조건이 확인되지 않은 번역본은 비활성으로 둔다.
 - AI를 켤 때: 모델, 월 생성 횟수 상한, 월 LLM 예산 상한. 이 문서는 결정하지 않는다.
 - 실제 청구 통화(USD 또는 KRW)와 세율 확인. 이 문서는 USD 단가에 환율 1,560원과 부가세 10%를 가정했다.
 - 웹 산출물의 방문당 전송 예산. lead가 web-experience에 초기 로드 gzip 150KB 이하를 요청했다. 이 문서의 시나리오 가정(방문당 0.8/1.0/1.5MB)은 그보다 보수적이며, 예산이 지켜지면 11장의 0.3MB 행(정가 기준 3,938원)에 가까워진다(측정 전).
@@ -479,7 +479,7 @@ IaC의 Budgets는 알림 전용이다(테스트가 동작 리소스가 없음을
 | AWS WAF 요금, KMS 사용자 관리 키 요금 | 조회 안 함(사용 안 함) |
 | Java Lambda 콜드 스타트 시간, 실행 시간, Spring Cloud Function 어댑터 메모리 요구량 | 미측정 |
 | Bedrock 경유 Claude 가격 | 조회 안 함 |
-| 콘텐츠(개역개정·QT 제공처) 이용료 | 본문을 표시하지 않아 해당 없음. 범위를 넓힐 때 재검토(대한성서공회 요금은 미확인) |
+| 콘텐츠(선택한 성경 번역본·QT 제공처) 이용료 | 승인된 번역본의 정적 파일·콘텐츠 권리 조건을 확인해야 한다. QT 제공처 본문·해설은 앱에서 복제하지 않고 공식 링크만 둔다. |
 | 수집 Lambda의 실제 시간과 DynamoDB 첫 호출 콜드 비용 | 시도당 8초 가정, 미측정 |
 | 토크나이저 배율 1.3 | 공식 페이지의 "약 30%"를 그대로 적용. 한국어에서 실제 배율은 측정 필요 |
 | Price List 게시 후 요금 변경 | 배포 시점에 재조회 필요(`fetch-prices.mjs` 재실행 후 `update-doc.mjs`) |
@@ -495,8 +495,8 @@ IaC의 Budgets는 알림 전용이다(테스트가 동작 리소스가 없음을
 | 함수 이름 환경 변수 | 불필요(핸들러가 고정). `SPRING_CLOUD_FUNCTION_DEFINITION` 은 넣지 않는다 |
 | `QT_TABLE_NAME` | 있으면 배포 모드(DynamoDB). 조회는 서울 오늘 항목만 읽고 제공처에 요청하지 않는다 |
 | `QT_ITEM_TTL_DAYS` | 400 |
-| `QT_COLLECTOR_ENABLED`, `QT_PROVIDER_MAEIL_SEONGYEONG`, `QT_PROVIDER_SAENGMYEONG_UI_SAM` | `enabled` / `disabled`. 코드 기본은 수집 disabled이고 IaC가 enabled 로 설정한다 |
-| `QT_ACQUISITION_ENABLED` | 코드 기본값은 false이고 IaC 기본은 `true`(비공개 시험 운영, 사용자 결정. 제공처 허용 여부 미확인, 위험은 services/qt README '배포에서 취득 켜기' 절). `false` 면 조회는 `RANGE_NOT_PERMITTED`, 수집은 요청·저장 없음. 조회 함수는 이 플래그가 켜져 있어도 제공처에 요청하지 않는다 |
+| `QT_COLLECTOR_ENABLED`, `QT_PROVIDER_MAEIL_SEONGYEONG`, `QT_PROVIDER_SAENGMYEONG_UI_SAM` | `enabled` / `disabled`. IaC 기본값은 모두 disabled. 명시적 opt-in 전에는 provider 요청·정기 수집 없음 |
+| `QT_ACQUISITION_ENABLED` | IaC 기본값은 `false`. false면 조회는 `RANGE_NOT_PERMITTED`, 수집은 요청·저장 없음. 현재 web은 `/daily-word/YYYY-MM-DD.json` 정적 artifact와 공식 링크를 사용하며 이 레거시 API는 메인 말씀 화면에 연결되지 않는다 |
 | 테이블 | 파티션 `providerId`(S), 정렬 `providerDate`(S, YYYY-MM-DD), TTL `expiresAt`(N, epoch 초) |
 | IAM | 조회 `dynamodb:GetItem`, 수집 `dynamodb:GetItem`+`dynamodb:PutItem`, 테이블 ARN 한정(테스트로 검사) |
 | 자원 | 조회 512MB 이상·타임아웃 10초 안팎, 수집 512MB·30초 이상(IaC는 둘 다 1,024MB, 수집 60초) |
@@ -504,7 +504,14 @@ IaC의 Budgets는 알림 전용이다(테스트가 동작 리소스가 없음을
 
 미시험(qt-backend 보고): 실제 DynamoDB 동작(PutItem 덮어쓰기, TTL 삭제, IAM)은 클라이언트 대역으로만 검증됐고, 첫 DynamoDB 호출의 콜드 비용은 측정하지 못했다. JVM 스택 옵션(`-Xss` 등)은 넣지 않는다(lead: `-Xss512k` 에서 로컬 기동 실패 관찰).
 
-- **자동 취득 켜짐 표시와 끄는 방법**: 켜진 배포는 스택 설명, 리소스 태그(`stage=private-preview`, `provider-permission=unconfirmed`), 출력 `DeploymentNotice`, CloudFront 설명에 "private-preview, provider permission unconfirmed"가 들어간다. 끄는 방법: (a) 전체 — `-c qtAcquisitionEnabled=false` 로 재배포하거나 Lambda 환경 변수 `QT_ACQUISITION_ENABLED=false`, (b) 제공처별 — `-c providerMaeilSeongyeong=false` / `-c providerSaengmyeongUiSam=false`(`QT_PROVIDERS_*_DISABLED=true`), (c) 스케줄만 — `-c collectorEnabled=false`. 끄면 마지막 자료를 오늘로 다시 보여주지 않는다.
+- **레거시 자동 취득의 opt-in**: 기본은 acquisition/provider/collector 모두 off이며 `/api/qt/today`는 새 오늘의 말씀 화면의 데이터 경로가 아니다. 별도 권리 확인 후에만 `-c qtAcquisitionEnabled=true -c providerMaeilSeongyeong=true -c providerSaengmyeongUiSam=true -c collectorEnabled=true`로 켠다. 취득을 켠 배포는 스택 표시/태그/출력에 private-preview 및 permission 미확인 경고를 남긴다. 끌 때는 이 컨텍스트들을 false로 재합성·재배포한다.
+
+### 14-A. 날짜별 정적 말씀 파일 배포 경로
+
+- 웹 빌드의 `web/public/daily-word/YYYY-MM-DD.json` 파일은 Vite가 `web/dist/daily-word/YYYY-MM-DD.json`으로 복사한다.
+- CDK `BucketDeployment`는 `web/dist` 전체 디렉터리를 재귀적으로 S3 루트에 배포하므로 최종 URL은 `/daily-word/YYYY-MM-DD.json`이다. `.json` 확장자가 있는 경로는 CloudFront SPA rewrite가 `/index.html`로 바꾸지 않는다.
+- 날짜 artifact는 공개 본문이 되므로 권리·출처·장절 검증이 완료된 승인 파일만 `web/public`에 넣는다. 파일이 제공되지 않은 날짜는 웹 로더가 unavailable 처리하고 어제 자료로 대체하지 않는다.
+- 재배포 시 `/index.html`과 `/daily-word/*`를 함께 CloudFront에서 무효화한다. 같은 날짜 artifact의 정정 배포가 기본 캐시 TTL에 가려지는 일을 방지한다. 이 변경은 기존 S3/CloudFront만 사용하며 새 AWS 리소스는 만들지 않는다.
 - **검색 엔진 비노출**: CloudFront 응답 헤더로 `X-Robots-Tag: noindex, nofollow` 를 모든 응답에 붙인다(`web/public/robots.txt` 의 `Disallow: /` 는 web-experience 요청 중). 접근 제어가 아니므로 URL을 알면 접속된다.
 - 조회 함수와 수집 함수 모두 VPC 밖(NAT 불필요)이며 DynamoDB 쓰기 권한은 수집 함수에만 있다(테스트로 검사). 배포 모드의 조회 함수는 제공처에 요청하지 않으므로 외부 아웃바운드가 필요한 것은 수집 함수뿐이다(qt-backend T16 보고, 테스트로 확인됨. IAM은 아웃바운드를 제한하지 않아 코드 동작에 의존). 스케줄 호출 비용은 횟수에 비례한다(4회/일로 고정).
 - 개인 계획·진도는 어떤 환경 변수, 테이블, 라우트에도 없다.
@@ -513,7 +520,7 @@ IaC의 Budgets는 알림 전용이다(테스트가 동작 리소스가 없음을
 
 ### 14-2. 웹 접근 제어 선택지 (혼자 쓰는 비공개 시험 운영)
 
-현재 IaC는 (a)뿐이다. 자동 취득이 켜져 있고 제공처 허용이 미확인이라, 배포 승인 때 아래 중 하나를 함께 정하도록 제시한다. 비용은 서울 기준 원화(환율 1,560, 부가세 10% 포함)이고, 단가는 2026-09-24 AWS Price List·요금 페이지 확인값이다. 이 표는 **구현하지 않은 비교**이며 IaC에는 반영하지 않았다.
+현재 IaC는 (a)뿐이다. 웹의 일일 말씀 콘텐츠는 S3/CloudFront 정적 artifact이고, 레거시 QT API는 기본 provider 취득 off다. 접근 제어는 배포 전 별도 결정 사항이며 아래 표는 **구현하지 않은 비교**다. 비용은 서울 기준 원화(환율 1,560, 부가세 10% 포함)이고, 단가는 2026-09-24 AWS Price List·요금 페이지 확인값이다.
 
 | 선택지 | 월 비용 영향 | 구현 복잡도 | 모바일 사용성 | 장점 | 단점·주의 |
 | --- | --- | --- | --- | --- | --- |
@@ -525,7 +532,7 @@ IaC의 Budgets는 알림 전용이다(테스트가 동작 리소스가 없음을
 | (d-3) Lambda@Edge 인증 | Lambda@Edge에는 무료 구간이 없다고 CloudFront 페이지에 적혀 있음. 요청 백만 건당 0.60달러(Price List), 실행 시간 별도 | 높음 | 좋음 | 복잡한 검증 가능 | (b)로 충분해 비용·복잡도만 늘어남 |
 | (d-4) 원본 직접 접속 차단 | 0원 | 낮음 | 영향 없음 | CloudFront를 우회한 API 직접 호출을 줄임 | 이 표의 사용자 접근 제어와는 별개. 현재 HTTP API 주소는 공개 엔드포인트이며 비밀 헤더 검증은 구현하지 않았다(미구현) |
 
-권고(결정은 사용자): 모바일에서 쓰고 비용을 늘리지 않으려면 **(b) 기본 인증**이 가장 균형이 좋다. 다만 자격 증명 주입 방식(코드가 아닌 배포 시 입력)을 먼저 정해야 한다. 그 결정 전에는 (a)로 두되, 자동 취득을 켠 채 URL을 널리 알리지 않는다. 어느 쪽이든 인증은 접근 제어일 뿐 **제공처 자동 취득 허용 여부(미확인)** 를 해결하지 않는다.
+권고(결정은 사용자): 모바일에서 쓰고 비용을 늘리지 않으려면 **(b) 기본 인증**이 가장 균형이 좋다. 다만 자격 증명 주입 방식(코드가 아닌 배포 시 입력)을 먼저 정해야 한다. 그 결정 전에는 (a)로 둔다. 제공처 자동 취득은 기본 비활성이므로 이 접근 제어 선택과 별개다.
 
 ## 15. 배포 후 실제 청구와 비교할 항목
 

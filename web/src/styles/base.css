@@ -10,13 +10,24 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: linear-gradient(rgb(247 250 252 / 0.42), rgb(242 248 244 / 0.5)), url('/shepherd-hillside.png');
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 1.025rem;
+  line-height: 1.72;
+  letter-spacing: -0.012em;
   word-break: keep-all;
   overflow-wrap: anywhere;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-image: linear-gradient(rgb(15 23 42 / 0.72), rgb(15 23 42 / 0.78)), url('/shepherd-hillside.png');
+  }
 }
 
 h1,
@@ -80,7 +91,8 @@ p {
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(14px);
 }
 
 .app-main {
@@ -188,7 +200,8 @@ p {
   padding: var(--space-1);
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(12px);
   box-shadow: var(--card-shadow);
 }
 .service-tabs__tab {

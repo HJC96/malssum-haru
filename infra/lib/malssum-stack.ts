@@ -38,8 +38,8 @@ const INFRA_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export type MalssumStackProps = StackProps & { config: StackConfig };
 
 /**
- * 말씀하루 서버리스 스택: S3+CloudFront(정적 웹, /api/* 는 HTTP API), Lambda(Java 21, arm64),
- * QT 공통 데이터 DynamoDB, EventBridge Scheduler 수집, 로그 보존, 예산·알람.
+ * 말씀하루 서버리스 스택: S3+CloudFront(정적 웹, /api/* 는 레거시 HTTP API), Lambda(Java 21, arm64),
+ * 레거시 QT 범위 데이터 DynamoDB와 선택적 EventBridge 수집, 로그 보존, 예산·알람.
  *
  * 만들지 않는 것(PRD SESSION01, IMPLEMENTATION_PLAN M4):
  * - 개인 계획·읽은 범위·진도를 담는 테이블, API, 저장소. 사용자 식별·인증 리소스(Cognito 등).
@@ -80,7 +80,7 @@ export class MalssumStack extends Stack {
     const bool = (v: boolean) => String(v);
     const enabled = (v: boolean) => (v ? 'enabled' : 'disabled');
     const commonEnv: Record<string, string> = {
-      // 이름은 services/qt README(T15·T16)와 같다. 기본 true 는 비공개 시험 운영 결정이며 제공처 권한은 미확인이다.
+      // 현재 웹은 일일 말씀 정적 파일과 공식 링크를 쓴다. 아래는 레거시 QT API의 명시적 opt-in용이다.
       QT_ACQUISITION_ENABLED: bool(cfg.qtAcquisitionEnabled),
       // kill switch: true 이면 해당 제공처는 계약의 DISABLED / OPERATOR_DISABLED 로 응답한다.
       // 제공처 kill switch. 'disabled' 이면 해당 제공처는 계약의 DISABLED / OPERATOR_DISABLED 로 응답한다.
@@ -99,7 +99,7 @@ export class MalssumStack extends Stack {
 
     const apiLogs = new logs.LogGroup(this, 'QtApiLogs', { retention, removalPolicy: RemovalPolicy.DESTROY });
     this.apiFunction = new lambda.Function(this, 'QtApiFunction', {
-      description: description ?? 'GET /api/qt/today (배포 모드에서는 DynamoDB 읽기만, 제공처 요청 없음)',
+      description: description ?? '레거시 GET /api/qt/today (기본 제공처 취득 off, 배포 모드에서 DynamoDB 읽기)',
       runtime: lambda.Runtime.JAVA_21,
       architecture: lambda.Architecture.ARM_64,
       handler: cfg.qtLambdaHandler,
@@ -115,7 +115,7 @@ export class MalssumStack extends Stack {
 
     const collectorLogs = new logs.LogGroup(this, 'QtCollectorLogs', { retention, removalPolicy: RemovalPolicy.DESTROY });
     this.collectorFunction = new lambda.Function(this, 'QtCollectorFunction', {
-      description: description ?? 'QT 오늘 장절 수집(스케줄 호출 전용)',
+      description: description ?? '옵트인 레거시 QT 오늘 장절 수집(기본 스케줄 off)',
       runtime: lambda.Runtime.JAVA_21,
       architecture: lambda.Architecture.ARM_64,
       handler: cfg.qtCollectorHandler,
@@ -196,7 +196,7 @@ export class MalssumStack extends Stack {
 
     const apiDomain = Fn.select(2, Fn.split('/', this.api.apiEndpoint));
     this.distribution = new cloudfront.Distribution(this, 'Cdn', {
-      comment: '말씀하루 웹과 API 진입점 (private-preview, provider permission unconfirmed)',
+      comment: '말씀하루 정적 웹/날짜별 콘텐츠와 선택적 레거시 QT API 진입점',
       defaultRootObject: 'index.html',
       priceClass: cloudfront.PriceClass.PRICE_CLASS_200,
       httpVersion: cloudfront.HttpVersion.HTTP2_AND_3,
@@ -228,14 +228,16 @@ export class MalssumStack extends Stack {
         sources: [s3deploy.Source.asset(webDist)],
         destinationBucket: this.webBucket,
         distribution: this.distribution,
-        distributionPaths: ['/index.html'],
+        // 배포는 web/dist 전체(재귀적)를 S3 루트에 복사한다. Vite가 web/public/daily-word/** 를
+        // web/dist/daily-word/** 로 복사하므로 artifact 파일도 그대로 공개 경로에 놓인다.
+        // 같은 날짜 파일을 교정해 재배포할 수 있으므로 해당 CDN 경로도 무효화한다.
+        distributionPaths: ['/index.html', '/daily-word/*'],
       });
     } else {
       Annotations.of(this).addWarningV2('malssum:web-dist-missing', `웹 산출물이 없어 정적 파일 배포 리소스를 만들지 않았다: ${webDist}`);
     }
 
-    // --- 수집 스케줄(Asia/Seoul). cfg.collectorEnabled=false 이면 스케줄을 끈다 ---
-    // 시각마다 스케줄 하나(월 호출 수는 무료 구간 1,400만 호출 안). qt-backend 는 이미 성공한 제공처를 건너뛴다.
+    // --- 레거시 QT 수집 스케줄(Asia/Seoul). 기본은 disabled; 별도 권리 확인 후 명시적 opt-in만 허용 ---
     cfg.collectorTimesKst.forEach((time, i) => {
       const [hour, minute] = time.split(':') as [string, string];
       new scheduler.Schedule(this, `QtCollectorSchedule${i + 1}`, {
@@ -334,7 +336,7 @@ export class MalssumStack extends Stack {
     new CfnOutput(this, 'DeploymentNotice', {
       value: cfg.qtAcquisitionEnabled
         ? 'private-preview: provider acquisition ON, provider permission unconfirmed. Not for public release.'
-        : 'provider acquisition OFF (official links only)',
+        : 'provider acquisition OFF by default; daily-word artifacts use static web hosting when supplied; provider links go direct',
     });
   }
 }

@@ -99,5 +99,11 @@ export function fallbackLinks(now: Date = new Date()): FallbackLink[] {
       url: durannoDateUrl(localIsoDate(now, 'Asia/Seoul')),
       kind: 'date-specific',
     },
+    {
+      providerId: 'nal-som-sam',
+      providerName: { ko: '날마다 솟는 샘물', en: 'NalMalsSam QT' },
+      url: 'https://www.godpia.com/qt/qt.asp',
+      kind: 'today-page',
+    },
   ];
 }

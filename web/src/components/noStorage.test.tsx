@@ -26,13 +26,14 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     const before = window.location.href;
 
     render(app());
-    await screen.findByRole('article', { name: '매일성경' });
+    await screen.findByRole('status');
     await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
     setDate('시작일', '2026-09-10');
     await userEvent.click(screen.getByRole('radio', { name: /건너뛰어 읽었습니다/ }));
     const readGroup = screen.getByRole('group', { name: '현재 읽은 분량' });
     fillRange(within(readGroup).getByRole('group', { name: '범위 1' }), { book: 'GEN', sc: '1', sv: '1', ec: '1', ev: '8' });
-    await userEvent.click(screen.getByRole('checkbox', { name: /기준으로 남은 범위를 다시 배분/ }));
+    await userEvent.click(screen.getByRole('button', { name: '남은 일정 조정' }));
+    await userEvent.click(screen.getByRole('button', { name: '이 일정으로 적용' }));
     await userEvent.click(within(screen.getByRole('group', { name: '오늘 읽은 범위 (선택)' })).getByRole('button', { name: '범위 추가' }));
     await userEvent.click(screen.getByRole('button', { name: '월간 캘린더' }));
     await userEvent.click(screen.getByRole('button', { name: 'English' }));
@@ -58,7 +59,7 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
 
     render(app());
     await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
-    expect(screen.getByLabelText('마감일')).toHaveValue('2026-10-23');
+    expect(screen.getByRole('button', { name: '30일' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('radio', { name: /처음 시작합니다/ })).toBeChecked();
     expect(screen.queryByLabelText('마지막으로 읽은 곳')).not.toBeInTheDocument();
   });

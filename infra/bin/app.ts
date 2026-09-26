@@ -10,7 +10,7 @@ const config = resolveConfig((key) => app.node.tryGetContext(key));
 new MalssumStack(app, 'MalssumHaru', {
   env: { region: config.region },
   description: config.qtAcquisitionEnabled
-    ? '말씀하루 서버리스 스택 (private-preview, provider permission unconfirmed; QT 공통 데이터 전용, 개인 진도 리소스 없음)'
-    : '말씀하루 서버리스 스택(QT 공통 데이터 전용, 개인 진도 리소스 없음)',
+    ? '말씀하루 서버리스 스택 (legacy QT provider acquisition opt-in; provider permission unconfirmed)'
+    : '말씀하루 서버리스 스택(정적 웹·날짜별 콘텐츠, 레거시 QT provider acquisition 기본 off)',
   config,
 });

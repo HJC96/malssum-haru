@@ -1,0 +1,4 @@
+{
+  "schemaVersion": "test-only",
+  "note": "Not Scripture. Infrastructure fixture used only to exercise recursive static deployment."
+}

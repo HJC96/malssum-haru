@@ -25,15 +25,15 @@ test('자리표시자 산출물이면 배포 거부 규칙이 붙고, 실제 산
   assert.ok(!real.Rules || !('RequireRealQtArtifact' in real.Rules));
 });
 
-test('핸들러와 취득 스위치가 services/qt README(T15)의 이름과 같다', () => {
+test('레거시 QT Lambda 계약 이름을 유지하면서 취득·수집은 기본 비활성이다', () => {
   const { json } = build(WITH_EMAIL);
   const api = resourcesOfType(json, 'AWS::Lambda::Function').find(([id]) => id.startsWith('QtApiFunction'))![1].Properties!;
   assert.equal(api.Handler, 'kr.malssumharu.qt.lambda.QtLambdaHandler::handleRequest');
   const env = api.Environment.Variables;
-  assert.equal(env.QT_ACQUISITION_ENABLED, 'true'); // 비공개 시험 운영 결정(사용자). 제공처 권한은 미확인
-  assert.equal(env.QT_PROVIDER_MAEIL_SEONGYEONG, 'enabled');
-  assert.equal(env.QT_PROVIDER_SAENGMYEONG_UI_SAM, 'enabled');
-  assert.equal(env.QT_COLLECTOR_ENABLED, 'enabled');
+  assert.equal(env.QT_ACQUISITION_ENABLED, 'false'); // 새 화면은 날짜별 정적 콘텐츠와 공식 링크 사용
+  assert.equal(env.QT_PROVIDER_MAEIL_SEONGYEONG, 'disabled');
+  assert.equal(env.QT_PROVIDER_SAENGMYEONG_UI_SAM, 'disabled');
+  assert.equal(env.QT_COLLECTOR_ENABLED, 'disabled');
   assert.equal(env.QT_TABLE_NAME.Ref !== undefined, true);
   const collector = resourcesOfType(json, 'AWS::Lambda::Function').find(([id]) => id.startsWith('QtCollectorFunction'))![1].Properties!;
   assert.equal(collector.Handler, 'kr.malssumharu.qt.lambda.QtCollectHandler::handleRequest');
@@ -44,8 +44,15 @@ test('핸들러와 취득 스위치가 services/qt README(T15)의 이름과 같�
   for (const k of Object.keys(env)) assert.doesNotMatch(k, /JAVA_TOOL_OPTIONS|Xss/);
 });
 
-test('제공처 스위치와 수집 스케줄 파라미터가 환경 변수와 스케줄에 반영된다', () => {
-  const on = build(WITH_EMAIL);
+test('레거시 제공처 수집은 기본 off이고 명시적 opt-in일 때만 환경 변수와 스케줄에서 켜진다', () => {
+  const defaults = build(WITH_EMAIL);
+  const on = build({
+    ...WITH_EMAIL,
+    providerMaeilSeongyeong: 'true',
+    providerSaengmyeongUiSam: 'true',
+    collectorEnabled: 'true',
+    qtAcquisitionEnabled: 'true',
+  });
   const env = (b: ReturnType<typeof build>) =>
     resourcesOfType(b.json, 'AWS::Lambda::Function').find(([id]) => id.startsWith('QtApiFunction'))![1].Properties!.Environment.Variables;
   const off = build({
@@ -59,6 +66,10 @@ test('제공처 스위치와 수집 스케줄 파라미터가 환경 변수와 �
   assert.equal(env(off).QT_PROVIDER_SAENGMYEONG_UI_SAM, 'disabled');
   assert.equal(env(off).QT_COLLECTOR_ENABLED, 'disabled');
   assert.equal(env(off).QT_ACQUISITION_ENABLED, 'false');
+  assert.equal(env(defaults).QT_ACQUISITION_ENABLED, 'false');
+  assert.equal(env(defaults).QT_PROVIDER_MAEIL_SEONGYEONG, 'disabled');
+  assert.equal(env(defaults).QT_PROVIDER_SAENGMYEONG_UI_SAM, 'disabled');
+  assert.equal(env(defaults).QT_COLLECTOR_ENABLED, 'disabled');
   const cron = (b: ReturnType<typeof build>) =>
     resourcesOfType(b.json, 'AWS::Scheduler::Schedule')
       .map(([, r]) => `${r.Properties!.ScheduleExpression} ${r.Properties!.ScheduleExpressionTimezone} ${r.Properties!.State}`)
@@ -69,6 +80,7 @@ test('제공처 스위치와 수집 스케줄 파라미터가 환경 변수와 �
     'cron(35 0 * * ? *) Asia/Seoul ENABLED',
     'cron(5 0 * * ? *) Asia/Seoul ENABLED',
   ]); // 하루 4회(00:05, 00:35, 06:00, 12:00 KST)
+  assert.ok(cron(defaults).every((c) => c.endsWith('DISABLED')));
   assert.ok(cron(off).every((c) => c.endsWith('DISABLED')));
 });
 
@@ -124,7 +136,19 @@ test('웹 산출물 폴더가 없으면 배포 리소스를 만들지 않는다(
 
 test('웹 산출물 폴더가 있으면 정적 파일 배포 리소스가 붙는다', () => {
   const { json } = build({ ...WITH_EMAIL, webDistPath: 'test/fixtures/web-dist' });
-  assert.equal(resourcesOfType(json, 'Custom::CDKBucketDeployment').length, 1);
+  const deployment = resourcesOfType(json, 'Custom::CDKBucketDeployment');
+  assert.equal(deployment.length, 1);
+  assert.deepEqual(deployment[0]![1].Properties!.DistributionPaths, ['/index.html', '/daily-word/*']);
+});
+
+test('날짜별 JSON도 정적 S3 경로로 제공되고 SPA 재작성 대상에서 제외된다', () => {
+  const { json } = build({ ...WITH_EMAIL, webDistPath: 'test/fixtures/web-dist' });
+  const rewrite = resourcesOfType(json, 'AWS::CloudFront::Function').find(([id]) => id.startsWith('SpaRewrite'))![1].Properties!.FunctionCode;
+  assert.match(rewrite, /uri\.indexOf\('\.'\) === -1/);
+  assert.match(rewrite, /request\.uri = '\/index\.html'/);
+  // 날짜별 .json 요청은 확장자를 가지므로 SPA fallback을 통과하고, 같은 배포에서 edge cache도 무효화된다.
+  const deployment = resourcesOfType(json, 'Custom::CDKBucketDeployment')[0]![1].Properties!;
+  assert.ok((deployment.DistributionPaths as string[]).includes('/daily-word/*'));
 });
 
 test('CloudFront /api/* 동작과 기본 동작이 분리되어 있고 SPA 재작성 함수는 기본 동작에만 붙는다', () => {
@@ -137,12 +161,12 @@ test('CloudFront /api/* 동작과 기본 동작이 분리되어 있고 SPA 재�
 });
 
 test('비공개 시험 운영 표시: 스택 태그·출력에 명시되고, 취득을 끄면 사라진다', () => {
-  const on = build(WITH_EMAIL);
+  const on = build({ ...WITH_EMAIL, qtAcquisitionEnabled: 'true' });
   assert.ok(JSON.stringify(on.json.Outputs).includes('provider permission unconfirmed'));
   const tags = resourcesOfType(on.json, 'AWS::DynamoDB::Table')[0]![1].Properties!.Tags as Array<{ Key: string; Value: string }>;
   assert.ok(tags.some((t) => t.Key === 'stage' && t.Value === 'private-preview'));
   assert.ok(tags.some((t) => t.Key === 'provider-permission' && t.Value === 'unconfirmed'));
-  const off = build({ ...WITH_EMAIL, qtAcquisitionEnabled: 'false' });
+  const off = build(WITH_EMAIL);
   assert.ok(!JSON.stringify(off.json.Outputs).includes('unconfirmed'));
 });
 

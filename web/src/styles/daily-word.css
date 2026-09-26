@@ -1,0 +1,294 @@
+.daily-word {
+  display: grid;
+  width: min(100%, 58rem);
+  margin-inline: auto;
+  overflow: hidden;
+  gap: 0;
+  border: 1px solid var(--daily-word-border);
+  border-radius: 1.75rem;
+  background: var(--daily-word-card-bg);
+  box-shadow: 0 12px 32px rgb(31 41 55 / 0.1);
+}
+
+.daily-word__heading {
+  display: grid;
+  padding: 1.35rem 1.5rem;
+  background: var(--daily-word-header-bg);
+  text-align: center;
+}
+
+.daily-word__heading h2 {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.daily-word__title {
+  color: var(--text);
+  font-size: clamp(1.45rem, 3.5vw, 1.8rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.daily-word__heading time {
+  color: var(--daily-word-heading-muted);
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.daily-word__eyebrow,
+.daily-word-card__eyebrow {
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.daily-word__cards,
+.daily-word__providers ul {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.daily-word__cards > li {
+  min-width: 0;
+}
+
+.daily-word__cards > li + li {
+  border-top: 1px solid var(--daily-word-border);
+}
+
+@media (min-width: 48rem) {
+  .daily-word__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(5, auto);
+  }
+
+  .daily-word__cards > li {
+    display: contents;
+  }
+
+  .daily-word__cards > li > .daily-word-card {
+    grid-row: span 5;
+    grid-template-rows: subgrid;
+  }
+
+  .daily-word__cards > li + li > .daily-word-card {
+    border-top: 0;
+    border-left: 1px solid var(--daily-word-border);
+  }
+}
+
+.daily-word-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.4rem clamp(1.1rem, 5vw, 1.75rem);
+  background: var(--daily-word-card-bg);
+}
+
+.daily-word-card--old {
+  background: var(--daily-word-card-bg);
+}
+
+.daily-word-card--new {
+  background: var(--daily-word-muted-bg);
+}
+
+.daily-word-card__header {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.daily-word-card__text {
+  color: var(--text-muted);
+  font-size: clamp(1.12rem, 2.2vw, 1.3rem);
+  font-weight: 520;
+  line-height: 2;
+  letter-spacing: -0.025em;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+.daily-word-card__translation {
+  justify-self: center;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  background: var(--daily-word-header-bg);
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.daily-word-card__explanation {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1rem;
+  border: 1px dashed var(--daily-word-border);
+  border-radius: 1rem;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.daily-word-card__explanation h4 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.daily-word-card__editorial,
+.daily-word__version {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.daily-word__notice {
+  display: grid;
+  gap: var(--space-2);
+  margin: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--daily-word-border);
+  border-radius: 1rem;
+  background: var(--daily-word-muted-bg);
+}
+
+.daily-word__notice--error {
+  border-color: var(--err-fg);
+  background: var(--err-bg);
+  color: var(--err-fg);
+}
+
+.daily-word__providers {
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
+  padding: 1.35rem 1.25rem 1.5rem;
+  border-top: 1px solid var(--daily-word-border);
+  background: var(--daily-word-muted-bg);
+  text-align: center;
+}
+
+.daily-word__providers > p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.daily-word__translation-link {
+  justify-self: center;
+  margin: -0.45rem 0 0.25rem;
+  color: var(--accent);
+  font-size: 0.92rem;
+  font-weight: 650;
+  text-underline-offset: 0.18em;
+}
+
+.daily-word__providers ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.daily-word__providers .btn--external {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 3px 8px rgb(31 41 55 / 0.16);
+}
+
+.daily-word__providers .btn--external:hover:not(:disabled) {
+  border-color: #4f46e5;
+  background: #4f46e5;
+}
+
+@media (max-width: 28rem) {
+  .daily-word {
+    border-radius: 1.35rem;
+  }
+
+  .daily-word__providers ul {
+    width: 100%;
+    flex-direction: column;
+  }
+}
+.daily-word__selection-help {
+  position: fixed;
+  z-index: 1000;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: min(22rem, calc(100vw - 1rem));
+  touch-action: none;
+}
+
+.daily-word__selection-help-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  align-self: flex-end;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--daily-word-border);
+  border-radius: 999px;
+  color: var(--text);
+  background: var(--daily-word-card-bg);
+  box-shadow: 0 5px 18px rgb(31 41 55 / 0.2);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.daily-word__selection-help-trigger:hover {
+  transform: translateY(-1px);
+}
+
+.daily-word__selection-help-trigger:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.daily-word__selection-help-grip {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: grab;
+}
+
+.daily-word__selection-help:active .daily-word__selection-help-grip {
+  cursor: grabbing;
+}
+
+.daily-word__selection-help-content {
+  display: grid;
+  gap: 0.65rem;
+  max-width: 42rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-border, #d9dfda);
+  border-radius: 1rem;
+  color: var(--text);
+  background: var(--daily-word-card-bg);
+  box-shadow: 0 8px 28px rgb(31 41 55 / 0.2);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.daily-word__selection-help-content p {
+  margin: 0;
+}
+
+.daily-word__selection-help-close {
+  justify-self: end;
+  border: 0;
+  padding: 0.2rem 0;
+  color: var(--accent);
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}

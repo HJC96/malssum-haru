@@ -29,14 +29,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ],
         "TimeToLiveSpecification": {
@@ -55,14 +47,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       },
@@ -102,14 +86,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       }
@@ -157,10 +133,10 @@
         "Description": "PLACEHOLDER ASSET - 배포 금지: services/qt 산출물로 교체 필요",
         "Environment": {
           "Variables": {
-            "QT_ACQUISITION_ENABLED": "true",
-            "QT_PROVIDER_MAEIL_SEONGYEONG": "enabled",
-            "QT_PROVIDER_SAENGMYEONG_UI_SAM": "enabled",
-            "QT_COLLECTOR_ENABLED": "enabled",
+            "QT_ACQUISITION_ENABLED": "false",
+            "QT_PROVIDER_MAEIL_SEONGYEONG": "disabled",
+            "QT_PROVIDER_SAENGMYEONG_UI_SAM": "disabled",
+            "QT_COLLECTOR_ENABLED": "disabled",
             "QT_TABLE_NAME": {
               "Ref": "QtItems6C54E9AA"
             },
@@ -186,14 +162,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ],
         "Timeout": 10
@@ -211,14 +179,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       },
@@ -258,14 +218,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       }
@@ -316,10 +268,10 @@
         "Description": "PLACEHOLDER ASSET - 배포 금지: services/qt 산출물로 교체 필요",
         "Environment": {
           "Variables": {
-            "QT_ACQUISITION_ENABLED": "true",
-            "QT_PROVIDER_MAEIL_SEONGYEONG": "enabled",
-            "QT_PROVIDER_SAENGMYEONG_UI_SAM": "enabled",
-            "QT_COLLECTOR_ENABLED": "enabled",
+            "QT_ACQUISITION_ENABLED": "false",
+            "QT_PROVIDER_MAEIL_SEONGYEONG": "disabled",
+            "QT_PROVIDER_SAENGMYEONG_UI_SAM": "disabled",
+            "QT_COLLECTOR_ENABLED": "disabled",
             "QT_TABLE_NAME": {
               "Ref": "QtItems6C54E9AA"
             },
@@ -345,14 +297,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ],
         "Timeout": 60
@@ -369,9 +313,7 @@
         "Name": "HttpApi",
         "ProtocolType": "HTTP",
         "Tags": {
-          "project": "malssum-haru",
-          "provider-permission": "unconfirmed",
-          "stage": "private-preview"
+          "project": "malssum-haru"
         }
       }
     },
@@ -388,9 +330,7 @@
         },
         "StageName": "$default",
         "Tags": {
-          "project": "malssum-haru",
-          "provider-permission": "unconfirmed",
-          "stage": "private-preview"
+          "project": "malssum-haru"
         }
       }
     },
@@ -490,14 +430,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       },
@@ -725,14 +657,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       }
@@ -831,7 +755,7 @@
               "ViewerProtocolPolicy": "https-only"
             }
           ],
-          "Comment": "말씀하루 웹과 API 진입점 (private-preview, provider permission unconfirmed)",
+          "Comment": "말씀하루 정적 웹/날짜별 콘텐츠와 선택적 레거시 QT API 진입점",
           "DefaultCacheBehavior": {
             "AllowedMethods": [
               "GET",
@@ -911,14 +835,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       }
@@ -932,7 +848,7 @@
         },
         "ScheduleExpression": "cron(5 0 * * ? *)",
         "ScheduleExpressionTimezone": "Asia/Seoul",
-        "State": "ENABLED",
+        "State": "DISABLED",
         "Target": {
           "Arn": {
             "Fn::GetAtt": [
@@ -996,14 +912,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       }
@@ -1059,7 +967,7 @@
         },
         "ScheduleExpression": "cron(35 0 * * ? *)",
         "ScheduleExpressionTimezone": "Asia/Seoul",
-        "State": "ENABLED",
+        "State": "DISABLED",
         "Target": {
           "Arn": {
             "Fn::GetAtt": [
@@ -1090,7 +998,7 @@
         },
         "ScheduleExpression": "cron(0 6 * * ? *)",
         "ScheduleExpressionTimezone": "Asia/Seoul",
-        "State": "ENABLED",
+        "State": "DISABLED",
         "Target": {
           "Arn": {
             "Fn::GetAtt": [
@@ -1121,7 +1029,7 @@
         },
         "ScheduleExpression": "cron(0 12 * * ? *)",
         "ScheduleExpressionTimezone": "Asia/Seoul",
-        "State": "ENABLED",
+        "State": "DISABLED",
         "Target": {
           "Arn": {
             "Fn::GetAtt": [
@@ -1151,14 +1059,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ]
       }
@@ -1258,14 +1158,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ],
         "Threshold": 3,
@@ -1299,14 +1191,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ],
         "Threshold": 1,
@@ -1340,14 +1224,6 @@
           {
             "Key": "project",
             "Value": "malssum-haru"
-          },
-          {
-            "Key": "provider-permission",
-            "Value": "unconfirmed"
-          },
-          {
-            "Key": "stage",
-            "Value": "private-preview"
           }
         ],
         "Threshold": 3,
@@ -1428,7 +1304,7 @@
       }
     },
     "DeploymentNotice": {
-      "Value": "private-preview: provider acquisition ON, provider permission unconfirmed. Not for public release."
+      "Value": "provider acquisition OFF by default; daily-word artifacts use static web hosting when supplied; provider links go direct"
     }
   }
 }

@@ -129,12 +129,13 @@ describe('fetchQtToday', () => {
 });
 
 describe('fallbackLinks', () => {
-  it('두 제공처의 https 링크만 있고 범위 정보는 없다. 생명의삶 날짜는 서울 기준 오늘', () => {
+  it('세 QT 교재의 https 링크만 있고 범위 정보는 없다. 생명의삶 날짜는 서울 기준 오늘', () => {
     // UTC 2026-09-23 16:00 = 서울 2026-09-24 01:00
     const links = fallbackLinks(new Date('2026-09-23T16:00:00Z'));
-    expect(links.map((l) => l.providerId)).toEqual(['maeil-seongyeong', 'saengmyeong-ui-sam']);
+    expect(links.map((l) => l.providerId)).toEqual(['maeil-seongyeong', 'saengmyeong-ui-sam', 'nal-som-sam']);
     expect(links.every((l) => l.url.startsWith('https://'))).toBe(true);
     expect(links[1]?.url).toBe('https://www.duranno.com/qt/view/bible.asp?qtDate=2026-09-24');
+    expect(links[2]?.url).toBe('https://www.godpia.com/qt/qt.asp');
     expect(Object.keys(links[0] ?? {})).not.toContain('passage');
   });
 });

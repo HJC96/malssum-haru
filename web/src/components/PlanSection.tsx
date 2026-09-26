@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { BibleData, PlanResult, Weekday } from '@/domain';
 import { computePlan } from '@/domain';
 import { localIsoDate, useI18n } from '@/i18n';
@@ -7,12 +7,12 @@ import { baselineInput, computeFromForm, defaultForm, type PlanFormState } from 
 import { todayState } from '@/app/plan/todayProgress';
 import { buildExportModel } from '@/export/planExport';
 import { ExportPanel } from './plan/ExportPanel';
-import { PlanCalendar } from './plan/PlanCalendar';
-import { PlanDayList } from './plan/PlanDayList';
 import { PlanForm } from './plan/PlanForm';
 import { PlanIssues } from './plan/PlanIssues';
 import { PlanPrintSheet } from './plan/PlanPrintSheet';
 import { PlanSummary } from './plan/PlanSummary';
+import { PlanScheduleView } from './plan/PlanScheduleView';
+import { ProgressEditor, type ProgressFields } from './plan/ProgressEditor';
 
 type View = 'list' | 'calendar';
 
@@ -32,11 +32,25 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
   const { lang, t } = useI18n();
   const today = localIsoDate(now ?? new Date());
   const [form, setForm] = useState<PlanFormState>(() => ({ ...defaultForm(today), ...initialForm }));
+  const [scheduleProgress, setScheduleProgress] = useState<ProgressFields>(() => ({
+    readMode: initialForm?.readMode ?? defaultForm(today).readMode,
+    through: initialForm?.through ?? defaultForm(today).through,
+    readRanges: initialForm?.readRanges ?? defaultForm(today).readRanges,
+    todayRead: initialForm?.todayRead ?? defaultForm(today).todayRead,
+  }));
+  const [scheduleAsOf, setScheduleAsOf] = useState<string | null>(() => (initialForm?.recalc ? today : null));
+  const [showSchedulePreview, setShowSchedulePreview] = useState(false);
   const [view, setView] = useState<View>('list');
   const [weekStart, setWeekStart] = useState<Weekday>(0);
+  const resultHeading = useRef<HTMLHeadingElement>(null);
 
   const status = dataStatusOf(bible);
-  const computed = useMemo(() => computeFromForm(form, bible, today), [form, bible, today]);
+  const computed = useMemo(
+    () => computeFromForm({ ...form, ...scheduleProgress, recalc: scheduleAsOf !== null }, bible, today),
+    [form, scheduleProgress, scheduleAsOf, bible, today],
+  );
+  const progressComputed = useMemo(() => computeFromForm({ ...form, recalc: false }, bible, today), [form, bible, today]);
+  const previewPlan = useMemo(() => computeFromForm({ ...form, recalc: true }, bible, today), [form, bible, today]);
 
   const baseline: PlanResult | null = useMemo(() => {
     if (!computed.ok || !computed.outcome.result.recalculatedFrom) return null;
@@ -50,7 +64,12 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
   );
 
   const todayInfo = computed.ok
-    ? todayState(computed.outcome.result, bible, today, computed.input.todayRead ?? [])
+    ? todayState(
+        { ...computed.outcome.result, summary: { ...computed.outcome.result.summary, todayTarget: null, todayAchievementPct: null } },
+        bible,
+        today,
+        progressComputed.ok ? progressComputed.input.todayRead ?? [] : [],
+      )
     : null;
 
   return (
@@ -69,14 +88,70 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
         {status === 'provisional' && <p className="qt-note">{t('plan.dataHelp.limits')}</p>}
       </details>
 
-      <PlanForm form={form} onChange={setForm} bible={bible} today={today} />
+      <PlanForm
+        form={form}
+        onChange={setForm}
+        bible={bible}
+        preview={computed.ok ? {
+          verses: computed.outcome.result.summary.targetVerses,
+          days: computed.outcome.result.summary.readingDays,
+          average: computed.outcome.result.summary.readingDays > 0
+            ? computed.outcome.result.summary.targetVerses / computed.outcome.result.summary.readingDays
+            : null,
+        } : undefined}
+        onPreview={() => {
+          resultHeading.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+          resultHeading.current?.focus({ preventScroll: true });
+        }}
+      />
 
       {!computed.ok && <PlanIssues issues={computed.issues} />}
+      {computed.ok && !progressComputed.ok && <PlanIssues issues={progressComputed.issues} />}
 
       {computed.ok && model && todayInfo && (
         <div className="plan-result" aria-labelledby="plan-result-heading" role="region">
-          <h3 id="plan-result-heading">{t('plan.result.heading')}</h3>
-          <PlanSummary result={computed.outcome.result} today={todayInfo} baseline={baseline} />
+          <h3 id="plan-result-heading" ref={resultHeading} tabIndex={-1}>{t('plan.result.heading')}</h3>
+          <PlanSummary
+            result={progressComputed.ok
+              ? { ...progressComputed.outcome.result, recalculatedFrom: computed.outcome.result.recalculatedFrom }
+              : computed.outcome.result}
+            today={todayInfo}
+            baseline={baseline}
+          />
+          <ProgressEditor
+            form={form}
+            bible={bible}
+            onApply={(fields) => {
+              const candidate = { ...form, ...fields, recalc: false };
+              const validation = computeFromForm(candidate, bible, today);
+              if (!validation.ok) {
+                setForm(candidate);
+                return false;
+              }
+              setForm(candidate);
+              return true;
+            }}
+          />
+          <section className="schedule-adjustment" aria-label={t('plan.recalc.previewTitle')}>
+            <button type="button" className="btn btn--small" onClick={() => setShowSchedulePreview((shown) => !shown)}>
+              {t('plan.recalc.preview')}
+            </button>
+            {showSchedulePreview && (
+              <div className="schedule-adjustment__preview" role="region" aria-label={t('plan.recalc.previewTitle')}>
+                <h4>{t('plan.recalc.previewTitle')}</h4>
+                {previewPlan.ok ? (
+                  <>
+                    <p>{t('plan.recalc.previewBody', { date: today, days: previewPlan.outcome.result.summary.readingDays, verses: previewPlan.outcome.result.summary.remainingVerses })}</p>
+                    <p className="qt-note">{t('plan.result.recalculated', { date: today })}</p>
+                    <button type="button" className="btn" onClick={() => { setScheduleProgress({ readMode: form.readMode, through: form.through, readRanges: form.readRanges, todayRead: form.todayRead }); setScheduleAsOf(today); setShowSchedulePreview(false); }}>{t('plan.recalc.apply')}</button>
+                  </>
+                ) : (
+                  <p className="plan-issues" role="alert">{t('plan.recalc.noDays')}</p>
+                )}
+                <button type="button" className="btn btn--small" onClick={() => setShowSchedulePreview(false)}>{t('plan.recalc.cancel')}</button>
+              </div>
+            )}
+          </section>
 
           <div className="view-tabs" role="group" aria-label={t('plan.view.label')}>
             {(['list', 'calendar'] as View[]).map((v) => (
@@ -85,11 +160,7 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
               </button>
             ))}
           </div>
-          {view === 'list' ? (
-            <PlanDayList rows={model.rows} />
-          ) : (
-            <PlanCalendar rows={model.rows} today={today} weekStart={weekStart} onWeekStartChange={setWeekStart} />
-          )}
+          <PlanScheduleView rows={model.rows} today={today} view={view} weekStart={weekStart} onWeekStartChange={setWeekStart} />
 
           <ExportPanel model={model} weekStart={weekStart} />
           <PlanPrintSheet model={model} />

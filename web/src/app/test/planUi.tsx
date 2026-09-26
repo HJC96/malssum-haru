@@ -19,8 +19,13 @@ export function renderPlan(opts: { lang?: Lang; initialForm?: Partial<PlanFormSt
   );
 }
 
-export const setDate = (label: string, value: string) =>
+export const setDate = (label: string, value: string) => {
+  if (!screen.queryByLabelText(label) && /마감일|End date/.test(label)) {
+    const customDates = screen.queryByRole('button', { name: /직접 날짜|Custom dates/ });
+    if (customDates) fireEvent.click(customDates);
+  }
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
+};
 
 export function stat(container: HTMLElement, key: string): string {
   const el = container.querySelector(`[data-stat="${key}"]`);

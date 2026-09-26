@@ -15,6 +15,20 @@ async function openCalendar() {
 }
 
 describe('캘린더와 목록 (CAL01, AC10)', () => {
+  it('두 보기는 같은 외곽 프레임 안에서 유지되고 비활성 보기는 숨긴다', async () => {
+    renderPlan();
+    const frame = document.querySelector('.plan-view-frame')!;
+    const panes = [...frame.querySelectorAll('.plan-view-frame__scroll')];
+    expect(panes).toHaveLength(2);
+    expect(panes[0]).not.toHaveAttribute('hidden');
+    expect(panes[1]).toHaveAttribute('hidden');
+    await openCalendar();
+    expect(panes[0]).toHaveAttribute('hidden');
+    expect(panes[1]).not.toHaveAttribute('hidden');
+    expect(frame).toContainElement(document.querySelector('.calendar'));
+    expect(frame).toContainElement(document.querySelector('.day-list'));
+  });
+
   it('두 보기가 같은 날짜별 범위를 보여 준다', async () => {
     renderPlan({ initialForm: { startDate: '2026-09-20', endDate: '2026-10-23', weekdays: [1, 2, 3, 4, 5] } });
     const list = listRows();
@@ -62,7 +76,8 @@ describe('캘린더와 목록 (CAL01, AC10)', () => {
 
   it('쉬는 날·경과일을 완료로 표시하지 않고 상태만 알린다', async () => {
     renderPlan({ initialForm: { startDate: '2026-09-14', endDate: '2026-10-10', weekdays: [1, 2, 3, 4, 5] } });
-    await userEvent.click(screen.getByRole('checkbox', { name: /기준으로 남은 범위를 다시 배분/ }));
+    await userEvent.click(screen.getByRole('button', { name: '남은 일정 조정' }));
+    await userEvent.click(screen.getByRole('button', { name: '이 일정으로 적용' }));
     await openCalendar();
     expect(screen.getByRole('button', { name: /^2026-09-26 .*쉬는 날/ })).toBeInTheDocument(); // 토
     expect(screen.getByRole('button', { name: /^2026-09-16 .*재계산 이전 날짜/ })).toBeInTheDocument();

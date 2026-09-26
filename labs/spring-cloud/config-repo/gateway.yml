@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: daily-content
+              uri: lb://daily-content
+              predicates:
+                - Path=/api/daily-content
+            - id: explanation
+              uri: lb://explanation
+              predicates:
+                - Path=/api/explanations
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: explanationBoundary
+                    fallbackUri: forward:/fallback/explanation
+                    statusCodes:
+                      - 503
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      explanationBoundary:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 3
+        minimum-number-of-calls: 2
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 1
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
