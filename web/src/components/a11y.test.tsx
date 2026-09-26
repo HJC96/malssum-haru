@@ -39,7 +39,7 @@ describe('axe 접근성 검사', () => {
     render(<App initialLang="ko" qtFetcher={async () => scenario('mixed')} now={NOW} planInitial={SHORT} />);
     await screen.findAllByRole('article');
     const seen: string[] = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       await userEvent.tab();
       const el = document.activeElement;
       if (el) seen.push(el.getAttribute('aria-pressed') ? `lang:${el.textContent}` : (el.textContent ?? ''));
@@ -51,6 +51,7 @@ describe('axe 접근성 검사', () => {
   it('계획 화면: 캘린더, 오류, 책 선택·개별 범위 입력, 영어에도 위반이 없다', async () => {
     const { container } = render(<App initialLang="ko" qtFetcher={async () => scenario('mixed')} now={NOW} planInitial={SHORT} planBible={SAMPLE_BIBLE} />);
     await screen.findAllByRole('article');
+    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
     await userEvent.click(screen.getByRole('button', { name: '월간 캘린더' }));
     await userEvent.click(screen.getAllByRole('button', { name: /^2026-09-2\d / })[0]!);
     expect(await axeViolations(container)).toEqual([]);

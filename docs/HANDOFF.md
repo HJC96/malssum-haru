@@ -1,8 +1,14 @@
 # 말씀하루 인수인계 문서
 
+> **최신 제품 계획 (2026-09-26):** `오늘의 QT` 탭은 구약 한 절·신약 한 절과 각각의 해설을 메인으로 보여 주고, 아래 매일성경·생명의삶 버튼은 공식 페이지로 직접 연결한다. 따라서 QT 제공처의 장절 자동 수집은 이 메인 경험의 선행조건이 아니다. 번역본의 표시·정적 배포 권리와 출처를 먼저 확인해야 하며, 승인 전 실제 본문 데이터는 넣지 않는다. 다음 계획은 [오늘의 말씀 메인 계획](plans/DAILY_WORD_MAIN_PLAN.md), 실행 작업은 [W01–W05](team/TASKS.md)다. 아래의 두 탭 구현 기록과 일독 개선(U06–U09)은 각각 완료/별도 계획으로 유지한다.
+
 - 작성: 2026-09-24, 2026-09-25 갱신 — Claude 인수인계 이후 이어서 진행한 상태를 반영했다.
 - 제품 요구사항의 기준은 [PRD](PRD.md), 실행 순서는 [구현 계획](IMPLEMENTATION_PLAN.md)의 M0~M7이다. 이 문서는 "지금 어디까지 됐고, 무엇이 남았고, 어떻게 이어가는가"만 다룬다.
 - 작업 목록의 상세 상태는 [docs/team/TASKS.md](team/TASKS.md)에 있다.
+
+> 2026-09-26 최신 추가 요청은 진도 기능을 요약 카드·접이식 기록 패널로 자연스럽게 배치하고, 책 순서를 드래그로 정렬하며, 목록을 캘린더와 같은 크기의 스크롤 박스에 넣는 것이다. 사용자의 후속 정정으로 진도 제거안은 철회했다. 이번에는 [개선 계획](plans/PLAN_SIMPLIFICATION_PLAN.md)만 작성했다. 다음 구현은 U06~U09를 참고한다. 앞서 구현된 두 탭과 미완료 QT 확인은 아래 기록대로 유지한다.
+
+> 2026-09-26 UI 작업: 두 탭(오늘의 QT / 일독 계획)과 참고 디자인을 반영했다. 데스크톱 로컬 브라우저에서 두 탭 전환을 확인했고, 전체 웹 359 테스트·빌드, QT 모의 upstream 15 테스트가 통과했다. QT 범위 미표시는 별도 승인 전까지 외부 취득을 끄는 정책이 원인이다. 기본 화면은 계속 공식 링크만 보여 주므로, 오늘 장절이 실제 표시되는 것까지는 완료되지 않았다. 사용자의 실취득 선택과 모바일·인쇄 검수 결과는 [UI 검수](qa/UI-tabs-review.md)에 기록한다. 상세 계획·팀 구성은 [UI·QT 구현 계획](plans/UI_TABS_QT_PLAN.md), [GPT-6 Luna 팀 프롬프트](team/GPT6_LUNA_UI_TEAM.md).
 
 ## 1. 30초 요약
 
@@ -40,15 +46,17 @@ pnpm --filter malssum-haru-infra test                           # 27 테스트
 pnpm --filter malssum-haru-infra cost:doc:check                 # 비용표 문서 = 모델 결과
 AWS_SHARED_CREDENTIALS_FILE=/dev/null pnpm --filter malssum-haru-infra synth:ci   # 배포 없이 CloudFormation 합성만
 
-# 화면 확인
-VITE_QT_SOURCE=api pnpm --filter malssum-haru-web dev           # 실제 QT 서비스(8081) 사용. 기본은 샘플 데이터+배너
-(cd services/qt && mvn spring-boot:run)                                         # 제공처 취득 off → 공식 링크만
-(cd services/qt && mvn spring-boot:run -Dspring-boot.run.profiles=local-experiment)  # 취득 on(아래 6장 참고)
+# 안전 기본 화면 (두 터미널)
+pnpm run dev:qt:links                                           # 8081, 제공처 요청 없이 링크만
+pnpm run dev:web:api                                            # 5173, QT API 사용
+
+# 실취득은 권리·사용자 승인을 확인한 뒤에만 수동 선택
+pnpm run dev:qt:live                                             # 제공처에 실제 요청
 ```
 
 주의:
 - 프로덕션 빌드는 항상 실제 API(`/api/qt/today`)를 쓴다. 샘플 데이터는 개발 서버이거나 `VITE_QT_SOURCE=mock`일 때만. `prodBundle.test.ts`가 빌드 산출물에 샘플 데이터가 없음을 확인한다(vitest 안에서 vite build를 돌리면 NODE_ENV=test라 DEV 모드가 되므로 자식 프로세스에 NODE_ENV=production을 넣는다).
-- `services/qt/scripts/smoke.sh`는 **실제 제공처 서버로 요청**을 보내므로 `QT_SMOKE_APPROVED=yes`가 없으면 거부한다. 사용자 승인 없이 돌리지 않는다.
+- `dev:qt:live`와 `services/qt/scripts/smoke.sh`는 **실제 제공처 서버로 요청**한다. 자동 취득 허용 여부가 확인되지 않았으므로 사용자가 의도적으로 선택하기 전에는 실행하지 않는다. `smoke.sh`는 별도 `QT_SMOKE_APPROVED=yes` 확인값이 없으면 거부한다. 일반 테스트는 로컬 목 서버만 사용한다.
 - 66권 데이터를 갱신하면 `services/qt/src/main/resources/bible/verse-counts.json`도 다시 만들어야 한다: `python3 services/qt/scripts/generate_verse_counts.py`(`--check`로 검사). `VerseCountsSyncTest`가 어긋나면 실패한다.
 
 ## 4. 지금까지 확인된 것 (기준 시점: 2026-09-24)

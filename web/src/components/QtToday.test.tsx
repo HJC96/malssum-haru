@@ -166,6 +166,17 @@ describe('언어 전환은 계획 입력 상태를 바꾸지 않는다 (AC18)', 
     expect(screen.getByRole('heading', { level: 2, name: "Today's QT" })).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
+
+  it('QT 탭을 빠르게 오가도 같은 날에는 중복 요청하지 않는다', async () => {
+    const fetcher = ok('mixed');
+    render(<App initialLang="ko" qtFetcher={fetcher} now={NOW} />);
+    await screen.findByText('요한복음 3:1–21');
+    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
+    await userEvent.click(screen.getByRole('tab', { name: '오늘의 QT' }));
+    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
+    await userEvent.click(screen.getByRole('tab', { name: '오늘의 QT' }));
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('비저장 (AC20 취지)', () => {
@@ -191,19 +202,22 @@ describe('비저장 (AC20 취지)', () => {
 });
 
 describe('페이지 구조와 키보드', () => {
-  it('건너뛰기 링크가 첫 탭 대상이고 main으로 이동한다. 계획 영역이 QT와 함께 있다', async () => {
+  it('건너뛰기 링크가 첫 탭 대상이고 main으로 이동하며 계획 패널은 마운트된 채 숨겨진다', async () => {
     render(<App initialLang="ko" qtFetcher={ok('mixed')} now={NOW} />);
     await screen.findByRole('article', { name: '매일성경' });
     await userEvent.tab();
     expect(screen.getByRole('link', { name: '본문으로 건너뛰기' })).toHaveFocus();
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
     expect(screen.getByRole('heading', { level: 1, name: '말씀하루' })).toBeInTheDocument();
+    expect(document.getElementById('service-panel-plan')).toHaveAttribute('hidden');
+    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
     expect(screen.getByRole('region', { name: '일독 계획' })).toBeInTheDocument();
   });
 
   it('QT가 실패해도 계획 영역은 그대로 남아 있다(AC16 취지)', async () => {
     render(<App initialLang="ko" qtFetcher={vi.fn().mockRejectedValue(new Error('x'))} now={NOW} />);
     await screen.findByRole('alert');
+    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
     expect(screen.getByRole('region', { name: '일독 계획' })).toBeInTheDocument();
   });
 });

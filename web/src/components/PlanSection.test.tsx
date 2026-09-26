@@ -219,6 +219,7 @@ describe('언어 전환은 입력과 결과를 바꾸지 않는다 (AC18)', () =
         planInitial={{ endDate: '2026-10-23', readMode: 'continuous', through: { bookId: 'GEN', chapter: '2', verse: '3' }, weekdays: [1, 2, 3, 4, 5] }}
       />,
     );
+    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
     setDate('시작일', '2026-09-25');
     const numbers = () =>
       ['targetVerses', 'readVerses', 'remainingVerses', 'readingDays', 'assignedDays'].map((k) => stat(container, `plan.summary.${k}`).replace(/\D+/g, ''));

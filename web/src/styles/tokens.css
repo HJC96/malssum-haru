@@ -3,14 +3,16 @@
 
   --font-sans: system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
 
-  --bg: #f6f5f1;
+  --bg: #f3f5f9;
   --surface: #ffffff;
-  --text: #1d1d1b;
-  --text-muted: #55534d;
-  --border: #d6d3c9;
-  --accent: #2a5d4a;
+  --surface-soft: #eff6ff;
+  --text: #1f2937;
+  --text-muted: #4b5563;
+  --border: #d7deea;
+  --accent: #4f46e5;
   --accent-contrast: #ffffff;
   --focus: #1a56db;
+  --card-shadow: 0 8px 24px rgb(31 41 55 / 0.06);
 
   --ok-bg: #e4f2ea;
   --ok-fg: #14532d;
@@ -26,20 +28,23 @@
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-6: 1.5rem;
-  --radius: 10px;
+  --radius: 20px;
+  --radius-control: 12px;
   --tap: 44px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #14150f;
-    --surface: #1e201a;
-    --text: #efede6;
-    --text-muted: #b8b5aa;
-    --border: #3b3d33;
-    --accent: #8fd0b0;
-    --accent-contrast: #0e1a14;
+    --bg: #111827;
+    --surface: #1f2937;
+    --surface-soft: #1e3350;
+    --text: #f3f4f6;
+    --text-muted: #c0cad8;
+    --border: #475569;
+    --accent: #818cf8;
+    --accent-contrast: #111827;
     --focus: #8ab4ff;
+    --card-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
 
     --ok-bg: #173424;
     --ok-fg: #bfe8cf;

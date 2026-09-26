@@ -100,6 +100,32 @@ describe('QT 신선도: 서울 자정을 넘긴 탭 (F-06)', () => {
     expect(screen.getByText('요한복음 4:1–5')).toBeInTheDocument();
   });
 
+  it('앱 내부에서 QT로 돌아오면 서울 날짜를 재검사하고, 지난 날짜면 새로 요청한다', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(day('2026-09-24', 3)).mockResolvedValueOnce(day('2026-09-25', 4));
+    const { rerender } = render(
+      <I18nProvider initialLang="ko">
+        <QtToday fetcher={fetcher} clock={clock} isActive checkIntervalMs={3_600_000} refreshIntervalMs={300_000} />
+      </I18nProvider>,
+    );
+    await flush();
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <I18nProvider initialLang="ko">
+        <QtToday fetcher={fetcher} clock={clock} isActive={false} checkIntervalMs={3_600_000} refreshIntervalMs={300_000} />
+      </I18nProvider>,
+    );
+    clockMs = KST_0030;
+    rerender(
+      <I18nProvider initialLang="ko">
+        <QtToday fetcher={fetcher} clock={clock} isActive checkIntervalMs={3_600_000} refreshIntervalMs={300_000} />
+      </I18nProvider>,
+    );
+    await flush();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('요한복음 4:1–5')).toBeInTheDocument();
+  });
+
   it('날짜가 안 바뀌어도 일정 주기로 갱신한다(탭이 보일 때만)', async () => {
     const fetcher = await setup([day('2026-09-24', 3)]);
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });

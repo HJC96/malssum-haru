@@ -85,7 +85,7 @@ p {
 
 .app-main {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-4);
   max-width: 64rem;
   margin: 0 auto;
   padding: var(--space-4);
@@ -124,7 +124,7 @@ p {
   min-height: var(--tap);
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--accent);
-  border-radius: var(--radius);
+  border-radius: 999px;
   background: transparent;
   color: var(--accent);
   font: inherit;
@@ -135,6 +135,25 @@ p {
 .btn--external {
   background: var(--accent);
   color: var(--accent-contrast);
+  box-shadow: 0 2px 5px rgb(31 41 55 / 0.12);
+}
+.btn:hover:not(:disabled) {
+  border-color: #4338ca;
+  color: #4338ca;
+}
+.btn--external:hover:not(:disabled) {
+  background: #4338ca;
+  color: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  .btn:hover:not(:disabled) {
+    border-color: #a5b4fc;
+    color: #c7d2fe;
+  }
+  .btn--external:hover:not(:disabled) {
+    background: #6366f1;
+    color: #111827;
+  }
 }
 .btn__icon {
   flex: none;
@@ -151,6 +170,62 @@ p {
 @media (forced-colors: active) {
   .lang-switch__btn[aria-pressed='true'] {
     outline: 2px solid Highlight;
+  }
+  .service-tabs__tab[aria-selected='true'] {
+    outline: 2px solid Highlight;
+  }
+}
+
+.service-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: var(--space-2);
+  justify-self: center;
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+.service-tabs__tab {
+  min-height: var(--tap);
+  padding: 0.45rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.service-tabs__tab[aria-selected='true'] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow: 0 2px 6px rgb(31 41 55 / 0.16);
+}
+.service-tabs__tab:hover:not([aria-selected='true']) {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+.service-panel {
+  min-width: 0;
+  scroll-margin-top: 5rem;
+}
+.service-panel[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 24rem) {
+  .service-tabs {
+    width: 100%;
+  }
+  .service-tabs__tab {
+    flex: 1;
+    padding-inline: var(--space-2);
   }
 }
 

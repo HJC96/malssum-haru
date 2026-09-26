@@ -8,6 +8,9 @@ import { enPlan, koPlan } from './messagesPlan';
 const ko = {
   'app.title': '말씀하루',
   'app.skipToMain': '본문으로 건너뛰기',
+  'app.services.label': '서비스 선택',
+  'app.services.qt': '오늘의 QT',
+  'app.services.plan': '일독 계획',
   'app.notices.open': '데이터 출처·라이선스',
   'app.notices.title': '데이터 출처와 라이선스',
   'app.notices.intro': '성경 장·절 수 데이터의 출처와 라이선스 고지입니다(원문 그대로 표시).',
@@ -77,6 +80,9 @@ export type MessageKey = keyof typeof ko;
 const en: Record<MessageKey, string> = {
   'app.title': 'Malssum Haru',
   'app.skipToMain': 'Skip to main content',
+  'app.services.label': 'Choose a service',
+  'app.services.qt': "Today's QT",
+  'app.services.plan': 'Reading plan',
   'app.notices.open': 'Data sources and licenses',
   'app.notices.title': 'Data sources and licenses',
   'app.notices.intro': 'Sources and license notices for the chapter and verse count data (shown as written).',

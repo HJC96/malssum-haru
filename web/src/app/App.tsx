@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { I18nProvider, useI18n, type Lang } from '@/i18n';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
 import { NoticesButton } from '@/components/NoticesDialog';
 import { PlanSection } from '@/components/PlanSection';
 import { QtToday } from '@/components/QtToday';
+import { ServiceTabs, type ServiceTab } from '@/components/ServiceTabs';
 import type { BibleData } from '@/domain';
 import type { PlanFormState } from './plan/planForm';
 import type { QtTodayResponse } from './qt/types';
@@ -19,6 +21,7 @@ interface AppProps {
 
 function Shell({ qtFetcher, now, planInitial, planBible }: Pick<AppProps, 'qtFetcher' | 'now' | 'planInitial' | 'planBible'>) {
   const { t } = useI18n();
+  const [activeTab, setActiveTab] = useState<ServiceTab>('qt');
   return (
     <>
       <a className="skip-link" href="#main">
@@ -29,9 +32,13 @@ function Shell({ qtFetcher, now, planInitial, planBible }: Pick<AppProps, 'qtFet
         <LanguageSwitch />
       </header>
       <main id="main" className="app-main" tabIndex={-1}>
-        {/* QT 영역과 계획 영역은 서로 상태를 공유하지 않는다(AC01). */}
-        <QtToday {...(qtFetcher ? { fetcher: qtFetcher } : {})} {...(now ? { now } : {})} />
-        <PlanSection {...(now ? { now } : {})} {...(planInitial ? { initialForm: planInitial } : {})} {...(planBible ? { bible: planBible } : {})} />
+        <ServiceTabs value={activeTab} onChange={setActiveTab} />
+        <div id="service-panel-qt" className="service-panel" role="tabpanel" aria-labelledby="service-tab-qt" hidden={activeTab !== 'qt'}>
+          <QtToday isActive={activeTab === 'qt'} {...(qtFetcher ? { fetcher: qtFetcher } : {})} {...(now ? { now } : {})} />
+        </div>
+        <div id="service-panel-plan" className="service-panel" role="tabpanel" aria-labelledby="service-tab-plan" hidden={activeTab !== 'plan'}>
+          <PlanSection {...(now ? { now } : {})} {...(planInitial ? { initialForm: planInitial } : {})} {...(planBible ? { bible: planBible } : {})} />
+        </div>
       </main>
       <footer className="app-footer">
         <NoticesButton />

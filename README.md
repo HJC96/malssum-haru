@@ -15,18 +15,19 @@ Node 20.20(`.nvmrc`), pnpm 9.4, Java 21, Maven 3.9가 필요하다. 실제 AWS �
 
 ```sh
 pnpm install                                   # 루트에서 한 번
-pnpm --filter malssum-haru-web dev             # 웹 개발 서버(개발 중 기본: 샘플 QT 데이터, 화면에 샘플 배너). /api 는 localhost:8081 로 프록시
-VITE_QT_SOURCE=api pnpm --filter malssum-haru-web dev   # 실제 QT 서비스(8081)를 사용. 프로덕션 빌드는 항상 api
+pnpm run dev:qt:links                          # QT API(8081): 외부 요청 없음, 공식 링크만
+pnpm run dev:web:api                            # 웹(5173): 로컬 QT API 연결
+pnpm --filter malssum-haru-web dev             # 웹(5173): QT 샘플 데이터와 샘플 배너
 pnpm --filter malssum-haru-web test            # 웹 테스트
 pnpm --filter malssum-haru-web typecheck
 pnpm --filter malssum-haru-web build
 
-cd services/qt
-mvn -q -B test                                 # QT 서비스 테스트(인터넷 불필요)
-mvn spring-boot:run                            # 취득 off: 공식 링크만(포트 8081)
-mvn spring-boot:run -Dspring-boot.run.profiles=local-experiment   # 제공처에서 오늘 장절을 실제로 읽음(허용 여부 미확인, 본인 판단)
+pnpm run dev:qt:live                            # QT API(8081): 제공처에 실제 요청, 개인 로컬 실험 전용
+cd services/qt && mvn -q -B test              # QT 서비스 테스트(인터넷 불필요)
 
 pnpm --filter malssum-haru-infra test          # IaC 테스트(배포 없음)
 ```
+
+`dev:qt:links`와 `dev:qt:live`는 같은 8081 포트를 사용하므로 한 번에 하나만 실행한다. `live`는 제공처 페이지에 실제 HTTP 요청을 보낸다. 접근 허용 여부가 확인되지 않아 첫 모드인 `links`를 기본으로 사용하고, `live`는 외부 요청을 의도한 로컬 점검에서만 선택한다. 매일성경·생명의삶은 실제 장절을 확인하면 장절 범위를 표시하고, 성경 전문은 각 공식 페이지에서 읽는다.
 
 QT 서비스 세부는 [services/qt/README.md](services/qt/README.md), 작업 진행은 [docs/team/TASKS.md](docs/team/TASKS.md)를 본다.

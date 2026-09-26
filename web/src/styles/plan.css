@@ -1,6 +1,11 @@
 .plan-section {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
+}
+.plan-section > h2 {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
 }
 
 .plan-banner {
@@ -13,16 +18,17 @@
 
 .plan-form {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 .plan-form fieldset {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin: 0;
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--card-shadow);
   min-width: 0;
 }
 .plan-form legend {
@@ -97,8 +103,8 @@
   min-height: var(--tap);
   padding: 0 var(--space-3);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
+  border-radius: var(--radius-control);
+  background: var(--surface);
   color: var(--text);
   font: inherit;
 }
@@ -138,12 +144,17 @@
 
 .plan-result {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .plan-summary {
   display: grid;
   gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
 }
 .stat-grid {
   display: grid;
@@ -154,7 +165,7 @@
 .stat {
   padding: var(--space-3);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: var(--surface);
 }
 .stat dt {
@@ -227,7 +238,7 @@
 .view-tabs {
   display: inline-flex;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 999px;
   overflow: hidden;
   justify-self: start;
 }
@@ -244,12 +255,18 @@
   background: var(--accent);
   color: var(--accent-contrast);
   font-weight: 600;
+  border-radius: 999px;
 }
 
 /* 날짜별 목록: 모바일에서는 행을 카드처럼 쌓는다 */
 .day-list {
   width: 100%;
   border-collapse: collapse;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
 }
 .day-list thead {
   position: absolute;
@@ -316,6 +333,11 @@
 .calendar {
   display: grid;
   gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
 }
 .calendar__nav {
   display: flex;
@@ -398,8 +420,8 @@
 .calendar__detail {
   padding: var(--space-3);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
+  border-radius: var(--radius-control);
+  background: var(--surface-soft);
 }
 .calendar__detail h4 {
   margin: 0 0 var(--space-1);
@@ -412,6 +434,17 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+
+@media (max-width: 39.99rem) {
+  .plan-summary,
+  .calendar {
+    padding: var(--space-3);
+  }
+  .stat-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+  }
 }
 .export-panel__buttons {
   display: flex;
@@ -434,6 +467,8 @@
   .app-header,
   .skip-link,
   .qt-section,
+  .service-tabs,
+  .service-panel[hidden],
   .plan-form,
   .plan-banner,
   .plan-summary,

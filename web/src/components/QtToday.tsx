@@ -10,6 +10,8 @@ import { QtProviderCard } from './QtProviderCard';
 type Fetcher = (options: { signal: AbortSignal }) => Promise<QtTodayResponse>;
 
 export interface QtTodayProps {
+  /** Whether the QT service panel is selected in the app shell. */
+  isActive?: boolean;
   fetcher?: Fetcher;
   /** 고정 시각(테스트). `clock`이 없으면 이 값을 계속 현재로 본다. */
   now?: Date;
@@ -46,6 +48,7 @@ function FallbackLinks({ now }: { now?: Date | undefined }) {
 const MIN_REFETCH_GAP_MS = 10_000;
 
 function QtTodayContent({
+  isActive = true,
   fetcher = fetchQtToday,
   now,
   clock,
@@ -90,17 +93,25 @@ function QtTodayContent({
 
   // 주기적으로 시각을 다시 읽고(서울 자정 감지), 탭이 다시 보이면 즉시 확인한다.
   useEffect(() => {
-    const tick = () => setNowMs(readClock().getTime());
+    const tick = () => {
+      if (isActive) setNowMs(readClock().getTime());
+    };
     const id = setInterval(tick, checkIntervalMs);
     const onVisible = () => {
-      if (document.visibilityState === 'visible') tick();
+      if (isActive && document.visibilityState === 'visible') tick();
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => {
       clearInterval(id);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [readClock, checkIntervalMs]);
+  }, [readClock, checkIntervalMs, isActive]);
+
+  // Selecting QT rechecks the Seoul date immediately. The normal freshness
+  // effect below fetches only when the cached response belongs to an older day.
+  useEffect(() => {
+    if (isActive) setNowMs(readClock().getTime());
+  }, [isActive, readClock]);
 
   // 서울 날짜가 응답을 받은 날과 달라졌으면 다시 요청한다(과도한 반복은 최소 간격으로 막는다).
   const fetchedSeoul = state.kind === 'ready' ? seoulDate(state.fetchedAtMs) : null;
@@ -114,10 +125,10 @@ function QtTodayContent({
   // 날짜가 안 바뀌어도 일정 주기로 갱신한다(탭이 보일 때만).
   useEffect(() => {
     const id = setInterval(() => {
-      if (document.visibilityState === 'visible') setAttempt((n) => n + 1);
+      if (isActive && document.visibilityState === 'visible') setAttempt((n) => n + 1);
     }, refreshIntervalMs);
     return () => clearInterval(id);
-  }, [refreshIntervalMs]);
+  }, [refreshIntervalMs, isActive]);
 
   const cards = useMemo(() => {
     if (state.kind !== 'ready') return [];
