@@ -7,7 +7,7 @@ import { dirname, resolve } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const booksFile = resolve(here, '../../web/src/i18n/books.ts');
-const defaultManifest = resolve(here, 'approved-pool.json');
+const defaultManifest = resolve(here, '../../services/daily-content/src/main/resources/catalog/candidate-catalog-v1.json');
 
 export function sha256(text) {
   return createHash('sha256').update(text, 'utf8').digest('hex');
@@ -25,11 +25,6 @@ function readBibleBooks(path = booksFile) {
   return books;
 }
 
-function isIsoTimestamp(value) {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/.test(value)
-    && Number.isFinite(Date.parse(value));
-}
-
 function requireText(value, label, errors) {
   if (typeof value !== 'string' || value.trim() === '') errors.push(`${label} must be a non-empty string`);
 }
@@ -43,18 +38,22 @@ function validateHttpUrl(value, label, errors) {
   }
 }
 
+function validDate(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    && Number.isFinite(Date.parse(`${value}T00:00:00Z`));
+}
+
 /** Validate shape and recorded provenance. This does not verify copyright, source accuracy, or reviewer identity. */
-export function validateCatalog(manifest, books = readBibleBooks()) {
+export function validateCatalog(manifest, books = readBibleBooks(), { requireApproved = false } = {}) {
   const errors = [];
   if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
     return ['manifest must be an object'];
   }
-  if (manifest.schemaVersion !== '1') errors.push('schemaVersion must be "1"');
-  requireText(manifest.poolVersion, 'poolVersion', errors);
+  requireText(manifest.catalogVersion, 'catalogVersion', errors);
   requireText(manifest.translationId, 'translationId', errors);
-  if (manifest.textLanguage !== 'ko') errors.push('textLanguage must be "ko" for the current Korean-only product');
+  if (manifest.translationLanguage !== 'ko') errors.push('translationLanguage must be "ko" for the current Korean-only product');
   if (!Array.isArray(manifest.candidates) || manifest.candidates.length === 0) {
-    errors.push('candidates must contain at least one approved candidate');
+    errors.push('candidates must contain at least one candidate');
     return errors;
   }
 
@@ -69,15 +68,16 @@ export function validateCatalog(manifest, books = readBibleBooks()) {
       return;
     }
 
-    const { candidateId, testament, reference, text, textSha256: digest, source, rightsReview, explanation } = candidate;
-    if (testament !== 'OT' && testament !== 'NT') errors.push(`${path}.testament must be OT or NT`);
-    else testamentCounts[testament] += 1;
+    const { id, testament, reference, text, source, approval, explanation } = candidate;
+    const testamentCode = testament === 'oldTestament' ? 'OT' : testament === 'newTestament' ? 'NT' : null;
+    if (!testamentCode) errors.push(`${path}.testament must be oldTestament or newTestament`);
+    else testamentCounts[testamentCode] += 1;
     if (!reference || typeof reference !== 'object' || Array.isArray(reference)) {
       errors.push(`${path}.reference must be an object`);
     } else {
       const { bookId, chapter, verse } = reference;
       if (typeof bookId !== 'string' || !books.has(bookId)) errors.push(`${path}.reference.bookId is not in the supported Bible catalog`);
-      else if (testament && books.get(bookId) !== testament) errors.push(`${path}.reference.bookId belongs to the wrong testament`);
+      else if (testamentCode && books.get(bookId) !== testamentCode) errors.push(`${path}.reference.bookId belongs to the wrong testament`);
       if (!Number.isSafeInteger(chapter) || chapter < 1 || !Number.isSafeInteger(verse) || verse < 1) {
         errors.push(`${path}.reference must identify one positive chapter and verse`);
       }
@@ -85,19 +85,22 @@ export function validateCatalog(manifest, books = readBibleBooks()) {
         const referenceKey = `${manifest.translationId}:${bookId}:${chapter}:${verse}`;
         if (references.has(referenceKey)) errors.push(`${path} duplicates reference ${referenceKey}`);
         references.add(referenceKey);
-        const expectedId = `${testament}:${bookId}:${chapter}:${verse}`;
-        if (candidateId !== expectedId) errors.push(`${path}.candidateId must be ${expectedId}`);
+        const expectedId = `${testamentCode === 'OT' ? 'ot' : 'nt'}-${bookId.toLowerCase()}-${chapter}-${verse}`;
+        if (id !== expectedId) {
+          errors.push(`${path}.id must be ${expectedId}`);
+        }
       }
     }
 
-    requireText(candidateId, `${path}.candidateId`, errors);
-    if (candidateIds.has(candidateId)) errors.push(`${path}.candidateId duplicates ${candidateId}`);
-    candidateIds.add(candidateId);
+    requireText(id, `${path}.id`, errors);
+    if (candidateIds.has(id)) errors.push(`${path}.id duplicates ${id}`);
+    candidateIds.add(id);
     requireText(text, `${path}.text`, errors);
+    const digest = source?.textSha256;
     if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest)) {
-      errors.push(`${path}.textSha256 must be a lowercase SHA-256 hex digest`);
+      errors.push(`${path}.source.textSha256 must be a lowercase SHA-256 hex digest`);
     } else if (typeof text === 'string' && sha256(text) !== digest) {
-      errors.push(`${path}.textSha256 does not match the exact UTF-8 text`);
+      errors.push(`${path}.source.textSha256 does not match the exact UTF-8 text`);
     }
 
     if (!source || typeof source !== 'object' || Array.isArray(source)) {
@@ -105,17 +108,24 @@ export function validateCatalog(manifest, books = readBibleBooks()) {
     } else {
       requireText(source.name, `${path}.source.name`, errors);
       validateHttpUrl(source.url, `${path}.source.url`, errors);
-      if (!isIsoTimestamp(source.accessedAt)) errors.push(`${path}.source.accessedAt must be an ISO UTC timestamp`);
     }
 
-    if (!rightsReview || typeof rightsReview !== 'object' || Array.isArray(rightsReview)) {
-      errors.push(`${path}.rightsReview must record a human rights review`);
+    const approvalStatuses = ['pending', 'approved', 'rejected'];
+    if (!approval || typeof approval !== 'object' || Array.isArray(approval)) {
+      errors.push(`${path}.approval must record explicit human review states`);
     } else {
-      if (rightsReview.status !== 'approved') errors.push(`${path}.rightsReview.status must be approved before inclusion in this pool`);
-      requireText(rightsReview.basis, `${path}.rightsReview.basis`, errors);
-      requireText(rightsReview.reviewer, `${path}.rightsReview.reviewer`, errors);
-      if (!isIsoTimestamp(rightsReview.reviewedAt)) errors.push(`${path}.rightsReview.reviewedAt must be an ISO UTC timestamp`);
-      validateHttpUrl(rightsReview.evidenceUrl, `${path}.rightsReview.evidenceUrl`, errors);
+      for (const key of ['textStatus', 'explanationStatus', 'rightsStatus']) {
+        if (!approvalStatuses.includes(approval[key])) errors.push(`${path}.approval.${key} must be pending, approved, or rejected`);
+      }
+      if (requireApproved && [approval.textStatus, approval.explanationStatus, approval.rightsStatus].some((status) => status !== 'approved')) {
+        errors.push(`${path}.approval must be fully approved before publication`);
+      }
+      const fullyApproved = [approval.textStatus, approval.explanationStatus, approval.rightsStatus].every((status) => status === 'approved');
+      if (fullyApproved) {
+        requireText(approval.reviewedBy, `${path}.approval.reviewedBy`, errors);
+        if (!validDate(approval.reviewedAt)) errors.push(`${path}.approval.reviewedAt must be an ISO date`);
+      }
+      if (approval.rightsEvidenceUrl) validateHttpUrl(approval.rightsEvidenceUrl, `${path}.approval.rightsEvidenceUrl`, errors);
     }
 
     if (!explanation || typeof explanation !== 'object' || Array.isArray(explanation)) {
@@ -123,9 +133,6 @@ export function validateCatalog(manifest, books = readBibleBooks()) {
     } else {
       requireText(explanation.text, `${path}.explanation.text`, errors);
       if (explanation.language !== 'ko') errors.push(`${path}.explanation.language must be ko`);
-      if (explanation.status !== 'approved') errors.push(`${path}.explanation.status must be approved`);
-      requireText(explanation.reviewer, `${path}.explanation.reviewer`, errors);
-      if (!isIsoTimestamp(explanation.reviewedAt)) errors.push(`${path}.explanation.reviewedAt must be an ISO UTC timestamp`);
     }
   });
 
@@ -135,7 +142,9 @@ export function validateCatalog(manifest, books = readBibleBooks()) {
 }
 
 function main() {
-  const manifestPath = resolve(process.argv[2] ?? defaultManifest);
+  const requireApproved = process.argv.includes('--require-approved');
+  const manifestArgument = process.argv.slice(2).find((argument) => argument !== '--require-approved');
+  const manifestPath = resolve(manifestArgument ?? defaultManifest);
   let manifest;
   try {
     manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
@@ -144,14 +153,14 @@ function main() {
     process.exitCode = 1;
     return;
   }
-  const errors = validateCatalog(manifest);
+  const errors = validateCatalog(manifest, readBibleBooks(), { requireApproved });
   if (errors.length > 0) {
     console.error(`Catalog validation failed (${errors.length} issue${errors.length === 1 ? '' : 's'}):`);
     for (const error of errors) console.error(`- ${error}`);
     process.exitCode = 1;
     return;
   }
-  console.log(`Catalog structure valid: ${manifest.poolVersion} (${manifest.candidates.length} candidates).`);
+  console.log(`Catalog structure valid: ${manifest.catalogVersion} (${manifest.candidates.length} candidates).`);
   console.log('Reminder: structural validation does not verify verse accuracy, license status, source reliability, or reviewer identity.');
 }
 

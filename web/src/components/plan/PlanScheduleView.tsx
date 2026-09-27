@@ -17,7 +17,7 @@ interface Props {
 export function PlanScheduleView({ rows, today, view, weekStart, onWeekStartChange, chapterOnly = false }: Props) {
   const { t } = useI18n();
   return (
-    <div className="plan-view-frame">
+    <div className={`plan-view-frame${view === 'calendar' ? ' plan-view-frame--calendar' : ''}`}>
       <div className="plan-view-frame__scroll" role="region" aria-label={t('plan.schedule.listLabel')} tabIndex={0} hidden={view !== 'list'}>
         <PlanDayList rows={rows} chapterOnly={chapterOnly} />
       </div>

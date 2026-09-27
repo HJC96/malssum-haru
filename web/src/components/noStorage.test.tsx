@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '@/app/App';
 import { SAMPLE_BIBLE } from '@/domain';
-import { LOCAL_NOON, fillRange, setDate } from '@/app/test/planUi';
+import { LOCAL_NOON, fillRange, openPlanTools, setDate } from '@/app/test/planUi';
 import { scenario } from '@/app/test/render';
 
 const app = () => (
@@ -29,6 +29,8 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     await screen.findByRole('status');
     await userEvent.click(screen.getByRole('tab', { name: '성경 읽기 계획' }));
     setDate('시작일', '2026-09-10');
+    await userEvent.click(screen.getByRole('button', { name: '계획 미리보기' }));
+    openPlanTools();
     await userEvent.click(screen.getByRole('radio', { name: /건너뛰어 읽었습니다/ }));
     const readGroup = screen.getByRole('group', { name: '현재 읽은 분량' });
     fillRange(within(readGroup).getByRole('group', { name: '범위 1' }), { book: 'GEN', sc: '1', sv: '1', ec: '1', ev: '8' });
@@ -51,6 +53,8 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     const first = render(app());
     await userEvent.click(screen.getByRole('tab', { name: '성경 읽기 계획' }));
     setDate('마감일', '2026-09-30');
+    await userEvent.click(screen.getByRole('button', { name: '계획 미리보기' }));
+    openPlanTools();
     await userEvent.click(screen.getByRole('radio', { name: /처음부터 어디까지/ }));
     expect(screen.getByLabelText('마감일')).toHaveValue('2026-09-30');
     first.unmount();
@@ -59,6 +63,8 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     await userEvent.click(screen.getByRole('tab', { name: '성경 읽기 계획' }));
     await userEvent.click(screen.getByText('시작일·빠른 기간 설정', { selector: 'summary' }));
     expect(screen.getByRole('button', { name: '30일' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(screen.getByRole('button', { name: '계획 미리보기' }));
+    openPlanTools();
     expect(screen.getByRole('radio', { name: /처음 시작합니다/ })).toBeChecked();
     expect(screen.queryByLabelText('마지막으로 읽은 곳')).not.toBeInTheDocument();
   });

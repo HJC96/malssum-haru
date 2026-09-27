@@ -4,6 +4,7 @@ import { App } from '@/app/App';
 import { axeViolations } from '@/app/test/axe';
 import { NOW } from '@/app/test/render';
 import { SAMPLE_BIBLE } from '@/domain';
+import { openPlanTools } from '@/app/test/planUi';
 
 /** 검사 시간을 줄이려고 짧은 계획을 쓴다. */
 const SHORT = { endDate: '2026-10-07' };
@@ -57,6 +58,8 @@ describe('axe 접근성 검사', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument(); // 책 없음 오류
     expect(await axeViolations(container)).toEqual([]);
     await userEvent.click(within(screen.getByRole('group', { name: '책 선택' })).getByRole('checkbox', { name: '창세기' }));
+    await userEvent.click(screen.getByRole('button', { name: '계획 미리보기' }));
+    openPlanTools();
     await userEvent.click(screen.getByRole('radio', { name: /건너뛰어 읽었습니다/ }));
     await userEvent.click(within(screen.getByRole('group', { name: '오늘 읽은 범위 (선택)' })).getByRole('button', { name: '범위 추가' }));
     expect(await axeViolations(container)).toEqual([]);

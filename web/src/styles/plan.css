@@ -1296,6 +1296,14 @@
   border-color: #d7c9ae;
   background: rgb(255 248 225 / 0.68);
 }
+:root:not([data-theme='dark']) .plan-advanced > summary {
+  color: #6c5847;
+}
+:root:not([data-theme='dark']) .plan-advanced fieldset {
+  border-color: #d7c9ae;
+  background: rgb(255 248 225 / 0.82);
+  color: #3f2d22;
+}
 :root:not([data-theme='dark']) .plan-distribution__options input {
   accent-color: #6366f1;
 }
@@ -1407,4 +1415,15 @@
 :root:not([data-theme='dark']) .plan-result .btn:hover {
   background: #e7e7ff;
   color: #3730a3;
+}
+
+/* Keep the selected-date summary visible directly below the full calendar. */
+.plan-view-frame--calendar {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+.plan-view-frame--calendar .plan-view-frame__scroll:not([hidden]) {
+  height: auto;
+  overflow: visible;
 }

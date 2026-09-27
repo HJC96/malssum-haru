@@ -7,38 +7,35 @@ const fixture = () => {
   const makeCandidate = (testament, bookId, chapter, verse) => {
     const text = '[TEST FIXTURE — NOT SCRIPTURE]';
     return {
-      candidateId: `${testament}:${bookId}:${chapter}:${verse}`,
+      id: `${testament === 'oldTestament' ? 'ot' : 'nt'}-${bookId.toLowerCase()}-${chapter}-${verse}`,
       testament,
       reference: { bookId, chapter, verse },
       text,
-      textSha256: sha256(text),
       source: {
         name: 'Test-only placeholder',
         url: 'https://example.invalid/test-only',
-        accessedAt: '2026-09-27T00:00:00Z',
-      },
-      rightsReview: {
-        status: 'approved',
-        basis: 'Test-only placeholder; not a rights assertion',
-        reviewer: 'test fixture',
-        reviewedAt: '2026-09-27T00:00:00Z',
-        evidenceUrl: 'https://example.invalid/test-only-rights',
+        textSha256: sha256(text),
       },
       explanation: {
         text: '[TEST FIXTURE — NOT AN EXPLANATION]',
         language: 'ko',
-        status: 'approved',
-        reviewer: 'test fixture',
-        reviewedAt: '2026-09-27T00:00:00Z',
+        kind: 'editorial',
+      },
+      approval: {
+        textStatus: 'pending',
+        explanationStatus: 'pending',
+        rightsStatus: 'pending',
+        reviewedBy: '',
+        reviewedAt: null,
+        rightsEvidenceUrl: 'https://example.invalid/test-only-rights',
       },
     };
   };
   return {
-    schemaVersion: '1',
-    poolVersion: 'fixture-v1',
+    catalogVersion: 'fixture-v1',
     translationId: 'fixture-only',
-    textLanguage: 'ko',
-    candidates: [makeCandidate('OT', 'GEN', 1, 1), makeCandidate('NT', 'MAT', 1, 1)],
+    translationLanguage: 'ko',
+    candidates: [makeCandidate('oldTestament', 'GEN', 1, 1), makeCandidate('newTestament', 'MAT', 1, 1)],
   };
 };
 
@@ -48,10 +45,10 @@ test('accepts a structurally valid OT/NT catalog fixture', () => {
 
 test('rejects wrong testament, duplicate reference, and content hash mismatch', () => {
   const manifest = fixture();
-  manifest.candidates[0].testament = 'NT';
+  manifest.candidates[0].testament = 'newTestament';
   manifest.candidates[1].reference = { bookId: 'GEN', chapter: 1, verse: 1 };
-  manifest.candidates[1].candidateId = 'NT:GEN:1:1';
-  manifest.candidates[0].textSha256 = '0'.repeat(64);
+  manifest.candidates[1].id = 'nt-gen-1-1';
+  manifest.candidates[0].source.textSha256 = '0'.repeat(64);
   const errors = validateCatalog(manifest);
   assert(errors.some((error) => error.includes('wrong testament')));
   assert(errors.some((error) => error.includes('duplicates reference')));
@@ -60,19 +57,24 @@ test('rejects wrong testament, duplicate reference, and content hash mismatch', 
 
 test('requires explicit rights and explanation review metadata', () => {
   const manifest = fixture();
-  manifest.candidates[0].rightsReview.status = 'pending';
-  manifest.candidates[1].explanation.reviewer = '';
+  manifest.candidates[0].approval.rightsStatus = 'unknown';
+  manifest.candidates[1].approval = null;
   const errors = validateCatalog(manifest);
-  assert(errors.some((error) => error.includes('rightsReview.status must be approved')));
-  assert(errors.some((error) => error.includes('explanation.reviewer must be a non-empty string')));
+  assert(errors.some((error) => error.includes('approval.rightsStatus must be pending, approved, or rejected')));
+  assert(errors.some((error) => error.includes('approval must record explicit human review states')));
 });
 
 test('rejects an empty pool and an unknown book ID', () => {
   const empty = fixture();
   empty.candidates = [];
-  assert(validateCatalog(empty).some((error) => error.includes('at least one approved candidate')));
+  assert(validateCatalog(empty).some((error) => error.includes('at least one candidate')));
 
   const unknown = fixture();
   unknown.candidates[0].reference.bookId = 'ZZZ';
   assert(validateCatalog(unknown).some((error) => error.includes('supported Bible catalog')));
+});
+
+test('requires all three human approvals for publication mode', () => {
+  assert(validateCatalog(fixture(), undefined, { requireApproved: true })
+    .some((error) => error.includes('fully approved before publication')));
 });

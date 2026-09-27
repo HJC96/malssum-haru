@@ -4,7 +4,7 @@ import { computePlan, SAMPLE_BIBLE } from '@/domain';
 import { App } from '@/app/App';
 import { sampleInput } from '@/app/test/plan';
 import { scenario } from '@/app/test/render';
-import { fillRange, LOCAL_NOON, LOCAL_TODAY, renderPlan, setDate, stat } from '@/app/test/planUi';
+import { closePlanTools, fillRange, LOCAL_NOON, LOCAL_TODAY, openPlanTools, renderPlan, setDate, stat } from '@/app/test/planUi';
 
 const readGroup = () => screen.getByRole('group', { name: '현재 읽은 분량' });
 const openProgressEditor = async () => userEvent.click(screen.getByText('진도 기록', { selector: 'summary' }));
@@ -228,8 +228,10 @@ describe('현재 읽은 분량: 연속·개별 범위 (AC23, AC26)', () => {
     await userEvent.click(screen.getByRole('button', { name: '진도 반영' }));
     expect(screen.getByRole('alert')).toHaveTextContent('모두 채우거나');
     // 목표를 창세기로 좁히면 마태복음 범위는 목표 밖이다
+    closePlanTools();
     await userEvent.click(screen.getByRole('radio', { name: '선택한 책' }));
     await userEvent.click(within(screen.getByRole('group', { name: '책 선택' })).getByRole('checkbox', { name: '창세기' }));
+    openPlanTools();
     fillRange(row(), { book: 'MAT', sc: '1', sv: '1', ec: '1', ev: '2' });
     await userEvent.click(screen.getByRole('button', { name: '진도 반영' }));
     expect(screen.getByRole('alert')).toHaveTextContent('목표 범위 밖');

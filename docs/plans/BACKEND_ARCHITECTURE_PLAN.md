@@ -234,6 +234,14 @@ Spring Cloud MSA 학습용 `labs/spring-cloud`는 현재 운영 아키텍처에 
 
 착수 권장은 **B0 → B1 → B2/B3 → B4 → B5 → B6**다. 이 요청에서는 인프라 작업 B4의 AWS/CD 부분을 제외하고, 로컬에서 검증 가능한 B0~B3 및 웹·데이터 검증 코드를 구현한다. B2와 B3는 독립 작업이다.
 
+### 2026-09-27 코드 진행 상태
+
+- B1 도구: `tools/daily-catalog`과 `services/daily-content`의 카탈로그 검증, 본문 SHA-256, 구약/신약 분류, 중복·승인 메타데이터 검증을 구현했다. 실제 후보 자료 승인은 별도 검토가 필요하다.
+- B2 코어: `services/daily-content`가 날짜·카탈로그 버전별 결정적 추출, 편향 없는 인덱스 선택, 기존 v1 JSON 직렬화, 로컬 생성 CLI와 Spring Cloud Function 진입점을 제공한다. 현재 포함된 두 후보는 권리/본문/해설 상태가 `pending`이라 CLI 발행은 안전하게 거부된다.
+- B3 코드: `services/visits`의 DynamoDB 키는 `site#total`로 바뀌어 전체 누적을 원자적으로 증가시킨다. Vite 개발 미들웨어도 날짜별 초기화 없이 누적한다. 기존 운영 테이블에서 값 이관과 DynamoDB 적용은 인프라/배포 단계에 남아 있다.
+- CI: Java 일일 콘텐츠 모듈과 후보 카탈로그 검증기를 PR/`main` CI에서 실행하도록 연결했다. AWS 자격 증명이나 배포는 추가하지 않았다.
+- MSA 실습 `labs/spring-cloud`는 제거했다. 기존 `services/qt`와 `services/ai`는 과거 기능 코드라 별도 정리 전까지 보존하며, 새 일일 말씀 흐름의 필수 실행 경로로 쓰지 않는다.
+
 ## 13. 결정 기록
 
 - 권고 기본안: AWS 서버리스, Java/Spring 콘텐츠 배치, 기존 방문 Lambda 유지 후 전체 누적 수정.

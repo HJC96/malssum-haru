@@ -47,7 +47,10 @@ describe('장절 기준 안내', () => {
     await userEvent.click(screen.getByRole('radio', { name: '절 단위 계획' }));
     expect(screen.queryByText('계획 기준 안내')).not.toBeInTheDocument();
     expect(screen.queryByText(/사도행전 15:25-26/, { exact: false })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '절 단위 계획의 한계 안내' })).toBeInTheDocument();
+    const limitation = screen.getByLabelText('절 단위 계획의 한계 안내');
+    expect(limitation.tagName).toBe('SUMMARY');
+    await userEvent.click(limitation);
+    expect(document.querySelector('.plan-distribution__tooltip')).toBeVisible();
   });
 
   it('샘플 데이터에서도 기준 안내 블록은 표시하지 않는다', () => {

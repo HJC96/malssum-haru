@@ -65,6 +65,7 @@ jobs:
           cache-dependency-path: services/daily-content/pom.xml
       - run: mvn -B -ntp verify
         working-directory: services/daily-content
+      - run: node tools/daily-catalog/validate.mjs
       - run: node --test tools/daily-catalog/validate.test.mjs
 
   infra:

@@ -11,12 +11,29 @@ export const LOCAL_TODAY = '2026-09-24';
 export const LOCAL_NOON = new Date(2026, 8, 24, 12, 0, 0);
 
 export function renderPlan(opts: { lang?: Lang; initialForm?: Partial<PlanFormState>; extra?: ReactElement } = {}) {
-  return render(
+  const rendered = render(
     <I18nProvider initialLang={opts.lang ?? 'ko'}>
       <PlanSection now={LOCAL_NOON} bible={SAMPLE_BIBLE} initialForm={{ endDate: '2026-10-23', ...opts.initialForm }} />
       {opts.extra}
     </I18nProvider>,
   );
+  // Most plan tests exercise the calculated result. Drive the quick setup into
+  // its result step, then expose the optional progress/export tools dialog.
+  // Keep this in the test helper so product behavior remains user-driven.
+  fireEvent.click(screen.getByRole('button', { name: opts.lang === 'en' ? 'Results' : '결과' }));
+  const tools = rendered.container.querySelector<HTMLDialogElement>('.plan-tools-dialog');
+  if (tools) tools.setAttribute('open', '');
+  return rendered;
+}
+
+/** App 기반 테스트에서 계획 미리보기 다음의 진도·내보내기 도구를 연다. */
+export function openPlanTools() {
+  const tools = document.querySelector<HTMLDialogElement>('.plan-tools-dialog');
+  if (tools && !tools.open) tools.setAttribute('open', '');
+}
+
+export function closePlanTools() {
+  document.querySelector<HTMLDialogElement>('.plan-tools-dialog')?.removeAttribute('open');
 }
 
 export const setDate = (label: string, value: string) => {
