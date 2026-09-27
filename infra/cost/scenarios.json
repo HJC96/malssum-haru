@@ -10,6 +10,7 @@
   "common": {
     "providers": 2,
     "lambdaApi": { "memoryMb": 1024, "warmMs": 150, "coldInitMs": 5000, "architecture": "arm" },
+    "visits": { "memoryMb": 128, "durationMs": 100, "kbPerInvocation": 0.5 },
     "collector": { "memoryMb": 1024, "secondsPerAttempt": 8 },
     "logs": { "kbPerCollectorInvocation": 3, "retentionDays": 14 },
     "dynamodb": { "readUnitsPerApiInvocation": 2, "writeUnitsPerCollectorInvocation": 3, "storageGb": 0.01 },

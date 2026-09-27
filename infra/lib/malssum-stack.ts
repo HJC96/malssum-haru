@@ -39,7 +39,7 @@ export type MalssumStackProps = StackProps & { config: StackConfig };
 
 /**
  * 말씀하루 서버리스 스택: S3+CloudFront(정적 웹, /api/* 는 레거시 HTTP API), Lambda(Java 21, arm64),
- * 레거시 QT 범위 데이터 DynamoDB와 선택적 EventBridge 수집, 로그 보존, 예산·알람.
+ * 레거시 QT 범위 데이터 DynamoDB, 익명 일별 방문 카운터, 선택적 EventBridge 수집, 로그 보존, 예산·알람.
  *
  * 만들지 않는 것(PRD SESSION01, IMPLEMENTATION_PLAN M4):
  * - 개인 계획·읽은 범위·진도를 담는 테이블, API, 저장소. 사용자 식별·인증 리소스(Cognito 등).
@@ -47,7 +47,9 @@ export type MalssumStackProps = StackProps & { config: StackConfig };
  */
 export class MalssumStack extends Stack {
   readonly table: dynamodb.Table;
+  readonly visitTable: dynamodb.Table;
   readonly apiFunction: lambda.Function;
+  readonly visitFunction: lambda.Function;
   readonly collectorFunction: lambda.Function;
   readonly api: apigwv2.HttpApi;
   readonly distribution: cloudfront.Distribution;
@@ -72,6 +74,14 @@ export class MalssumStack extends Stack {
       timeToLiveAttribute: 'expiresAt',
       deletionProtection: cfg.retainData,
       removalPolicy: cfg.retainData ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+    });
+
+    // 방문 횟수는 QT 일별 TTL 데이터 및 개인 진도와 분리한다. 단일 항목에만 원자적 +1을 적용한다.
+    this.visitTable = new dynamodb.Table(this, 'SiteVisits', {
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      deletionProtection: true,
+      removalPolicy: RemovalPolicy.RETAIN,
     });
 
     // --- Lambda(Java 21, arm64). 산출물은 services/qt 빌드 결과로 교체 ---
@@ -127,7 +137,21 @@ export class MalssumStack extends Stack {
     });
     this.table.grant(this.collectorFunction, 'dynamodb:GetItem', 'dynamodb:PutItem');
 
-    // --- HTTP API. 라우트는 QT 공통 조회 하나뿐이다(계약 docs/contracts/qt-today.md) ---
+    const visitLogs = new logs.LogGroup(this, 'VisitApiLogs', { retention, removalPolicy: RemovalPolicy.DESTROY });
+    this.visitFunction = new lambda.Function(this, 'VisitApiFunction', {
+      description: '익명 사이트 일별 방문 횟수(KST 날짜별 페이지 로드, POST 1회 = +1)',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      architecture: lambda.Architecture.ARM_64,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(resolve(INFRA_ROOT, '../services/visits/src')),
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      logGroup: visitLogs,
+      environment: { VISIT_TABLE_NAME: this.visitTable.tableName },
+    });
+    this.visitTable.grant(this.visitFunction, 'dynamodb:UpdateItem');
+
+    // --- HTTP API. QT 조회와 방문 기록을 분리한다. 방문 요청은 본문·쿠키·식별자를 받지 않는다. ---
     this.api = new apigwv2.HttpApi(this, 'HttpApi', {
       description: '말씀하루 QT 공통 조회 API. 개인 계획·진도 경로는 없다.',
     });
@@ -135,6 +159,11 @@ export class MalssumStack extends Stack {
       path: '/api/qt/today',
       methods: [apigwv2.HttpMethod.GET],
       integration: new HttpLambdaIntegration('QtTodayIntegration', this.apiFunction),
+    });
+    this.api.addRoutes({
+      path: '/api/visits',
+      methods: [apigwv2.HttpMethod.POST],
+      integration: new HttpLambdaIntegration('VisitIntegration', this.visitFunction),
     });
     // 요청 제한(추가 요금 없음). 액세스 로그는 켜지 않는다(IP 등 불필요한 수집과 로그 비용 방지).
     const stage = this.api.defaultStage?.node.defaultChild as apigwv2.CfnStage;
@@ -211,6 +240,14 @@ export class MalssumStack extends Stack {
         functionAssociations: [{ function: spaRewrite, eventType: cloudfront.FunctionEventType.VIEWER_REQUEST }],
       },
       additionalBehaviors: {
+        '/api/visits': {
+          origin: new origins.HttpOrigin(apiDomain, { protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY }),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          responseHeadersPolicy: responseHeaders,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          compress: true,
+        },
         '/api/*': {
           origin: new origins.HttpOrigin(apiDomain, { protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY }),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
@@ -333,6 +370,7 @@ export class MalssumStack extends Stack {
 
     new CfnOutput(this, 'CloudFrontDomainName', { value: this.distribution.distributionDomainName });
     new CfnOutput(this, 'QtTableName', { value: this.table.tableName });
+    new CfnOutput(this, 'VisitTableName', { value: this.visitTable.tableName });
     new CfnOutput(this, 'DeploymentNotice', {
       value: cfg.qtAcquisitionEnabled
         ? 'private-preview: provider acquisition ON, provider permission unconfirmed. Not for public release.'

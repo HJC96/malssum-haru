@@ -19,10 +19,13 @@ test('사용량 산식', () => {
   const u = usage(scn);
   assert.equal(u.monthlyVisits, 30000);
   assert.equal(u.apiOrigin, 30000);
-  assert.equal(u.cfRequests, 330000);
+  assert.equal(u.visitRequests, 30000);
+  assert.equal(u.apiGatewayRequests, 60000);
+  assert.equal(u.cfRequests, 360000);
   assert.ok(Math.abs(u.cfGb - 30000 / 1024) < 1e-9);
-  // 웜 150ms, 1GB: 30000 * 0.15 = 4500 GB-s + 수집 60회 * 8초 = 480 GB-s
-  assert.ok(Math.abs(u.lambdaGbSeconds - (4500 + 480)) < 1e-6);
+  // QT 웜 4500 GB-s + 방문 128MB*100ms*30000=375 GB-s + 수집 480 GB-s
+  assert.ok(Math.abs(u.lambdaGbSeconds - (4500 + 375 + 480)) < 1e-6);
+  assert.equal(u.ddbWriteUnits, 30180);
 });
 
 test('정가 모드는 CloudFront 전송을 첫 GB부터 청구한다', () => {

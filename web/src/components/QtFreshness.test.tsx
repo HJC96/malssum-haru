@@ -31,7 +31,9 @@ describe('말씀 자료의 서울 날짜 신선도', () => {
     clockMs = Date.parse('2026-09-24T15:30:00Z'); // 09-25 00:30 KST
     await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
     expect(screen.getByText(/오늘 표시할 말씀 자료가 아직 준비되지 않았습니다/)).toBeInTheDocument();
-    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+    expect(screen.getAllByRole('heading', { name: '구절 자료 미등록' })).toHaveLength(2);
+    expect(screen.queryByText('[TEST ONLY — NOT SCRIPTURE]')).not.toBeInTheDocument();
     expect(loader).toHaveBeenLastCalledWith('2026-09-25');
   });
 });

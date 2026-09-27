@@ -15,6 +15,7 @@ import { PlanScheduleView } from './plan/PlanScheduleView';
 import { ProgressEditor, type ProgressFields } from './plan/ProgressEditor';
 
 type View = 'list' | 'calendar';
+type MobilePanel = 'setup' | 'result';
 
 /**
  * 일독 계획 영역. 입력과 결과는 이 컴포넌트의 메모리 상태로만 있고 저장소·URL·서버로 나가지 않는다(AC20).
@@ -41,6 +42,7 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
   const [scheduleAsOf, setScheduleAsOf] = useState<string | null>(() => (initialForm?.recalc ? today : null));
   const [showSchedulePreview, setShowSchedulePreview] = useState(false);
   const [view, setView] = useState<View>('list');
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>('setup');
   const [weekStart, setWeekStart] = useState<Weekday>(0);
   const resultHeading = useRef<HTMLHeadingElement>(null);
 
@@ -88,6 +90,15 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
         {status === 'provisional' && <p className="qt-note">{t('plan.dataHelp.limits')}</p>}
       </details>
 
+      <div className="plan-workspace">
+      <div className="plan-mobile-tabs" role="group" aria-label={t('plan.heading')}>
+        {(['setup', 'result'] as MobilePanel[]).map((panel) => (
+          <button key={panel} type="button" aria-pressed={mobilePanel === panel} onClick={() => setMobilePanel(panel)}>
+            {t(panel === 'setup' ? 'plan.quick.panel.setup' : 'plan.quick.panel.result')}
+          </button>
+        ))}
+      </div>
+      <div className="plan-setup-panel" data-mobile-active={mobilePanel === 'setup'}>
       <PlanForm
         form={form}
         onChange={setForm}
@@ -100,16 +111,20 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
             : null,
         } : undefined}
         onPreview={() => {
-          resultHeading.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-          resultHeading.current?.focus({ preventScroll: true });
+          setMobilePanel('result');
+          window.requestAnimationFrame(() => {
+            resultHeading.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+            resultHeading.current?.focus({ preventScroll: true });
+          });
         }}
       />
 
       {!computed.ok && <PlanIssues issues={computed.issues} />}
       {computed.ok && !progressComputed.ok && <PlanIssues issues={progressComputed.issues} />}
+      </div>
 
       {computed.ok && model && todayInfo && (
-        <div className="plan-result" aria-labelledby="plan-result-heading" role="region">
+        <div className="plan-result" data-mobile-active={mobilePanel === 'result'} aria-labelledby="plan-result-heading" role="region">
           <h3 id="plan-result-heading" ref={resultHeading} tabIndex={-1}>{t('plan.result.heading')}</h3>
           <PlanSummary
             result={progressComputed.ok
@@ -166,7 +181,8 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
           <PlanPrintSheet model={model} />
         </div>
       )}
-      {!computed.ok && <p className="qt-note">{t('plan.export.noPlan')}</p>}
+      {!computed.ok && <div className="plan-result plan-result--empty" data-mobile-active={mobilePanel === 'result'} role="status">{t('plan.quick.resultHint')}</div>}
+      </div>
     </section>
   );
 }

@@ -1,7 +1,8 @@
 :root {
   color-scheme: light;
 
-  --font-sans: 'Noto Sans KR', 'Pretendard', 'Apple SD Gothic Neo', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --font-sans: 'Jua', 'Noto Sans KR', 'Pretendard', 'Apple SD Gothic Neo', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --font-display: 'Jua', 'Noto Sans KR', sans-serif;
 
   --bg: #f3f4f6;
   /* Shared translucent cream surfaces let the illustration show through gently. */

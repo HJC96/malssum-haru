@@ -39,7 +39,7 @@ describe('axe 접근성 검사', () => {
       const el = document.activeElement;
       if (el) seen.push(el.getAttribute('aria-label') ?? (el.textContent ?? ''));
     }
-    expect(seen.some((s) => s.includes('모드로 전환'))).toBe(true);
+    expect(seen.some((s) => s.includes('모드'))).toBe(true);
     expect(seen.some((s) => s.includes('매일성경'))).toBe(true);
     expect(seen.some((s) => s.includes('생명의삶'))).toBe(true);
     expect(seen.some((s) => s.includes('날마다 솟는 샘물'))).toBe(true);

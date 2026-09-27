@@ -13,16 +13,28 @@ export function ThemeSwitch() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  const nextTheme = theme === 'dark' ? 'light' : 'dark';
   return (
-    <button
-      aria-label={theme === 'dark' ? '낮 모드로 전환' : '다크 모드로 전환'}
-      className="theme-switch__button"
-      onClick={() => setTheme(nextTheme)}
-      title={theme === 'dark' ? '낮 모드로 전환' : '다크 모드로 전환'}
-      type="button"
-    >
-      <span aria-hidden="true">{theme === 'dark' ? '🌙' : '☀️'}</span>
-    </button>
+    <div aria-label="화면 모드" className="theme-switch" role="group">
+      <button
+        aria-label="낮 모드"
+        aria-pressed={theme === 'light'}
+        className="theme-switch__button"
+        onClick={() => setTheme('light')}
+        title="낮 모드"
+        type="button"
+      >
+        <span aria-hidden="true">☀️</span>
+      </button>
+      <button
+        aria-label="밤 모드"
+        aria-pressed={theme === 'dark'}
+        className="theme-switch__button"
+        onClick={() => setTheme('dark')}
+        title="밤 모드"
+        type="button"
+      >
+        <span aria-hidden="true">🌙</span>
+      </button>
+    </div>
   );
 }

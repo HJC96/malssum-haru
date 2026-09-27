@@ -20,6 +20,7 @@ export function usage(scn, common = cfg.common, days = cfg.daysPerMonth, overrid
   const monthlyVisits = s.dailyVisits * days;
   const apiRequests = monthlyVisits * s.apiCallsPerVisit;
   const apiOrigin = apiRequests * (1 - s.apiCdnHitRatio); // API Gateway와 Lambda까지 오는 요청
+  const visitRequests = monthlyVisits; // 페이지 로드마다 1회 POST. 캐시되지 않는다.
   const staticRequests = monthlyVisits * s.staticRequestsPerVisit;
   const gbSecondsPerInvocation =
     (((1 - s.coldFraction) * common.lambdaApi.warmMs +
@@ -33,29 +34,34 @@ export function usage(scn, common = cfg.common, days = cfg.daysPerMonth, overrid
     common.collector.secondsPerAttempt *
     (common.collector.memoryMb / 1024);
   const apiGbSeconds = apiOrigin * gbSecondsPerInvocation;
-  const logKb = apiOrigin * s.kbPerApiInvocation + collectorInvocations * common.logs.kbPerCollectorInvocation;
+  const visitGbSeconds = visitRequests * (common.visits.durationMs / 1000) * (common.visits.memoryMb / 1024);
+  const logKb = apiOrigin * s.kbPerApiInvocation + visitRequests * common.visits.kbPerInvocation +
+    collectorInvocations * common.logs.kbPerCollectorInvocation;
   const logIngestGb = logKb / KB_PER_GB;
-  const peakRps = (s.dailyVisits * s.apiCallsPerVisit * common.peakHourShare) / 3600;
+  const qtPeakRps = (s.dailyVisits * s.apiCallsPerVisit * common.peakHourShare) / 3600;
+  const visitPeakRps = (s.dailyVisits * common.peakHourShare) / 3600;
   return {
     monthlyVisits,
     apiRequests,
     apiOrigin,
+    visitRequests,
+    apiGatewayRequests: apiOrigin + visitRequests,
     staticRequests,
-    cfRequests: staticRequests + apiRequests,
+    cfRequests: staticRequests + apiRequests + visitRequests,
     cfFunctionInvocations: staticRequests, // SPA 경로 재작성 함수는 기본 동작(정적)에만 붙는다
     cfGb: (monthlyVisits * s.staticMbPerVisit) / MB_PER_GB,
-    lambdaRequests: apiOrigin + collectorInvocations,
-    lambdaGbSeconds: apiGbSeconds + collectorGbSeconds,
+    lambdaRequests: apiOrigin + visitRequests + collectorInvocations,
+    lambdaGbSeconds: apiGbSeconds + visitGbSeconds + collectorGbSeconds,
     coldStarts: apiOrigin * s.coldFraction,
     collectorInvocations,
     schedulerInvocations: collectorInvocations,
     logIngestGb,
     logStorageGbMonth: logIngestGb * (common.logs.retentionDays / days),
     ddbReadUnits: apiOrigin * common.dynamodb.readUnitsPerApiInvocation,
-    ddbWriteUnits: collectorInvocations * common.dynamodb.writeUnitsPerCollectorInvocation,
+    ddbWriteUnits: collectorInvocations * common.dynamodb.writeUnitsPerCollectorInvocation + visitRequests,
     s3Gets: staticRequests * common.s3.staticOriginMissRatio,
-    peakRps,
-    peakApiOriginRps: peakRps * (1 - s.apiCdnHitRatio),
+    peakRps: qtPeakRps + visitPeakRps,
+    peakApiOriginRps: qtPeakRps * (1 - s.apiCdnHitRatio) + visitPeakRps,
   };
 }
 
@@ -77,7 +83,7 @@ export function awsCost(u, region, mode, opts = {}) {
   items.cloudfrontData = pos(u.cfGb - f('cloudfrontGb')) * cf.dataOutGbFirst10TbAsia;
   items.cloudfrontRequests = pos(u.cfRequests - f('cloudfrontRequests')) * cf.httpsRequestPer;
   items.cloudfrontFunction = pos(u.cfFunctionInvocations - f('cloudfrontFunctionInvocations')) * cf.functionPerInvocation;
-  items.apiGateway = u.apiOrigin * P.apiGatewayHttpRequest;
+  items.apiGateway = u.apiGatewayRequests * P.apiGatewayHttpRequest;
   items.lambdaRequests = pos(u.lambdaRequests - f('lambdaRequests')) * P.lambda.requestUsdPer;
   items.lambdaCompute = pos(u.lambdaGbSeconds - f('lambdaGbSeconds')) * gbSecPrice;
   items.dynamodbReads = u.ddbReadUnits * P.dynamodbOnDemand.readRequestUnit;
@@ -167,8 +173,10 @@ export function sections() {
   // 2) 사용량
   const usageRows = [
     ['월 방문 수', 'monthlyVisits', 0],
-    ['API 호출(엣지 포함)', 'apiRequests', 0],
-    ['API Gateway·Lambda 도달(캐시 미스)', 'apiOrigin', 0],
+    ['레거시 QT API 호출(엣지 포함)', 'apiRequests', 0],
+    ['레거시 QT API 원본 도달(캐시 미스)', 'apiOrigin', 0],
+    ['방문 카운터 POST(캐시 없음)', 'visitRequests', 0],
+    ['API Gateway 총 요청', 'apiGatewayRequests', 0],
     ['CloudFront 요청(정적+API)', 'cfRequests', 0],
     ['CloudFront 전송(GB)', 'cfGb', 1],
     ['Lambda 요청(API+수집)', 'lambdaRequests', 0],

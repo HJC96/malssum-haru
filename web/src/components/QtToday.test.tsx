@@ -41,7 +41,9 @@ describe('오늘의 말씀 화면', () => {
     const loader = vi.fn(async () => null);
     renderWithLang(<QtToday dailyWordLoader={loader} now={TODAY} />);
     expect(await screen.findByText('오늘 표시할 말씀 자료가 아직 준비되지 않았습니다. 아래 공식 QT 사이트에서 오늘 본문을 확인해 주세요.')).toBeInTheDocument();
-    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+    expect(screen.getAllByRole('heading', { name: '구절 자료 미등록' })).toHaveLength(2);
+    expect(screen.queryByText('[TEST ONLY — NOT SCRIPTURE]')).not.toBeInTheDocument();
     expect(loader).toHaveBeenCalledWith('2026-09-26');
     expect(screen.getAllByRole('link', { name: /매일성경|생명의삶|날마다 솟는 샘물/ })).toHaveLength(3);
   });
@@ -75,7 +77,7 @@ describe('페이지 전환과 비저장', () => {
     const before = window.location.href;
     render(<App initialLang="ko" initialService="qt" dailyWordLoader={async () => null} now={TODAY} />);
     await screen.findByRole('status');
-    await userEvent.click(screen.getByRole('button', { name: /모드로 전환/ }));
+    await userEvent.click(screen.getByRole('button', { name: '밤 모드' }));
     expect(setItem).not.toHaveBeenCalled();
     expect(cookie).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();

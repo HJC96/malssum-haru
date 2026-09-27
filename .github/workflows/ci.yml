@@ -1,4 +1,4 @@
-# 말씀하루 CI: web, services/qt, infra 검증만 한다. AWS 자격 증명과 배포 단계는 넣지 않는다.
+# 말씀하루 CI: web, services/qt, services/visits, infra 검증만 한다. AWS 자격 증명과 배포 단계는 넣지 않는다.
 # 배포는 비용표와 IaC 변경 내역을 사용자에게 제시하고 승인받은 뒤 사람이 별도로 실행한다.
 # 액션은 커밋 SHA로 고정했다(주석은 확인한 릴리스: 2026-09-24).
 name: CI
@@ -69,6 +69,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter malssum-haru-infra typecheck
       - run: pnpm --filter malssum-haru-infra test
+      - run: node --test services/visits/test/*.test.mjs
       # 템플릿만 만든다. 계정에 접근하지 않는다.
       - run: pnpm --filter malssum-haru-infra synth:ci
       - run: pnpm --filter malssum-haru-infra cost:test

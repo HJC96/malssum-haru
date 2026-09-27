@@ -43,27 +43,33 @@ test('허용 목록 밖의 리소스 유형이 없다(데이터베이스·큐·�
   assert.deepEqual(extra, []);
 });
 
-test('DynamoDB 테이블은 QT 공통 데이터용 하나뿐이고 키·속성에 개인 진도 이름이 없다', () => {
+test('DynamoDB 테이블은 QT 공통 데이터와 익명 사이트 방문 합계용이며 개인 진도 키가 없다', () => {
   const { json } = build(WITH_EMAIL);
   const tables = resourcesOfType(json, 'AWS::DynamoDB::Table');
-  assert.equal(tables.length, 1);
-  const props = tables[0]![1].Properties!;
+  assert.equal(tables.length, 2);
+  const props = tables.find(([id]) => id.startsWith('QtItems'))![1].Properties!;
   const keyNames = props.KeySchema.map((k: { AttributeName: string }) => k.AttributeName);
   assert.deepEqual(keyNames, ['providerId', 'providerDate']);
   assert.equal(props.BillingMode, 'PAY_PER_REQUEST');
   assert.equal(props.GlobalSecondaryIndexes, undefined);
   assert.equal(props.TimeToLiveSpecification.Enabled, true);
-  for (const a of props.AttributeDefinitions as Array<{ AttributeName: string }>) {
-    assert.doesNotMatch(a.AttributeName, PERSONAL);
+  const visit = tables.find(([id]) => id.startsWith('SiteVisits'))![1];
+  assert.deepEqual(visit.Properties!.KeySchema.map((k: { AttributeName: string }) => k.AttributeName), ['id']);
+  assert.equal(visit.Properties!.TimeToLiveSpecification, undefined);
+  assert.equal(visit.DeletionPolicy, 'Retain');
+  for (const [id, table] of tables) {
+    for (const a of table.Properties!.AttributeDefinitions as Array<{ AttributeName: string }>) {
+      assert.doesNotMatch(a.AttributeName, PERSONAL);
+    }
+    assert.doesNotMatch(id, PERSONAL);
+    assert.equal(table.Properties!.TableName, undefined); // 고정 이름 없음
   }
-  assert.doesNotMatch(tables[0]![0], PERSONAL);
-  assert.equal(props.TableName, undefined); // 고정 이름 없음
 });
 
-test('HTTP API 라우트는 GET /api/qt/today 하나뿐이다', () => {
+test('HTTP API는 공통 QT 조회와 익명 방문 1회 기록만 제공한다', () => {
   const { json } = build(WITH_EMAIL);
-  const routes = resourcesOfType(json, 'AWS::ApiGatewayV2::Route').map(([, r]) => r.Properties!.RouteKey);
-  assert.deepEqual(routes, ['GET /api/qt/today']);
+  const routes = resourcesOfType(json, 'AWS::ApiGatewayV2::Route').map(([, r]) => r.Properties!.RouteKey).sort();
+  assert.deepEqual(routes, ['GET /api/qt/today', 'POST /api/visits']);
 });
 
 test('논리 ID, 환경 변수 이름에 개인 진도 관련 이름이 없다', () => {
@@ -96,7 +102,7 @@ test('템플릿과 환경 변수에 비밀 값이 없다', () => {
 test('모든 로그 그룹에 보존 기간이 있고 무기한이 아니다', () => {
   const { json } = build(WITH_EMAIL);
   const groups = resourcesOfType(json, 'AWS::Logs::LogGroup');
-  assert.equal(groups.length, 2);
+  assert.equal(groups.length, 3);
   for (const [, g] of groups) assert.equal(g.Properties!.RetentionInDays, 14);
 });
 
@@ -111,8 +117,9 @@ test('S3는 공개 접근이 막혀 있고 CloudFront 접속 로그는 꺼져 �
   });
   const dist = resourcesOfType(json, 'AWS::CloudFront::Distribution')[0]![1].Properties!.DistributionConfig;
   assert.equal(dist.Logging, undefined);
-  assert.equal(dist.CacheBehaviors.length, 1);
-  assert.deepEqual(dist.CacheBehaviors[0].AllowedMethods, ['GET', 'HEAD']);
+  assert.equal(dist.CacheBehaviors.length, 2);
+  const qt = dist.CacheBehaviors.find((b: { PathPattern: string }) => b.PathPattern === '/api/*');
+  assert.deepEqual(qt.AllowedMethods, ['GET', 'HEAD']);
 });
 
 test('API 캐시 정책은 쿠키·헤더·쿼리 문자열을 캐시 키에 넣지 않는다', () => {

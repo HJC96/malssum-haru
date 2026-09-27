@@ -8,6 +8,7 @@ import type { BibleData } from '@/domain';
 import type { PlanFormState } from './plan/planForm';
 import type { QtTodayResponse } from './qt/types';
 import type { DailyWordContent } from './dailyWord/types';
+import { recordVisitOncePerPageLoad } from './visits/recordVisit';
 
 interface AppProps {
   initialLang?: Lang;
@@ -20,14 +21,28 @@ interface AppProps {
   planBible?: BibleData;
   /** 테스트에서 시작 화면을 건너뛰고 특정 서비스를 연다. 실제 기본 진입은 환영 화면이다. */
   initialService?: ServiceTab;
+  /** 테스트에서 서버 방문 기록을 대체한다. */
+  visitRecorder?: () => Promise<number | null>;
 }
 
-function Shell({ qtFetcher, dailyWordLoader, now, planInitial, planBible, initialService }: Pick<AppProps, 'qtFetcher' | 'dailyWordLoader' | 'now' | 'planInitial' | 'planBible' | 'initialService'>) {
+function Shell({ qtFetcher, dailyWordLoader, now, planInitial, planBible, initialService, visitRecorder = recordVisitOncePerPageLoad }: Pick<AppProps, 'qtFetcher' | 'dailyWordLoader' | 'now' | 'planInitial' | 'planBible' | 'initialService' | 'visitRecorder'>) {
   const { t } = useI18n();
+  const [visitCount, setVisitCount] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<ServiceTab>(initialService ?? 'qt');
   const [started, setStarted] = useState(initialService !== undefined);
   const [hasEntered, setHasEntered] = useState(initialService !== undefined);
+  const [scrollRequest, setScrollRequest] = useState(0);
   const serviceStepRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    let current = true;
+    void visitRecorder().then((count) => {
+      if (current) setVisitCount(count);
+    }).catch(() => {
+      if (current) setVisitCount(null);
+    });
+    return () => { current = false; };
+  }, [visitRecorder]);
 
   useEffect(() => {
     if (!started) return;
@@ -35,13 +50,18 @@ function Shell({ qtFetcher, dailyWordLoader, now, planInitial, planBible, initia
       serviceStepRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [activeTab, started]);
+  }, [started, scrollRequest]);
 
   const begin = (tab: ServiceTab) => {
     setActiveTab(tab);
     setHasEntered(true);
     setStarted(true);
+    setScrollRequest((request) => request + 1);
   };
+
+  const visitMessage = visitCount === null
+    ? t('welcome.visitUnavailable')
+    : t('welcome.visitCount', { count: visitCount.toLocaleString('ko-KR') });
 
   return (
     <>
@@ -54,8 +74,15 @@ function Shell({ qtFetcher, dailyWordLoader, now, planInitial, planBible, initia
             <ThemeSwitch />
           </header>
           <div className="welcome-hero__content">
-            <p className="welcome-hero__eyebrow">{t('welcome.eyebrow')}</p>
-            <h2 id="welcome-heading">{t('welcome.heading')}</h2>
+            <h2
+              id="welcome-heading"
+              className="welcome-hero__title"
+              aria-label={`${t('welcome.salutation')} ${visitMessage}`}
+              aria-live="polite"
+            >
+              <span className="welcome-hero__salutation">{t('welcome.salutation')}</span>
+              <span className="welcome-hero__visit">{visitMessage}</span>
+            </h2>
             <p className="welcome-hero__intro">{t('welcome.intro')}</p>
             <div className="welcome-hero__actions">
               <button className="welcome-hero__button welcome-hero__button--primary" onClick={() => begin('qt')} type="button">
@@ -98,10 +125,10 @@ function Shell({ qtFetcher, dailyWordLoader, now, planInitial, planBible, initia
   );
 }
 
-export function App({ initialLang, qtFetcher, dailyWordLoader, now, planInitial, planBible, initialService }: AppProps) {
+export function App({ initialLang, qtFetcher, dailyWordLoader, now, planInitial, planBible, initialService, visitRecorder }: AppProps) {
   return (
     <I18nProvider {...(initialLang ? { initialLang } : {})}>
-      <Shell {...(qtFetcher ? { qtFetcher } : {})} {...(dailyWordLoader ? { dailyWordLoader } : {})} {...(now ? { now } : {})} {...(planInitial ? { planInitial } : {})} {...(planBible ? { planBible } : {})} {...(initialService ? { initialService } : {})} />
+      <Shell {...(qtFetcher ? { qtFetcher } : {})} {...(dailyWordLoader ? { dailyWordLoader } : {})} {...(now ? { now } : {})} {...(planInitial ? { planInitial } : {})} {...(planBible ? { planBible } : {})} {...(initialService ? { initialService } : {})} {...(visitRecorder ? { visitRecorder } : {})} />
     </I18nProvider>
   );
 }

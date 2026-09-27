@@ -1,71 +1,71 @@
 .daily-word {
+  --paper-ink: #3f2d22;
+  --paper-muted: #6c5847;
+  --paper-rule: rgb(122 91 58 / 0.28);
   position: relative;
+  isolation: isolate;
   display: grid;
-  width: min(100%, 58rem);
+  width: min(100%, 68rem);
   margin-inline: auto;
-  overflow: hidden;
-  gap: 0;
-  border: 1px solid var(--daily-word-border);
-  border-radius: 1.75rem;
-  background: var(--daily-word-card-bg);
-  box-shadow: 0 12px 32px rgb(31 41 55 / 0.1);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  min-height: 42rem;
+  padding: clamp(1.5rem, 3vw, 2.2rem) clamp(1.5rem, 4.3vw, 3.7rem) clamp(2.5rem, 5vw, 4rem);
+  border: 0;
+  background: url('/qt-parchment.png') center / 100% 100% no-repeat;
+  color: var(--paper-ink);
+  filter: drop-shadow(0 16px 24px rgb(52 42 25 / 0.23));
+  font-family: 'Nanum Myeongjo', 'AppleMyungjo', Batang, serif;
 }
 
-.daily-word > * {
+.daily-word__heading,
+.daily-word__cards,
+.daily-word__providers,
+.daily-word__notice,
+.daily-word > [role='status'] {
   position: relative;
   z-index: 1;
 }
 
 .daily-word__heading {
   display: grid;
-  padding: 1.35rem 1.5rem;
-  background: var(--daily-word-header-bg);
-  backdrop-filter: blur(2px);
+  padding: 0.35rem 3rem 1.15rem;
   text-align: center;
 }
 
 .daily-word__heading h2 {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.28rem;
 }
 
 .daily-word__title {
-  color: var(--text);
-  font-size: clamp(1.45rem, 3.5vw, 1.8rem);
-  font-weight: 750;
-  letter-spacing: -0.035em;
+  color: #493326;
+  font-size: clamp(1.9rem, 3.8vw, 2.65rem);
+  font-weight: 700;
+  letter-spacing: 0.11em;
 }
 
 .daily-word__heading time {
-  color: var(--daily-word-heading-muted);
-  font-size: 0.98rem;
-  font-weight: 500;
+  color: var(--paper-muted);
+  font-size: 0.9rem;
+  font-weight: 400;
 }
 
-.daily-word__eyebrow,
 .daily-word-card__eyebrow {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 0.45rem;
-  color: #456446;
-  font-size: 0.82rem;
-  font-weight: 750;
-  letter-spacing: 0.04em;
-}
-
-.daily-word-card__eyebrow {
+  width: fit-content;
   min-height: 2rem;
-  padding: 0.28rem 0.75rem;
+  padding: 0.23rem 0.8rem;
   border-radius: 999px;
-  background: rgb(227 235 202 / 0.8);
+  background: #dfe6cf;
+  color: #405e3c;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .daily-word-card__eyebrow--new {
-  color: #9a4c2e;
-  background: rgb(255 224 204 / 0.82);
+  background: #f3d9cc;
+  color: #a45237;
 }
 
 .daily-word-card__eyebrow svg,
@@ -85,95 +85,80 @@
 .daily-word__cards,
 .daily-word__providers ul {
   display: grid;
-  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.daily-word__cards > li {
-  min-width: 0;
+.daily-word__cards {
+  padding: 0.7rem clamp(0.65rem, 2vw, 1.5rem) 1.55rem;
 }
 
-.daily-word__cards > li + li {
-  border-top: 1px solid var(--daily-word-border);
-}
-
-@media (min-width: 48rem) {
-  .daily-word__cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(5, auto);
-    gap: 0;
-    padding: 0.8rem;
-  }
-
-  .daily-word__cards > li {
-    display: contents;
-  }
-
-  .daily-word__cards > li > .daily-word-card {
-    grid-row: span 5;
-    grid-template-rows: subgrid;
-  }
-
-  .daily-word__cards > li + li > .daily-word-card {
-    border-top: 0;
-    border-left: 1px dashed var(--daily-word-border);
-  }
-}
+.daily-word__cards > li { min-width: 0; }
+.daily-word__cards > li + li { border-top: 1px solid var(--paper-rule); }
 
 .daily-word-card {
   display: grid;
-  gap: 0.85rem;
-  padding: 1.4rem clamp(1.1rem, 5vw, 1.75rem);
-  /* Let the parent card provide the translucent cream wash only once. */
-  background: transparent;
-}
-
-.daily-word-card--old {
-  background: transparent;
-}
-
-.daily-word-card--new {
-  background: transparent;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.7rem clamp(0.75rem, 2vw, 1.7rem);
 }
 
 .daily-word-card__header {
   display: grid;
-  gap: 0.25rem;
+  align-content: start;
   justify-items: center;
+  gap: 0.35rem;
   text-align: center;
 }
 
+.daily-word-card__header h3 {
+  color: #495f3f;
+  font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.daily-word-card--new .daily-word-card__header h3 { color: #a45237; }
+
 .daily-word-card__text {
-  color: var(--text-muted);
-  font-size: clamp(1.12rem, 2.2vw, 1.3rem);
-  font-weight: 520;
-  line-height: 2;
-  letter-spacing: -0.025em;
+  align-self: start;
+  color: #30251e;
+  font-size: clamp(1.08rem, 2.1vw, 1.55rem);
+  font-weight: 700;
+  line-height: 1.75;
+  letter-spacing: -0.055em;
   text-align: center;
   white-space: pre-wrap;
 }
 
 .daily-word-card__translation-wrap {
   position: relative;
+  z-index: 3;
   justify-self: center;
-  z-index: 2;
+  align-self: start;
+}
+
+.daily-word-card__translation-wrap:has(.daily-word-card__translation-options)::after {
+  position: absolute;
+  top: -0.5rem;
+  left: 100%;
+  width: 0.7rem;
+  height: calc(100% + 1rem);
+  content: '';
 }
 
 .daily-word-card__translation {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  justify-self: center;
   padding: 0.2rem 0.75rem;
-  border: 0;
+  border: 1px solid rgb(137 112 77 / 0.18);
   border-radius: 999px;
-  background: rgb(240 235 219 / 0.82);
-  color: #48574b;
+  background: #ebddc4;
+  color: #5b4a39;
   font: inherit;
-  font-size: 0.85rem;
-  font-weight: 650;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -184,34 +169,26 @@
 
 .daily-word-card__translation-options {
   position: absolute;
+  z-index: 2;
   top: 50%;
   left: calc(100% + 0.5rem);
   display: flex;
   flex-direction: column;
   width: max-content;
   max-width: min(18rem, calc(100vw - 2rem));
-  gap: 0.3rem;
+  gap: 0.25rem;
   padding: 0.35rem;
-  border: 1px solid var(--daily-word-border);
-  border-radius: 0.8rem;
-  background: rgb(255 252 242 / 0.9);
-  box-shadow: 0 7px 20px rgb(42 47 35 / 0.18);
+  border: 1px solid #cfb896;
+  border-radius: 0.75rem;
+  background: #fbf1d8;
+  box-shadow: 0 7px 20px rgb(42 35 25 / 0.2);
   transform: translateY(-50%);
 }
 
-@media (max-width: 28rem) {
-  .daily-word-card__translation-options {
-    top: calc(100% + 0.4rem);
-    right: 0;
-    left: auto;
-    transform: none;
-  }
-}
-
 .daily-word-card__translation-options a {
-  padding: 0.4rem 0.65rem;
-  border-radius: 0.55rem;
-  color: #315f81;
+  padding: 0.38rem 0.6rem;
+  border-radius: 0.5rem;
+  color: #275976;
   font-size: 0.85rem;
   font-weight: 700;
   text-decoration: none;
@@ -220,43 +197,55 @@
 
 .daily-word-card__translation-options a:hover,
 .daily-word-card__translation-options a:focus-visible {
-  background: #e8f1f4;
+  background: #e3eee9;
   text-decoration: underline;
 }
 
 .daily-word-card__explanation {
   display: grid;
+  align-content: start;
   gap: 0.55rem;
-  padding: 1rem;
-  border: 1px dashed var(--daily-word-border);
-  border-radius: 1rem;
-  background: rgb(255 252 241 / 0.56);
-  color: var(--text);
+  padding-top: 1.2rem;
+  color: var(--paper-ink);
 }
 
 .daily-word-card__explanation h4 {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  color: #4c673f;
   margin: 0;
-  font-size: 0.9rem;
+  width: fit-content;
+  padding: 0.12rem 1rem 0.12rem 0.25rem;
+  border-radius: 0.25rem 1rem 0.2rem 0.9rem;
+  background: #e5e9d4;
+  color: #4c673f;
+  font-size: 0.98rem;
+  font-weight: 700;
 }
 
-.daily-word-card__editorial,
-.daily-word__version {
-  color: var(--text-muted);
-  font-size: 0.8rem;
+.daily-word-card--new .daily-word-card__explanation h4 {
+  background: #f5e0d4;
+  color: #a05238;
+}
+
+.daily-word-card__explanation p {
+  color: #514338;
+  font-size: clamp(0.92rem, 1.3vw, 1.02rem);
+  line-height: 1.85;
+}
+
+.daily-word__notice,
+.daily-word > [role='status'] {
+  margin: 1.25rem clamp(1.4rem, 4vw, 3.25rem);
 }
 
 .daily-word__notice {
   display: grid;
   gap: var(--space-2);
-  margin: 1.25rem;
   padding: 1rem;
-  border: 1px solid var(--daily-word-border);
-  border-radius: 1rem;
-  background: var(--daily-word-muted-bg);
+  border: 1px solid var(--paper-rule);
+  border-radius: 0.7rem;
+  background: rgb(255 251 235 / 0.5);
 }
 
 .daily-word__notice--error {
@@ -269,16 +258,15 @@
   display: grid;
   gap: 0.7rem;
   justify-items: center;
-  padding: 1.35rem 1.25rem 1.5rem;
-  border-top: 1px solid var(--daily-word-border);
-  border-radius: 0 0 1.75rem 1.75rem;
-  background: var(--daily-word-muted-bg);
+  margin: 0 clamp(1rem, 2vw, 1.7rem);
+  padding: 1.15rem 0 0.5rem;
+  border-top: 1px dashed var(--paper-rule);
   text-align: center;
 }
 
 .daily-word__providers > p {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  color: var(--paper-muted);
+  font-size: 0.79rem;
 }
 
 .daily-word__providers h3 {
@@ -287,11 +275,10 @@
   justify-content: center;
   gap: 0.55rem;
   color: #67452d;
+  font-size: clamp(1.02rem, 1.8vw, 1.17rem);
 }
 
-.daily-word__providers h3 svg {
-  color: #9a6033;
-}
+.daily-word__providers h3 svg { color: #9a6033; }
 
 .daily-word__providers ul {
   display: flex;
@@ -302,60 +289,88 @@
 
 .daily-word__providers .btn--external {
   border-width: 1px;
-  box-shadow: 0 3px 9px rgb(59 56 38 / 0.12);
+  box-shadow: 0 3px 9px rgb(59 46 25 / 0.12);
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .daily-word__providers .btn--external:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgb(59 56 38 / 0.18);
+  box-shadow: 0 6px 14px rgb(59 46 25 / 0.18);
 }
 
 .daily-word__provider-button--maeil-seongyeong {
-  border-color: #c7d7b8;
-  background: rgb(238 246 229 / 0.82);
+  border-color: #bdcda8;
+  background: #e7efd7;
   color: #355b3b;
 }
 
 .daily-word__provider-button--saengmyeong-ui-sam {
-  border-color: #bfd7e9;
-  background: rgb(231 244 253 / 0.82);
+  border-color: #b5cfe0;
+  background: #e1f0f9;
   color: #225a87;
 }
 
 .daily-word__provider-button--nal-som-sam {
-  border-color: #efc8b5;
-  background: rgb(255 237 226 / 0.82);
+  border-color: #e6bca5;
+  background: #fbe6d6;
   color: #8c4836;
 }
 
-.daily-word__provider-button--maeil-seongyeong:hover:not(:disabled) {
-  background: #e4efd9;
+.daily-word__provider-button--maeil-seongyeong:hover:not(:disabled) { background: #d8e9c4; }
+.daily-word__provider-button--saengmyeong-ui-sam:hover:not(:disabled) { background: #d4eafa; }
+.daily-word__provider-button--nal-som-sam:hover:not(:disabled) { background: #fbd8c1; }
+.btn__leading-icon { display: inline-flex; align-items: center; }
+
+@media (min-width: 48rem) {
+  .daily-word__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(4, auto);
+    gap: 0;
+  }
+
+  .daily-word__cards > li { display: contents; }
+
+  .daily-word__cards > li > .daily-word-card {
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+  }
+
+  .daily-word__cards > li + li > .daily-word-card {
+    border-left: 1px dashed var(--paper-rule);
+  }
 }
 
-.daily-word__provider-button--saengmyeong-ui-sam:hover:not(:disabled) {
-  background: #dceefa;
-}
+@media (max-width: 47.999rem) {
+  .daily-word {
+    background-image: url('/qt-parchment-mobile.png');
+    padding: 2.5rem clamp(1.4rem, 4vw, 2.3rem) 4.5rem;
+  }
 
-.daily-word__provider-button--nal-som-sam:hover:not(:disabled) {
-  background: #ffdfce;
-}
-
-.btn__leading-icon {
-  display: inline-flex;
-  align-items: center;
+  .daily-word__cards > li + li > .daily-word-card { padding-top: 1.65rem; }
 }
 
 @media (max-width: 28rem) {
-  .daily-word {
-    border-radius: 1.35rem;
+  .daily-word { padding: 2rem 1.5rem 3.2rem; }
+  .daily-word__heading { padding-inline: 1rem; }
+  .daily-word__cards { padding-inline: 0.5rem; }
+
+  .daily-word-card__translation-options {
+    top: calc(100% + 0.4rem);
+    right: 0;
+    left: auto;
+    transform: none;
   }
 
-  .daily-word__providers ul {
+  .daily-word-card__translation-wrap:has(.daily-word-card__translation-options)::after {
+    top: 100%;
+    left: 0;
     width: 100%;
-    flex-direction: column;
+    height: 0.5rem;
   }
+
+  .daily-word__providers ul { width: 100%; flex-direction: column; }
 }
+
 .daily-word__selection-help {
   position: fixed;
   z-index: 1000;
@@ -384,28 +399,12 @@
   box-shadow: 0 5px 18px rgb(31 41 55 / 0.2);
   font: inherit;
   font-size: 0.875rem;
-  cursor: pointer;
-}
-
-.daily-word__selection-help-trigger:hover {
-  transform: translateY(-1px);
-}
-
-.daily-word__selection-help-trigger:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 3px;
-}
-
-.daily-word__selection-help-grip {
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  line-height: 1;
   cursor: grab;
 }
 
-.daily-word__selection-help:active .daily-word__selection-help-grip {
-  cursor: grabbing;
-}
+.daily-word__selection-help-trigger:active { cursor: grabbing; }
+.daily-word__selection-help-trigger:hover { transform: translateY(-1px); }
+.daily-word__selection-help-trigger:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
 .daily-word__selection-help-content {
   display: grid;
@@ -421,9 +420,7 @@
   line-height: 1.65;
 }
 
-.daily-word__selection-help-content p {
-  margin: 0;
-}
+.daily-word__selection-help-content p { margin: 0; }
 
 .daily-word__selection-help-close {
   justify-self: end;
@@ -435,4 +432,16 @@
   font-size: 0.85rem;
   text-decoration: underline;
   cursor: pointer;
+}
+
+@media (forced-colors: active) {
+  .daily-word,
+  .daily-word-card__translation-options,
+  .daily-word__provider-button--maeil-seongyeong,
+  .daily-word__provider-button--saengmyeong-ui-sam,
+  .daily-word__provider-button--nal-som-sam {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
 }

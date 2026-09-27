@@ -11,7 +11,7 @@ html {
 body {
   margin: 0;
   background-color: var(--bg);
-  background-image: linear-gradient(rgb(247 250 252 / 0.2), rgb(242 248 244 / 0.24)), url('/shepherd-hillside.png');
+  background-image: linear-gradient(rgb(247 250 252 / 0.12), rgb(242 248 244 / 0.14)), url('/shepherd-day-v2.png?v=20260927');
   background-position: center;
   background-size: cover;
   background-attachment: fixed;
@@ -25,7 +25,11 @@ body {
 }
 
 :root[data-theme='dark'] body {
-  background-image: linear-gradient(rgb(15 23 42 / 0.1), rgb(15 23 42 / 0.16)), url('/shepherd-night.png');
+  background-image: url('/shepherd-night-v2.png?v=20260927-aligned');
+}
+
+@media (max-width: 64rem) {
+  :root[data-theme='dark'] body { background-position: 82% center; }
 }
 
 h1,
@@ -93,31 +97,58 @@ p {
   justify-content: flex-end;
 }
 
-.theme-switch__button {
-  display: grid;
-  width: 3rem;
-  height: 3rem;
-  place-items: center;
+.theme-switch {
+  position: fixed;
+  z-index: 20;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem;
   border: 1px solid rgb(255 255 255 / 0.82);
-  border-radius: 50%;
+  border-radius: 999px;
   background: rgb(255 252 243 / 0.78);
-  color: #254b3a;
   box-shadow: 0 4px 14px rgb(27 52 44 / 0.12);
   backdrop-filter: blur(10px);
+}
+
+.theme-switch__button {
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #254b3a;
   font: inherit;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   cursor: pointer;
 }
 
-.theme-switch__button:hover {
+.theme-switch__button[aria-pressed='true'] {
+  background: #385b45;
+  color: #fffdf6;
+}
+
+.theme-switch__button:hover:not([aria-pressed='true']) {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgb(27 52 44 / 0.2);
 }
 
-:root[data-theme='dark'] .theme-switch__button {
+:root[data-theme='dark'] .theme-switch {
   border-color: rgb(203 213 190 / 0.36);
   background: rgb(31 41 55 / 0.9);
-  color: #f3f4f6;
+}
+
+:root[data-theme='dark'] .theme-switch__button {
+  color: #e8e6dc;
+}
+
+:root[data-theme='dark'] .theme-switch__button[aria-pressed='true'] {
+  background: #526c57;
+  color: #fff;
 }
 
 .app-main {
@@ -190,40 +221,68 @@ p {
 }
 
 .service-tabs {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 5;
+  isolation: isolate;
   display: flex;
   width: fit-content;
   max-width: 100%;
-  gap: var(--space-2);
+  gap: 0.35rem;
   justify-self: center;
-  padding: var(--space-1);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--card-shadow);
+  padding: 0.85rem 1.1rem;
+  filter: drop-shadow(0 4px 7px rgb(70 52 31 / 0.18));
+}
+.service-tabs::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: url('/service-tabs-parchment.svg') center / 100% 100% no-repeat;
+  pointer-events: none;
+  content: '';
 }
 .service-tabs__tab {
+  position: relative;
+  min-width: 8.5rem;
   min-height: var(--tap);
-  padding: 0.45rem 1.1rem;
+  padding: 0.45rem 1.15rem;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: 0.12rem;
   background: transparent;
-  color: var(--text-muted);
-  font: inherit;
-  font-weight: 650;
+  color: #755d43;
+  font-family: 'Nanum Myeongjo', 'AppleMyungjo', Batang, serif;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.service-tabs__tab + .service-tabs__tab::before {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  left: -0.2rem;
+  width: 1px;
+  background: linear-gradient(transparent, rgb(112 82 48 / 0.55) 18%, rgb(112 82 48 / 0.55) 82%, transparent);
+  content: '';
+  pointer-events: none;
 }
 .service-tabs__tab[aria-selected='true'] {
-  background: var(--accent);
-  color: var(--accent-contrast);
-  box-shadow: 0 2px 6px rgb(31 41 55 / 0.16);
+  background: radial-gradient(ellipse at center, rgb(168 112 42 / 0.16), transparent 72%);
+  color: #493019;
+  text-shadow: 0 1px 0 rgb(255 248 219 / 0.65);
+}
+.service-tabs__tab[aria-selected='true']::after {
+  position: absolute;
+  right: 22%;
+  bottom: 0.2rem;
+  left: 22%;
+  height: 3px;
+  background: #80532f;
+  clip-path: polygon(0 40%, 18% 15%, 48% 25%, 76% 0, 100% 40%, 92% 85%, 55% 70%, 23% 100%, 4% 80%);
+  content: '';
 }
 .service-tabs__tab:hover:not([aria-selected='true']) {
-  background: var(--surface-soft);
-  color: var(--text);
+  background: radial-gradient(ellipse at center, rgb(168 112 42 / 0.1), transparent 72%);
+  color: #493019;
 }
 .service-panel {
   min-width: 0;
@@ -236,12 +295,11 @@ p {
 .welcome-hero {
   position: relative;
   display: grid;
-  min-height: calc(100vh - 2rem);
-  min-height: calc(100svh - 2rem);
-  align-items: end;
-  align-content: space-between;
-  overflow: hidden;
-  padding: clamp(1rem, 4vw, 2.5rem) 0;
+  min-height: max(100svh, 45rem);
+  align-items: start;
+  align-content: start;
+  overflow: visible;
+  padding: clamp(1.5rem, 7vh, 5rem) 0 1rem;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -251,115 +309,132 @@ p {
 .welcome-hero__content {
   display: grid;
   justify-items: start;
-  gap: 0.75rem;
-  width: min(100%, 42rem);
-  margin-inline: auto;
-  padding: clamp(1.2rem, 4vw, 2.1rem);
-  border: 1px solid rgb(255 255 255 / 0.62);
-  border-radius: 1.5rem;
-  background: rgb(255 251 237 / 0.82);
-  color: #20352d;
-  box-shadow: 0 12px 40px rgb(18 36 31 / 0.2);
-  backdrop-filter: blur(12px);
+  gap: clamp(0.55rem, 1.4vw, 1rem);
+  width: min(100%, 40rem);
+  align-self: start;
+  justify-self: start;
+  margin: 0 0 0 clamp(-14.5rem, calc(36rem - 42vw), 0rem);
+  padding: 0;
+  color: #392b20;
 }
 
-.welcome-hero__eyebrow {
-  color: #52705d;
-  font-size: 0.9rem;
-  font-weight: 750;
-  letter-spacing: 0.12em;
+.welcome-hero__title {
+  display: grid;
+  gap: 0.12em;
+  color: #523923;
+  font-family: 'Nanum Myeongjo', 'AppleMyungjo', Batang, serif;
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 1.32;
+  text-shadow: 0 1px 0 rgb(255 249 228 / 0.94), 0 2px 10px rgb(255 247 221 / 0.76);
 }
 
-.welcome-hero__content h2 {
-  font-size: clamp(1.8rem, 4.3vw, 2.7rem);
-  letter-spacing: -0.04em;
+.welcome-hero__salutation {
+  font-size: 1em;
+}
+
+.welcome-hero__visit {
+  max-width: 26ch;
+  color: #463928;
+  font-family: 'Noto Sans KR', 'Pretendard', sans-serif;
+  font-size: clamp(1.15rem, 2vw, 1.65rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.55;
 }
 
 .welcome-hero__intro {
-  color: #52645a;
-  font-size: clamp(1rem, 2vw, 1.1rem);
+  max-width: 39ch;
+  color: #514536;
+  font-family: 'Noto Sans KR', 'Pretendard', sans-serif;
+  font-size: clamp(0.98rem, 1.4vw, 1.13rem);
+  font-weight: 500;
+  line-height: 1.7;
+  text-shadow: 0 1px 0 rgb(255 249 228 / 0.92), 0 2px 8px rgb(255 247 221 / 0.64);
 }
 
 .welcome-hero__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 0.65rem;
+  margin-top: 0.35rem;
 }
 
 .welcome-hero__button {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   min-height: 3.25rem;
   align-items: center;
   justify-content: center;
   gap: 0.8rem;
   padding: 0.7rem 1.2rem;
-  border: 1px solid #42624e;
-  border-radius: 999px;
-  font: inherit;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #493019;
+  font-family: 'Noto Sans KR', 'Pretendard', sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.4;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  transition: transform 160ms ease, filter 160ms ease;
+  filter: drop-shadow(0 4px 7px rgb(70 52 31 / 0.2));
+}
+
+.welcome-hero__button::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: url('/service-tabs-parchment.svg') center / 100% 100% no-repeat;
+  content: '';
 }
 
 .welcome-hero__button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgb(32 53 45 / 0.18);
+  filter: drop-shadow(0 7px 11px rgb(70 52 31 / 0.24));
 }
 
-.welcome-hero__button--primary {
-  background: #385b45;
-  color: #fffdf6;
+.welcome-hero__button:hover::before {
+  filter: brightness(0.97);
 }
 
-.welcome-hero__button--primary:hover {
-  background: #2c4c39;
-}
-
+.welcome-hero__button--primary,
 .welcome-hero__button--secondary {
-  background: rgb(255 251 237 / 0.78);
-  color: #2f523c;
+  color: #493019;
 }
 
-:root[data-theme='dark'] .welcome-hero__content {
-  border-color: rgb(203 213 190 / 0.3);
-  background: rgb(17 24 39 / 0.84);
-  color: #f3f4f6;
-  box-shadow: 0 12px 40px rgb(0 0 0 / 0.32);
+:root[data-theme='dark'] .welcome-hero__title {
+  color: #f0e8d4;
+  text-shadow: 0 1px 0 rgb(17 24 39 / 0.96), 0 2px 12px rgb(17 24 39 / 0.9);
 }
 
-:root[data-theme='dark'] .welcome-hero__eyebrow {
-  color: #b7d6bf;
+:root[data-theme='dark'] .welcome-hero__visit {
+  color: #e5dfce;
 }
 
 :root[data-theme='dark'] .welcome-hero__intro {
   color: #d0d8d4;
+  text-shadow: 0 1px 0 rgb(17 24 39 / 0.96), 0 2px 10px rgb(17 24 39 / 0.9);
 }
 
-:root[data-theme='dark'] .welcome-hero__button {
-  border-color: #789080;
+:root[data-theme='dark'] .welcome-hero__button::before {
+  filter: brightness(0.94);
 }
 
-:root[data-theme='dark'] .welcome-hero__button--primary {
-  background: #50745b;
-  color: #fff;
-}
-
-:root[data-theme='dark'] .welcome-hero__button--primary:hover {
-  background: #62876d;
-}
-
+:root[data-theme='dark'] .welcome-hero__button--primary,
 :root[data-theme='dark'] .welcome-hero__button--secondary {
-  background: rgb(31 41 55 / 0.82);
-  color: #e4eee6;
+  color: #493019;
 }
 
 .service-step {
   display: grid;
   gap: var(--space-4);
   min-width: 0;
-  margin-top: clamp(1.5rem, 4vw, 3rem);
-  padding-top: clamp(1.5rem, 4vw, 3rem);
+  margin-top: clamp(0.75rem, 1.5vw, 1.5rem);
+  padding-top: clamp(0.75rem, 1.5vw, 1.5rem);
+  padding-bottom: clamp(5rem, 13vh, 9rem);
   scroll-margin-top: 1.25rem;
 }
 
@@ -393,19 +468,55 @@ p {
   .service-tabs__tab {
     flex: 1;
     padding-inline: var(--space-2);
+    min-width: 0;
   }
+}
+
+:root[data-theme='dark'] .service-tabs {
+  filter: drop-shadow(0 4px 8px rgb(0 0 0 / 0.32));
+}
+
+:root[data-theme='dark'] .service-tabs::before {
+  filter: brightness(0.96) sepia(0.08);
+}
+
+:root[data-theme='dark'] .service-tabs__tab {
+  color: #493019;
+}
+
+:root[data-theme='dark'] .service-tabs__tab[aria-selected='true'] {
+  color: #493019;
+}
+
+:root[data-theme='dark'] .welcome-hero__button--primary,
+:root[data-theme='dark'] .welcome-hero__button--secondary {
+  color: #493019;
 }
 
 @media (max-width: 40rem) {
   .welcome-hero {
-    min-height: calc(100vh - 2rem);
-    min-height: calc(100svh - 2rem);
-    align-items: end;
+    min-height: max(100svh, 40rem);
+    padding-top: clamp(2rem, 8svh, 4rem);
   }
 
   .welcome-hero__content {
-    gap: 0.6rem;
-    padding: 1.15rem;
+    width: 100%;
+    gap: 0.65rem;
+    margin: 0;
+  }
+
+  .welcome-hero__title {
+    font-size: clamp(1.9rem, 8vw, 2.75rem);
+  }
+
+  .welcome-hero__visit {
+    max-width: 24ch;
+    font-size: clamp(1.05rem, 4.8vw, 1.35rem);
+  }
+
+  .welcome-hero__intro {
+    max-width: 33ch;
+    font-size: 0.98rem;
   }
 
   .welcome-hero__actions {

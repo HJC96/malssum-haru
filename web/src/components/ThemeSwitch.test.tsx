@@ -9,15 +9,21 @@ describe('낮/밤 모드 전환', () => {
     vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
   });
 
-  it('해/달 이모지 버튼으로 테마를 전환한다', async () => {
+  it('해와 달 버튼을 나란히 보여주고 각각 선택한다', async () => {
     const user = userEvent.setup();
     render(<ThemeSwitch />);
 
-    const toggle = screen.getByRole('button', { name: '다크 모드로 전환' });
-    expect(toggle).toHaveTextContent('☀️');
-    await user.click(toggle);
+    const day = screen.getByRole('button', { name: '낮 모드' });
+    const night = screen.getByRole('button', { name: '밤 모드' });
+    expect(day).toHaveTextContent('☀️');
+    expect(night).toHaveTextContent('🌙');
+    expect(day).toHaveAttribute('aria-pressed', 'true');
+    await user.click(night);
 
-    expect(screen.getByRole('button', { name: '낮 모드로 전환' })).toHaveTextContent('🌙');
+    expect(night).toHaveAttribute('aria-pressed', 'true');
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+    await user.click(day);
+    expect(day).toHaveAttribute('aria-pressed', 'true');
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
   });
 });

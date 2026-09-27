@@ -155,8 +155,9 @@ test('CloudFront /api/* 동작과 기본 동작이 분리되어 있고 SPA 재�
   const { json } = build(WITH_EMAIL);
   const cfg = resourcesOfType(json, 'AWS::CloudFront::Distribution')[0]![1].Properties!.DistributionConfig;
   assert.equal(cfg.DefaultCacheBehavior.FunctionAssociations.length, 1);
-  assert.equal(cfg.CacheBehaviors[0].PathPattern, '/api/*');
-  assert.equal(cfg.CacheBehaviors[0].FunctionAssociations, undefined);
+  const qt = cfg.CacheBehaviors.find((b: { PathPattern: string }) => b.PathPattern === '/api/*');
+  assert.ok(qt);
+  assert.equal(qt.FunctionAssociations, undefined);
   assert.equal(cfg.PriceClass, 'PriceClass_200');
 });
 
@@ -183,15 +184,16 @@ test('검색 엔진 비노출: 모든 CloudFront 동작이 X-Robots-Tag noindex 
   }
 });
 
-test('Lambda는 VPC 밖에 있고(NAT 불필요) 쓰기 권한은 수집 함수에만 있다', () => {
+test('Lambda는 VPC 밖에 있고(NAT 불필요) 쓰기 권한은 QT 수집·방문 카운터에만 있다', () => {
   const { json } = build(WITH_EMAIL);
-  const fns = resourcesOfType(json, 'AWS::Lambda::Function').filter(([, f]) => f.Properties!.Runtime === 'java21');
+  const fns = resourcesOfType(json, 'AWS::Lambda::Function');
   for (const [, f] of fns) assert.equal(f.Properties!.VpcConfig, undefined);
   const write = /PutItem|UpdateItem|DeleteItem|BatchWriteItem/;
   const policies = resourcesOfType(json, 'AWS::IAM::Policy');
   const writers = policies.filter(([, p]) => write.test(JSON.stringify(p.Properties!.PolicyDocument))).map(([id]) => id);
-  assert.equal(writers.length, 1);
-  assert.match(writers[0]!, /^QtCollectorFunction/);
+  assert.equal(writers.length, 2);
+  assert.ok(writers.some((id) => id.startsWith('QtCollectorFunction')));
+  assert.ok(writers.some((id) => id.startsWith('VisitApiFunction')));
 });
 
 test('DynamoDB 권한은 GetItem/PutItem 으로 한정되고 테이블 ARN 하나에만 붙는다', () => {

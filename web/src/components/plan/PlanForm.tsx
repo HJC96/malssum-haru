@@ -16,6 +16,7 @@ const SCOPES: ScopeKind[] = ['all', 'ot', 'nt', 'books'];
 const DURATION_PRESETS = [30, 90, 180, 365] as const;
 type DurationPreset = (typeof DURATION_PRESETS)[number] | 'custom';
 type ReadingPreset = 'daily' | 'six' | 'five' | 'custom';
+type QuickStep = 0 | 1 | 2 | 3;
 const CADENCES: Record<Exclude<ReadingPreset, 'custom'>, Weekday[]> = {
   daily: [...ALL_WEEKDAYS],
   six: [1, 2, 3, 4, 5, 6],
@@ -41,9 +42,13 @@ export function PlanForm({ form, onChange, bible, preview, onPreview }: Props) {
   const [excludeDraft, setExcludeDraft] = useState('');
   const [durationPreset, setDurationPreset] = useState<DurationPreset>(() => presetForPeriod(form.startDate, form.endDate));
   const [readingPreset, setReadingPreset] = useState<ReadingPreset>(() => presetForWeekdays(form.weekdays));
+  const [activeStep, setActiveStep] = useState<QuickStep>(0);
   const books = listBooks(bible);
   const bookIds = books.map((b) => b.bookId);
   const patch = (p: Partial<PlanFormState>) => onChange((f) => ({ ...f, ...p }));
+  const goToStep = (step: QuickStep) => {
+    setActiveStep(step);
+  };
 
   const toggleWeekday = (w: Weekday) =>
     patch({
@@ -60,6 +65,7 @@ export function PlanForm({ form, onChange, bible, preview, onPreview }: Props) {
   const selectDuration = (preset: DurationPreset) => {
     setDurationPreset(preset);
     if (preset !== 'custom') patch({ endDate: addDays(form.startDate, preset - 1) });
+    if (preset !== 'custom') goToStep(2);
   };
 
   const selectReadingDays = (preset: ReadingPreset) => {
@@ -69,17 +75,33 @@ export function PlanForm({ form, onChange, bible, preview, onPreview }: Props) {
 
   return (
     <form className="plan-form" onSubmit={(e) => e.preventDefault()} aria-label={t('plan.heading')}>
+      <div className="plan-form__steps-nav" role="group" aria-label={t('plan.quick.steps')}>
+        {(['plan.quick.scope', 'plan.quick.period', 'plan.quick.readingDays', 'plan.quick.advanced'] as MessageKey[]).map((key, index) => (
+          <button
+            key={key}
+            type="button"
+            className="plan-form__step-link"
+            aria-pressed={activeStep === index}
+            onClick={() => goToStep(index as QuickStep)}
+          >
+            <span className="plan-form__step-number" aria-hidden="true">{index === 3 ? '⋯' : index + 1}</span>
+            <span>{t(key)}</span>
+          </button>
+        ))}
+      </div>
+      <div className="plan-form__panel" aria-live="polite">
+      {activeStep === 0 && <>
       <fieldset className="plan-quick-fieldset">
         <legend>{t('plan.quick.scope')}</legend>
         <div className="choice-row">
           {SCOPES.map((s) => (
             <label key={s} className="choice">
-              <input type="radio" name={`${idBase}-scope`} checked={form.scopeKind === s} onChange={() => patch({ scopeKind: s })} />
+              <input type="radio" name={`${idBase}-scope`} checked={form.scopeKind === s} onChange={() => { patch({ scopeKind: s }); if (s !== 'books') goToStep(1); }} />
               <span>{t(`plan.scope.${s}` as MessageKey)}</span>
             </label>
           ))}
         </div>
-        {form.scopeKind === 'books' && (
+      {form.scopeKind === 'books' && (
           <div className="books-picker">
             <fieldset>
               <legend>{t('plan.books.selectLegend')}</legend>
@@ -106,8 +128,15 @@ export function PlanForm({ form, onChange, bible, preview, onPreview }: Props) {
             </div>
           </div>
         )}
+        {form.scopeKind === 'books' && (
+          <button type="button" className="btn btn--small plan-form__next" disabled={form.bookIds.length === 0} onClick={() => goToStep(1)}>
+            {t('plan.quick.next')}
+          </button>
+      )}
       </fieldset>
+      </>}
 
+      {activeStep === 1 && <>
       <fieldset className="plan-quick-fieldset">
         <legend>{t('plan.quick.period')}</legend>
         <div className="plan-preset-row" role="group" aria-label={t('plan.quick.period')}>
@@ -134,8 +163,11 @@ export function PlanForm({ form, onChange, bible, preview, onPreview }: Props) {
           </label>}
         </div>
         <p className="qt-note">{t('plan.periodHint')}</p>
+        <button type="button" className="btn btn--small plan-form__next" onClick={() => goToStep(2)}>{t('plan.quick.next')}</button>
       </fieldset>
+      </>}
 
+      {activeStep === 2 && <>
       <fieldset className="plan-quick-fieldset">
         <legend>{t('plan.quick.readingDays')}</legend>
         <div className="plan-preset-row" role="group" aria-label={t('plan.quick.readingDays')}>
@@ -153,10 +185,12 @@ export function PlanForm({ form, onChange, bible, preview, onPreview }: Props) {
             </label>
           ))}
         </div>}
+        {readingPreset === 'custom' && <button type="button" className="btn btn--small plan-form__next" onClick={onPreview}>{t('plan.quick.toResult')}</button>}
       </fieldset>
+      </>}
 
-      <details className="plan-advanced">
-        <summary>{t('plan.quick.advanced')}</summary>
+      {activeStep === 3 && <div className="plan-advanced">
+        <h3>{t('plan.quick.advanced')}</h3>
         <div className="plan-advanced__body">
         <fieldset>
         <legend>{t('plan.excluded.legend')}</legend>
@@ -201,7 +235,8 @@ export function PlanForm({ form, onChange, bible, preview, onPreview }: Props) {
         <input type="text" value={form.planName} maxLength={60} onChange={(e) => patch({ planName: e.target.value })} />
       </label>
         </div>
-      </details>
+      </div>}
+      </div>
       {preview && <p className="plan-quick-summary" role="status">
         {t('plan.quick.summary', { verses: preview.verses, days: preview.days, average: preview.average === null ? '—' : preview.average.toFixed(1) })}
       </p>}

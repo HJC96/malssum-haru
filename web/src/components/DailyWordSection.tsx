@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatIsoDate, bookName, useI18n } from '@/i18n';
 import { fallbackLinks } from '@/app/qt/fetchQtToday';
@@ -41,6 +41,15 @@ function VerseCard({ entry, testament }: { entry: DailyWordEntry; testament: 'ol
   const headingId = useId();
   const translationLinksId = useId();
   const [translationLinksOpen, setTranslationLinksOpen] = useState(false);
+  const closeTranslationTimer = useRef<number | undefined>(undefined);
+  const openTranslationLinks = () => {
+    if (closeTranslationTimer.current !== undefined) window.clearTimeout(closeTranslationTimer.current);
+    closeTranslationTimer.current = undefined;
+    setTranslationLinksOpen(true);
+  };
+  useEffect(() => () => {
+    if (closeTranslationTimer.current !== undefined) window.clearTimeout(closeTranslationTimer.current);
+  }, []);
   const reference = `${bookName(entry.reference.bookId, lang)} ${entry.reference.chapter}:${entry.reference.verse}`;
   return (
     <article className={`daily-word-card daily-word-card--${testament}`} aria-labelledby={headingId}>
@@ -57,9 +66,10 @@ function VerseCard({ entry, testament }: { entry: DailyWordEntry; testament: 'ol
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setTranslationLinksOpen(false);
         }}
-        onMouseEnter={() => setTranslationLinksOpen(true)}
+        onMouseEnter={openTranslationLinks}
         onMouseLeave={(event) => {
-          if (!event.currentTarget.contains(document.activeElement)) setTranslationLinksOpen(false);
+          if (event.currentTarget.contains(document.activeElement)) return;
+          closeTranslationTimer.current = window.setTimeout(() => setTranslationLinksOpen(false), 175);
         }}
       >
         <button
@@ -69,7 +79,7 @@ function VerseCard({ entry, testament }: { entry: DailyWordEntry; testament: 'ol
           onBlur={(event) => {
             if (!event.currentTarget.parentElement?.contains(event.relatedTarget as Node | null)) setTranslationLinksOpen(false);
           }}
-          onFocus={() => setTranslationLinksOpen(true)}
+          onFocus={openTranslationLinks}
           onClick={() => setTranslationLinksOpen(true)}
           type="button"
         >
@@ -89,6 +99,30 @@ function VerseCard({ entry, testament }: { entry: DailyWordEntry; testament: 'ol
       <div className="daily-word-card__explanation">
         <h4><ScriptureIcon name="seedling" />{t('dailyWord.explanation')}</h4>
         <p lang={entry.explanation.language}>{entry.explanation.text}</p>
+      </div>
+    </article>
+  );
+}
+
+function UnavailableVerseCard({ testament }: { testament: 'old' | 'new' }) {
+  const { t } = useI18n();
+  const headingId = useId();
+  return (
+    <article className={`daily-word-card daily-word-card--${testament} daily-word-card--unavailable`} aria-labelledby={headingId}>
+      <header className="daily-word-card__header">
+        <p className={`daily-word-card__eyebrow daily-word-card__eyebrow--${testament}`}>
+          <ScriptureIcon name="book" />
+          {t(testament === 'old' ? 'dailyWord.oldTestament' : 'dailyWord.newTestament')}
+        </p>
+        <h3 id={headingId}>{t('dailyWord.contentPendingTitle')}</h3>
+      </header>
+      <p className="daily-word-card__text">{t('dailyWord.contentPendingBody')}</p>
+      <div className="daily-word-card__translation-wrap">
+        <span className="daily-word-card__translation">{t('dailyWord.translationName')}</span>
+      </div>
+      <div className="daily-word-card__explanation">
+        <h4><ScriptureIcon name="seedling" />{t('dailyWord.explanation')}</h4>
+        <p>{t('dailyWord.explanationPending')}</p>
       </div>
     </article>
   );
@@ -173,7 +207,6 @@ export function DailyWordSection({ date, content, status, now, onRetry }: Props)
           }}
           type="button"
         >
-          <span aria-hidden="true" className="daily-word__selection-help-grip">⠿</span>
           {t('dailyWord.selectionHelp')}
         </button>
         {selectionHelpOpen && (
@@ -198,7 +231,15 @@ export function DailyWordSection({ date, content, status, now, onRetry }: Props)
       </header>
 
       {status === 'loading' && <p role="status">{t('dailyWord.loading')}</p>}
-      {status === 'unavailable' && <p className="daily-word__notice" role="status">{t('dailyWord.unavailable')}</p>}
+      {status === 'unavailable' && (
+        <>
+          <p className="daily-word__notice" role="status">{t('dailyWord.unavailable')}</p>
+          <ul className="daily-word__cards daily-word__cards--unavailable">
+            <li><UnavailableVerseCard testament="old" /></li>
+            <li><UnavailableVerseCard testament="new" /></li>
+          </ul>
+        </>
+      )}
       {status === 'error' && (
         <div className="daily-word__notice daily-word__notice--error" role="alert">
           <p>{t('dailyWord.error')}</p>

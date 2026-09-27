@@ -36,7 +36,7 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     await userEvent.click(screen.getByRole('button', { name: '이 일정으로 적용' }));
     await userEvent.click(within(screen.getByRole('group', { name: '오늘 읽은 범위 (선택)' })).getByRole('button', { name: '범위 추가' }));
     await userEvent.click(screen.getByRole('button', { name: '월간 캘린더' }));
-    await userEvent.click(screen.getByRole('button', { name: /모드로 전환/ }));
+    await userEvent.click(screen.getByRole('button', { name: '밤 모드' }));
     setDate('마감일', '2026-01-01'); // 오류 화면
     expect(screen.getByRole('alert')).toBeInTheDocument();
 

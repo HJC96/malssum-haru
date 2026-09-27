@@ -15,6 +15,32 @@ const openAdvancedSettings = async () => {
 const chooseCustomWeekdays = async () => userEvent.click(screen.getByRole('button', { name: '요일 직접 선택' }));
 
 describe('계획 입력과 결과 (AC03~AC06)', () => {
+  it('범위와 기간을 고르면 다음 설정 단계로 이동하고 요일 선택 후 결과로 이동한다', async () => {
+    renderPlan();
+    const steps = screen.getByRole('group', { name: '계획 설정 단계' });
+    const scope = within(steps).getByRole('button', { name: '무엇을 읽을까요?' });
+    const period = within(steps).getByRole('button', { name: '언제까지 읽을까요?' });
+    const days = within(steps).getByRole('button', { name: '일주일에 며칠 읽을까요?' });
+    expect(scope).toHaveAttribute('aria-current', 'step');
+    await userEvent.click(screen.getByRole('radio', { name: '구약' }));
+    expect(period).toHaveAttribute('aria-current', 'step');
+    await userEvent.click(screen.getByRole('button', { name: '90일' }));
+    expect(days).toHaveAttribute('aria-current', 'step');
+    await userEvent.click(screen.getByRole('button', { name: '주 5일' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: '계획 결과' }));
+  });
+
+  it('책을 직접 고를 때는 여러 권을 체크한 뒤 다음 단계로 갈 수 있다', async () => {
+    renderPlan();
+    await userEvent.click(screen.getByRole('radio', { name: '선택한 책' }));
+    const next = within(screen.getByRole('group', { name: '무엇을 읽을까요?' })).getByRole('button', { name: '다음 단계' });
+    expect(next).toBeDisabled();
+    await userEvent.click(within(screen.getByRole('group', { name: '책 선택' })).getByRole('checkbox', { name: '창세기' }));
+    expect(next).toBeEnabled();
+    await userEvent.click(next);
+    expect(within(screen.getByRole('group', { name: '계획 설정 단계' })).getByRole('button', { name: '언제까지 읽을까요?' })).toHaveAttribute('aria-current', 'step');
+  });
+
   it('빠른 설정은 기본값으로 미리보기를 제공하고 기간 프리셋을 적용한다', async () => {
     renderPlan();
     expect(screen.getByRole('button', { name: '30일' })).toHaveAttribute('aria-pressed', 'true');

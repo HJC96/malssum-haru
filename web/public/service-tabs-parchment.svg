@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="120" viewBox="0 0 600 120" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="paper" x2="0" y2="1">
+      <stop stop-color="#f0e5ce"/>
+      <stop offset=".16" stop-color="#fbf6eb"/>
+      <stop offset=".5" stop-color="#fffdf7"/>
+      <stop offset=".83" stop-color="#faf5e9"/>
+      <stop offset="1" stop-color="#ead9bb"/>
+    </linearGradient>
+    <radialGradient id="age">
+      <stop offset=".55" stop-color="#946033" stop-opacity="0"/>
+      <stop offset="1" stop-color="#946033" stop-opacity=".13"/>
+    </radialGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".65" numOctaves="3" seed="12"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".12"/></feComponentTransfer>
+      <feBlend in="SourceGraphic" mode="multiply"/>
+    </filter>
+    <filter id="edge" x="-2%" y="-10%" width="104%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".055 .15" numOctaves="3" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <path id="sheet" d="M12 9 Q28 3 47 7 L82 5 109 8 142 5 173 7 207 4 233 7 261 5 288 8 323 5 352 7 386 4 415 7 447 5 476 8 509 5 534 7 565 5 Q581 6 589 11 L587 29 591 45 588 64 590 83 585 106 Q569 114 549 110 L517 113 484 109 455 113 428 110 395 114 366 111 337 115 307 111 280 113 247 110 215 114 188 110 157 113 122 109 93 113 65 110 38 113 Q22 112 11 107 L13 88 9 73 12 53 8 36 Z"/>
+    <clipPath id="inside"><use href="#sheet"/></clipPath>
+  </defs>
+  <g filter="url(#edge)">
+    <use href="#sheet" fill="url(#paper)" stroke="#98683e" stroke-width="2"/>
+    <g clip-path="url(#inside)">
+      <rect width="600" height="120" fill="url(#age)"/>
+      <rect width="600" height="120" fill="#f7efdf" opacity=".2" filter="url(#grain)"/>
+      <use href="#sheet" fill="none" stroke="#b48147" stroke-width="9" opacity=".1"/>
+      <path d="M18 15 Q180 9 300 13 T580 14 M19 103 Q180 110 300 105 T581 104" fill="none" stroke="#fff4d8" stroke-width="1.5" opacity=".55"/>
+    </g>
+  </g>
+</svg>

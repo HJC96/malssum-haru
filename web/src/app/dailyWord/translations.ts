@@ -12,7 +12,7 @@ interface TranslationPolicy {
 
 export const DAILY_WORD_TRANSLATIONS: Record<string, TranslationPolicy> = {
   'kor-rv-1961': {
-    displayName: '개역한글판',
+    displayName: '개역한글',
     language: 'ko',
     status: 'approved',
     source: 'https://www.bskorea.or.kr/bbs/board.php?bo_table=copyright_faq&wr_id=5',
