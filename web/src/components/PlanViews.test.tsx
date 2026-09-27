@@ -20,6 +20,9 @@ describe('캘린더와 목록 (CAL01, AC10)', () => {
     const frame = document.querySelector('.plan-view-frame')!;
     const panes = [...frame.querySelectorAll('.plan-view-frame__scroll')];
     expect(panes).toHaveLength(2);
+    expect(panes[0]).toHaveAttribute('hidden');
+    expect(panes[1]).not.toHaveAttribute('hidden');
+    await userEvent.click(screen.getByRole('button', { name: '날짜별 목록' }));
     expect(panes[0]).not.toHaveAttribute('hidden');
     expect(panes[1]).toHaveAttribute('hidden');
     await openCalendar();

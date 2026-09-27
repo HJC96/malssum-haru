@@ -26,6 +26,7 @@ export function ProgressEditor({ form, bible, onApply }: Props) {
   const [draft, setDraft] = useState(() => fieldsFrom(form));
   const [open, setOpen] = useState(false);
   const books = listBooks(bible).map((book) => book.bookId);
+  const chapterOnly = bible.versificationSystem === 'chapter-only-66';
   const patch = (p: Partial<ProgressFields>) => setDraft((prev) => ({ ...prev, ...p }));
   const toggle = (event: SyntheticEvent<HTMLDetailsElement>) => {
     const nextOpen = event.currentTarget.open;
@@ -49,14 +50,14 @@ export function ProgressEditor({ form, bible, onApply }: Props) {
           <div className="range-row" role="group" aria-label={t('plan.read.through')}>
             <label className="field"><span>{t('plan.range.book')}</span><select value={draft.through.bookId} onChange={(e) => patch({ through: { ...draft.through, bookId: e.target.value } })}><option value="" />{books.map((id) => <option key={id} value={id}>{bookName(id, lang)}</option>)}</select></label>
             <label className="field field--num"><span>{t('plan.range.chapter')}</span><input type="text" inputMode="numeric" autoComplete="off" value={draft.through.chapter} onChange={(e) => patch({ through: { ...draft.through, chapter: e.target.value } })} /></label>
-            <label className="field field--num"><span>{t('plan.range.verse')}</span><input type="text" inputMode="numeric" autoComplete="off" value={draft.through.verse} onChange={(e) => patch({ through: { ...draft.through, verse: e.target.value } })} /></label>
+            {!chapterOnly && <label className="field field--num"><span>{t('plan.range.verse')}</span><input type="text" inputMode="numeric" autoComplete="off" value={draft.through.verse} onChange={(e) => patch({ through: { ...draft.through, verse: e.target.value } })} /></label>}
           </div>
         )}
-        {draft.readMode === 'ranges' && <><RangeRows rows={draft.readRanges} bookIds={books} onChange={(readRanges) => patch({ readRanges })} /><p className="qt-note">{t('plan.read.rangesHint')}</p></>}
+        {draft.readMode === 'ranges' && <><RangeRows rows={draft.readRanges} bookIds={books} onChange={(readRanges) => patch({ readRanges })} chapterOnly={chapterOnly} /><p className="qt-note">{t('plan.read.rangesHint')}</p></>}
       </fieldset>
       <fieldset>
         <legend>{t('plan.todayRead.legend')}</legend>
-        <RangeRows rows={draft.todayRead} bookIds={books} onChange={(todayRead) => patch({ todayRead })} allowEmpty />
+        <RangeRows rows={draft.todayRead} bookIds={books} onChange={(todayRead) => patch({ todayRead })} allowEmpty chapterOnly={chapterOnly} />
         <p className="qt-note">{t('plan.todayRead.hint')}</p>
       </fieldset>
       <div className="choice-row">

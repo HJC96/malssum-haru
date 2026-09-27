@@ -39,7 +39,7 @@ function effectiveStatus(p: QtProvider): QtViewStatus {
 
 /**
  * 제공처 한 곳의 오늘 QT 카드. 계약 v1의 5개 상태를 모두 처리한다.
- * 이 컴포넌트는 일독 계획 상태를 알지 못하며, 열람 기록을 남기지 않는다(AC01).
+ * 이 컴포넌트는 성경 읽기 계획 상태를 알지 못하며, 열람 기록을 남기지 않는다(AC01).
  */
 export function QtProviderCard({ provider, now, checking = false }: Props) {
   const { lang, t } = useI18n();

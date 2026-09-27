@@ -64,7 +64,7 @@ describe('페이지 전환과 비저장', () => {
     const loader = vi.fn(async (date: string) => testContent(date));
     render(<App initialLang="ko" initialService="qt" dailyWordLoader={loader} now={TODAY} />);
     await screen.findByRole('article', { name: '창세기 1:1' });
-    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
+    await userEvent.click(screen.getByRole('tab', { name: '성경 읽기 계획' }));
     await userEvent.click(screen.getByRole('tab', { name: '오늘의 QT' }));
     expect(loader).toHaveBeenCalledTimes(1);
   });

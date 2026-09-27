@@ -15,7 +15,7 @@ describe('첫 화면에서 서비스 화면으로 이동', () => {
     expect(await screen.findByRole('heading', { name: '샬롬, 오늘 7번째로 방문해주셨군요!' })).toBeInTheDocument();
     expect(visitRecorder).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: 'QT하러 가기' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '일독 계획 세우기' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '성경 읽기 계획 세우기' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'English' })).not.toBeInTheDocument();
     expect(screen.getByRole('region', { name: /오늘의 말씀/ })).toBeInTheDocument();
     await waitFor(() => expect(loader).toHaveBeenCalled());
@@ -25,12 +25,12 @@ describe('첫 화면에서 서비스 화면으로 이동', () => {
     expect(screen.getByRole('tab', { name: '오늘의 QT' })).toHaveAttribute('aria-selected', 'true');
     await waitFor(() => expect(scrollIntoView).toHaveBeenCalled());
 
-    await user.click(screen.getByRole('button', { name: '일독 계획 세우기' }));
-    expect(screen.getByRole('tab', { name: '일독 계획' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('heading', { name: '일독 계획' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '성경 읽기 계획 세우기' }));
+    expect(screen.getByRole('tab', { name: '성경 읽기 계획' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: '성경 읽기 계획' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: '오늘의 QT' }));
-    expect(screen.queryByRole('heading', { name: '일독 계획' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '성경 읽기 계획' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '샬롬, 오늘 7번째로 방문해주셨군요!' })).toBeInTheDocument();
     expect(visitRecorder).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('button', { name: /처음 화면으로/ })).not.toBeInTheDocument();

@@ -29,7 +29,7 @@ export const MAX_PERIOD_DAYS = 3660;
 
 const ALL_WEEKDAYS: ReadonlyArray<Weekday> = [0, 1, 2, 3, 4, 5, 6];
 
-/** 나눌 수 없는 배정 단위: 한 장에서 남은 절 전체. */
+/** 한 장에서 아직 읽지 않은 절. 장 배분에서는 이 단위 전체를, 절 배분에서는 일부를 배정한다. */
 interface Unit {
   book: BookIndex;
   chapter: number;
@@ -165,6 +165,46 @@ function unitsToRanges(units: ReadonlyArray<Unit>): VerseRange[] {
   }));
 }
 
+/** 남은 절을 성경 순서대로 고르게 나눈다. 한 장을 여러 날에 걸쳐 읽을 수 있다. */
+function splitUnitsByVerses(units: ReadonlyArray<Unit>, days: number): Unit[][] {
+  const byDay: Unit[][] = Array.from({ length: days }, () => []);
+  if (days === 0) return byDay;
+  const total = units.reduce((sum, unit) => sum + unit.verses, 0);
+  const perDay = Math.floor(total / days);
+  const extraDays = total % days;
+  let unitIndex = 0;
+  let intervalIndex = 0;
+  let cursor = units[0]?.intervals[0]?.[0] ?? 0;
+
+  for (let day = 0; day < days; day++) {
+    let left = perDay + (day < extraDays ? 1 : 0);
+    const assigned = byDay[day] as Unit[];
+    while (left > 0) {
+      const source = units[unitIndex] as Unit;
+      const [, end] = source.intervals[intervalIndex] as Interval;
+      const take = Math.min(left, end - cursor);
+      let part = assigned[assigned.length - 1];
+      if (!part || part.book !== source.book || part.chapter !== source.chapter) {
+        part = { book: source.book, chapter: source.chapter, intervals: [], verses: 0, chapterTotal: source.chapterTotal };
+        assigned.push(part);
+      }
+      part.intervals.push([cursor, cursor + take]);
+      part.verses += take;
+      cursor += take;
+      left -= take;
+      if (cursor === end) {
+        intervalIndex++;
+        if (intervalIndex === source.intervals.length) {
+          unitIndex++;
+          intervalIndex = 0;
+        }
+        cursor = units[unitIndex]?.intervals[intervalIndex]?.[0] ?? 0;
+      }
+    }
+  }
+  return byDay;
+}
+
 function checkDate(value: IsoDate, field: string, errors: PlanError[]): boolean {
   if (typeof value === 'string' && isValidIsoDate(value)) return true;
   errors.push({ code: 'INVALID_DATE', detail: { field, value: String(value) } });
@@ -251,17 +291,22 @@ export function computePlan(input: PlanInput): PlanOutcome {
     };
   }
 
-  const sizes = distributeUnits(
-    units.map((u) => u.verses),
-    readingDayNumbers.length,
-    input.distribution,
-  );
+  const chapterSizes = input.distribution === 'chapters'
+    ? distributeUnits(units.map((u) => u.verses), readingDayNumbers.length, 'chapters')
+    : null;
+  const verseUnits = input.distribution === 'verses'
+    ? splitUnitsByVerses(units, readingDayNumbers.length)
+    : null;
   const unitsByDay = new Map<number, Unit[]>();
   let cursor = 0;
   readingDayNumbers.forEach((n, i) => {
-    const take = sizes[i] as number;
-    unitsByDay.set(n, units.slice(cursor, cursor + take));
-    cursor += take;
+    if (verseUnits) {
+      unitsByDay.set(n, verseUnits[i] as Unit[]);
+    } else {
+      const take = chapterSizes?.[i] ?? 0;
+      unitsByDay.set(n, units.slice(cursor, cursor + take));
+      cursor += take;
+    }
   });
 
   const days: PlanDay[] = [];

@@ -14,7 +14,7 @@
 | W01 | 한국어 번역본·본문 표시 및 정적 배포 권리 확인 | source-rights + lead | 공식 근거 확인 | 개역한글판 사용. KBS FAQ상 이용료 없음; 출처표기·원문 동일성 유지 | done(2026-09-26, 법률 자문은 아님) |
 | W02 | 날짜별 두 구절·해설 콘텐츠 계약과 검증기 | content-data | W01의 기준; UI는 fixture로 선행 가능 | 정확한 날짜 artifact loader/validator; 승인 ID, 단일 절/언어/책 범위 검사 | done(2026-09-26, 개역한글 시편 23:1/요한복음 3:16 artifact) |
 | W03 | 오늘 말씀 카드·상태·공식 바로가기 UI | daily-ui | 화면/API 계약 | 두 카드와 해설, 오류 상태, 매일성경·생명의삶 직접 링크 | done(2026-09-26, 전체 테스트 통과) |
-| W04 | 정적 호스팅 우선 설계, 후속 서버리스/MSA 경계·비용 | platform-cost + msa-lab | W02 계약 | 기존 비용 상한과 배포 경계 검토; 별도 승인 없는 AWS/LLM 배포 없음 | done(2026-09-26, 인프라 28개 통과, 미배포) |
+| W04 | 정적 호스팅 우선 설계, 후속 서버리스 경계·비용 | platform-cost | W02 계약 | 기존 비용 상한과 배포 경계 검토; 별도 승인 없는 AWS/LLM 배포 없음 | done(2026-09-26, 인프라 28개 통과, 미배포) |
 | W05 | 통합 접근성·언어·날짜 경계·링크 검수 및 인계 | qa + lead | W02~W04 | 계획 D-01~D-08과 결과 문서 | done(2026-09-26, [QA 기록](../qa/daily-word-review.md); 자료는 당일 하루치) |
 
 ## 2026-09-26 추가 요청: 일독 계획 간소화
@@ -54,7 +54,7 @@
 | platform-cost | `infra/**`, `.github/workflows/**`, `docs/cost-estimate.md` |
 | (예정) qa-review | `docs/qa/**` (읽기 전용 검토) |
 | (조건부) ai-content | `services/ai/**` — 본문·AI 사용 조건 확인 후 |
-| (조건부) msa-lab | `labs/spring-cloud/**` — QT·AI 계약 후 |
+| msa-lab | 취소됨. Spring Cloud MSA 실습 코드는 현재 제품 범위에서 제외 |
 
 ## 활성 과제 (M0 · M1 · M2 시작)
 
@@ -79,7 +79,7 @@
 | T17 | AI 입력용 공개 번역본 후보 조사(KJV·WEB·ASV 등 퍼블릭 도메인/공개 라이선스, 한국어 공개 번역본 여부는 조사만) | source-rights | - | `docs/data-sources.md`(신규 절), `docs/rights-matrix.md`(신규 절) | 후보별 라이선스 근거 URL·확인일, 재배포·저장·AI 입력·AI 출력 저장 조건, 데이터 배포처(파일 형식·버전), 절 번호 체계와 개역개정 기준 QT 범위와의 대응 위험, 권고안 | M5 | done(2026-09-24 권고 WEB, ai-content 조건부 예 → 인용 금지·정렬 검사 조건으로 시작) |
 | T18 | AI 설명 서비스 골격(Java, services/ai): 캐시 키, 동일 키 단일 활성 생성, 예산·호출 제한 차단, 검토·리비전·오류 신고, 출력 검증(구절 인용 금지), WEB 입력 절 정렬 검사, 목(mock) LLM | ai-content | T17, docs/contracts/ai-explain.md | `services/ai/**` | 계약 v1 응답, AC12~AC16·AC22·AC25에 대응하는 테스트(목 LLM), 실제 LLM 호출·API 키 없음(기본 AI_GENERATION_ENABLED=false) | M5 | done(2026-09-25, 24 테스트 통과; 메모리 저장소·제한은 단일 프로세스 개발 골격, 실제 LLM 비활성화) |
 | T19 | 두 번째 QA: M1 발견 종결 확인, T16 배포 경로, IaC 권한·비용표 정합, 화면·내보내기 재확인 | qa-review | T11, T16 | `docs/qa/M2-review.md` | 항목별 종결/미종결·AC 표 갱신 | M7 | done(2026-09-25; 로컬 자동 검증만, AWS·브라우저 실기는 미확인, F-11 미해결) |
-| T20 | Spring Cloud 실습: Gateway 라우팅, Config 분리, Eureka 검색, CircuitBreaker(설명 중단 시 QT 링크 유지), 모의 설명 | msa-lab | QT·AI 계약 | `labs/spring-cloud/**` | 독립 빌드·실행·중단, 장애 격리 테스트, 공개 일정과 분리 | M6 | done(2026-09-26, `mvn clean verify` 4개 테스트 및 end-to-end smoke 통과; AWS/LLM 미사용) |
+| T20 | Spring Cloud MSA 학습 실습 | msa-lab | QT·AI 계약 | `labs/spring-cloud/**` | 현재 제품 방향에 불필요. 요청에 따라 실습 디렉터리 제거 | M6 | cancelled(2026-09-27) |
 | T14 | M1 통합 QA | qa-review | T05, T06 | `docs/qa/**` | AC11·QT 날짜·링크·비저장 점검 결과 문서 | AC11 | done(2026-09-24 docs/qa/M1-review.md: 차단 0, 중요 F-01·F-02(수정됨)·F-03(수정됨)·F-04~F-06 후속 배정) |
 
 ## 잠금 기준선

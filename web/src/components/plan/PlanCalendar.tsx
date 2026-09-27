@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { daysInMonth, weekdayOf, type Weekday } from '@/domain';
+import { addDays, weekdayOf, type Weekday } from '@/domain';
 import { useI18n, type MessageKey } from '@/i18n';
 import type { ExportRow } from '@/export/planExport';
 
@@ -8,6 +8,7 @@ interface Props {
   today: string;
   weekStart: Weekday;
   onWeekStartChange: (w: Weekday) => void;
+  chapterOnly?: boolean;
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -19,7 +20,7 @@ function shiftMonth(ym: string, delta: number): string {
 }
 
 /** 월간 캘린더. 목록과 같은 ExportRow를 쓰며, 날짜를 고르면 배정 범위를 아래에 보여 준다(CAL01). */
-export function PlanCalendar({ rows, today, weekStart, onWeekStartChange }: Props) {
+export function PlanCalendar({ rows, today, weekStart, onWeekStartChange, chapterOnly = false }: Props) {
   const { lang, t } = useI18n();
   const byDate = useMemo(() => new Map(rows.map((r) => [r.date, r])), [rows]);
   const first = rows[0]?.date ?? today;
@@ -30,14 +31,10 @@ export function PlanCalendar({ rows, today, weekStart, onWeekStartChange }: Prop
   const ym = month ?? defaultMonth;
 
   const [y = 0, m = 1] = ym.split('-').map(Number);
-  const total = daysInMonth(y, m);
   const lead = (weekdayOf(`${ym}-01`) - weekStart + 7) % 7;
-  const cells: Array<string | null> = [
-    ...Array<null>(lead).fill(null),
-    ...Array.from({ length: total }, (_, i) => `${ym}-${pad(i + 1)}`),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
-  const weeks: Array<Array<string | null>> = [];
+  const firstCell = addDays(`${ym}-01`, -lead);
+  const cells = Array.from({ length: 42 }, (_, i) => addDays(firstCell, i));
+  const weeks: string[][] = [];
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
   const monthLabel = new Intl.DateTimeFormat(lang === 'ko' ? 'ko-KR' : 'en-US', {
@@ -61,6 +58,59 @@ export function PlanCalendar({ rows, today, weekStart, onWeekStartChange }: Prop
         <button type="button" className="btn btn--small" onClick={() => setMonth(shiftMonth(ym, 1))}>
           {t('plan.cal.next')}
         </button>
+      </div>
+
+      <table className="calendar__grid">
+        <caption className="visually-hidden">{t('plan.cal.caption', { month: monthLabel })}</caption>
+        <thead>
+          <tr>
+            {headers.map((w) => (
+              <th key={w} scope="col">
+                {t(`export.weekday.${w}` as MessageKey)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {weeks.map((week, wi) => (
+            <tr key={wi}>
+              {week.map((date, di) => {
+                const row = byDate.get(date);
+                const dayNum = Number(date.slice(8));
+                const outsideMonth = !date.startsWith(ym);
+                const displayedDay = outsideMonth && dayNum === 1 ? `${Number(date.slice(5, 7))}/1` : dayNum;
+                if (!row) {
+                  return (
+                    <td key={di} className="cal-cell cal-cell--outside" title={t('plan.cal.outside')}>
+                      <span className="cal-cell__num">{displayedDay}</span>
+                    </td>
+                  );
+                }
+                const label = t('plan.cal.cellLabel', { date, weekday: row.weekdayLabel, text: row.displayText });
+                return (
+                  <td key={di} className={`cal-cell cal-cell--${row.status}${outsideMonth ? ' cal-cell--outside-month' : ''}`}>
+                    <button
+                      type="button"
+                      className="cal-cell__btn"
+                      aria-label={label}
+                      aria-pressed={selected === date}
+                      {...(date === today ? { 'aria-current': 'date' as const } : {})}
+                      onClick={() => setSelected(date)}
+                    >
+                      <span className="cal-cell__num">{displayedDay}</span>
+                      <span className="cal-cell__text" aria-hidden="true">
+                        {row.displayText}
+                      </span>
+                    </button>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="calendar__settings">
         <button
           type="button"
           className="btn btn--small"
@@ -80,62 +130,13 @@ export function PlanCalendar({ rows, today, weekStart, onWeekStartChange }: Prop
         </label>
       </div>
 
-      <table className="calendar__grid">
-        <caption className="visually-hidden">{t('plan.cal.caption', { month: monthLabel })}</caption>
-        <thead>
-          <tr>
-            {headers.map((w) => (
-              <th key={w} scope="col">
-                {t(`export.weekday.${w}` as MessageKey)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {weeks.map((week, wi) => (
-            <tr key={wi}>
-              {week.map((date, di) => {
-                if (date === null) return <td key={di} className="cal-cell cal-cell--blank" />;
-                const row = byDate.get(date);
-                const dayNum = Number(date.slice(8));
-                if (!row) {
-                  return (
-                    <td key={di} className="cal-cell cal-cell--outside" title={t('plan.cal.outside')}>
-                      <span className="cal-cell__num">{dayNum}</span>
-                    </td>
-                  );
-                }
-                const label = t('plan.cal.cellLabel', { date, weekday: row.weekdayLabel, text: row.displayText });
-                return (
-                  <td key={di} className={`cal-cell cal-cell--${row.status}`}>
-                    <button
-                      type="button"
-                      className="cal-cell__btn"
-                      aria-label={label}
-                      aria-pressed={selected === date}
-                      {...(date === today ? { 'aria-current': 'date' as const } : {})}
-                      onClick={() => setSelected(date)}
-                    >
-                      <span className="cal-cell__num">{dayNum}</span>
-                      <span className="cal-cell__text" aria-hidden="true">
-                        {row.displayText}
-                      </span>
-                    </button>
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
       <div className="calendar__detail" aria-live="polite">
         <h4>{t('plan.cal.selected')}</h4>
         {selectedRow ? (
           <p>
             <time dateTime={selectedRow.date}>{selectedRow.date}</time> ({selectedRow.weekdayLabel}) {selectedRow.displayText}
             {selectedRow.status === 'assigned' &&
-              ` · ${t('plan.day.verses', { n: selectedRow.verseCount })} · ${t('plan.day.chapters', { n: selectedRow.chapterCount })}`}
+              ` · ${chapterOnly ? '' : `${t('plan.day.verses', { n: selectedRow.verseCount })} · `}${t('plan.day.chapters', { n: selectedRow.chapterCount })}`}
             {selectedRow.partialText && ` · ${t('plan.day.partial', { chapters: selectedRow.partialText })}`}
           </p>
         ) : (
@@ -145,4 +146,3 @@ export function PlanCalendar({ rows, today, weekStart, onWeekStartChange }: Prop
     </div>
   );
 }
-

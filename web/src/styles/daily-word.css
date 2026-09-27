@@ -321,6 +321,106 @@
 .daily-word__provider-button--nal-som-sam:hover:not(:disabled) { background: #fbd8c1; }
 .btn__leading-icon { display: inline-flex; align-items: center; }
 
+/* Keep the parchment silhouette in night mode while turning the paper and ink
+   into a quieter, readable surface against the moonlit illustration. */
+:root[data-theme='dark'] .daily-word {
+  --paper-ink: #eee3ce;
+  --paper-muted: #c8b89e;
+  --paper-rule: rgb(223 205 172 / 0.32);
+  background: none;
+  filter: drop-shadow(0 18px 27px rgb(0 0 0 / 0.48));
+}
+
+:root[data-theme='dark'] .daily-word::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: url('/qt-parchment.png') center / 100% 100% no-repeat;
+  filter: brightness(0.36) sepia(0.22);
+  content: '';
+  pointer-events: none;
+}
+
+:root[data-theme='dark'] .daily-word__title,
+:root[data-theme='dark'] .daily-word-card__text {
+  color: #f6ead5;
+}
+
+:root[data-theme='dark'] .daily-word-card__header h3 {
+  color: #bdd8ad;
+}
+
+:root[data-theme='dark'] .daily-word-card--new .daily-word-card__header h3 {
+  color: #efb9a3;
+}
+
+:root[data-theme='dark'] .daily-word-card__eyebrow,
+:root[data-theme='dark'] .daily-word-card__explanation h4 {
+  background: #344d3e;
+  color: #d9ebca;
+}
+
+:root[data-theme='dark'] .daily-word-card__eyebrow--new,
+:root[data-theme='dark'] .daily-word-card--new .daily-word-card__explanation h4 {
+  background: #573c39;
+  color: #f4d4c5;
+}
+
+:root[data-theme='dark'] .daily-word-card__explanation p {
+  color: #ded3bf;
+}
+
+:root[data-theme='dark'] .daily-word-card__translation {
+  border-color: #82745f;
+  background: #463f38;
+  color: #f2e7d2;
+}
+
+:root[data-theme='dark'] .daily-word-card__translation-options {
+  border-color: #82745f;
+  background: #302e33;
+  box-shadow: 0 7px 20px rgb(0 0 0 / 0.4);
+}
+
+:root[data-theme='dark'] .daily-word-card__translation-options a {
+  color: #b8d8f0;
+}
+
+:root[data-theme='dark'] .daily-word-card__translation-options a:hover,
+:root[data-theme='dark'] .daily-word-card__translation-options a:focus-visible {
+  background: #3c4d4c;
+}
+
+:root[data-theme='dark'] .daily-word__providers h3 {
+  color: #efdbbd;
+}
+
+:root[data-theme='dark'] .daily-word__providers h3 svg {
+  color: #c8a575;
+}
+
+:root[data-theme='dark'] .daily-word__provider-button--maeil-seongyeong {
+  border-color: #5d8066;
+  background: #314f3e;
+  color: #e1efdc;
+}
+
+:root[data-theme='dark'] .daily-word__provider-button--saengmyeong-ui-sam {
+  border-color: #52788f;
+  background: #294c65;
+  color: #e0f0fa;
+}
+
+:root[data-theme='dark'] .daily-word__provider-button--nal-som-sam {
+  border-color: #956958;
+  background: #654338;
+  color: #f9e5d7;
+}
+
+:root[data-theme='dark'] .daily-word__provider-button--maeil-seongyeong:hover:not(:disabled) { background: #3e624b; color: #fff; }
+:root[data-theme='dark'] .daily-word__provider-button--saengmyeong-ui-sam:hover:not(:disabled) { background: #365f7a; color: #fff; }
+:root[data-theme='dark'] .daily-word__provider-button--nal-som-sam:hover:not(:disabled) { background: #785044; color: #fff; }
+
 @media (min-width: 48rem) {
   .daily-word__cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -347,6 +447,10 @@
   }
 
   .daily-word__cards > li + li > .daily-word-card { padding-top: 1.65rem; }
+
+  :root[data-theme='dark'] .daily-word::before {
+    background-image: url('/qt-parchment-mobile.png');
+  }
 }
 
 @media (max-width: 28rem) {

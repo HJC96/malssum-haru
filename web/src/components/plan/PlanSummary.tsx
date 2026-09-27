@@ -6,7 +6,7 @@ const fmt = (n: number, lang: 'ko' | 'en', digits = 0) =>
   new Intl.NumberFormat(lang === 'ko' ? 'ko-KR' : 'en-US', { maximumFractionDigits: digits }).format(n);
 
 /** 진행률을 숫자와 함께 보여 주는 SVG 막대 차트. 색에만 의존하지 않도록 텍스트 대체와 범례를 함께 둔다. */
-function ProgressChart({ read, total, pct }: { read: number; total: number; pct: number }) {
+function ProgressChart({ read, total, pct, chapterOnly }: { read: number; total: number; pct: number; chapterOnly: boolean }) {
   const { lang, t } = useI18n();
   const remaining = Math.max(0, total - read);
   const w = total === 0 ? 0 : (read / total) * 300;
@@ -15,7 +15,7 @@ function ProgressChart({ read, total, pct }: { read: number; total: number; pct:
       <svg
         viewBox="0 0 300 28"
         role="img"
-        aria-label={t('plan.chart.label', { read: fmt(read, lang), total: fmt(total, lang), pct: fmt(pct, lang, 1), remaining: fmt(remaining, lang) })}
+        aria-label={t(chapterOnly ? 'plan.chart.chapterLabel' : 'plan.chart.label', { read: fmt(read, lang), total: fmt(total, lang), pct: fmt(pct, lang, 1), remaining: fmt(remaining, lang) })}
         preserveAspectRatio="none"
         className="chart__svg"
       >
@@ -24,9 +24,9 @@ function ProgressChart({ read, total, pct }: { read: number; total: number; pct:
       </svg>
       <figcaption className="chart__legend">
         <span className="chart__key chart__key--read" aria-hidden="true" />
-        {t('plan.chart.read')} {fmt(read, lang)}
+        {t(chapterOnly ? 'plan.chart.readChapters' : 'plan.chart.read')} {fmt(read, lang)}
         <span className="chart__key chart__key--remaining" aria-hidden="true" />
-        {t('plan.chart.remaining')} {fmt(remaining, lang)}
+        {t(chapterOnly ? 'plan.chart.remainingChapters' : 'plan.chart.remaining')} {fmt(remaining, lang)}
       </figcaption>
     </figure>
   );
@@ -36,16 +36,17 @@ interface Props {
   result: PlanResult;
   today: TodayState;
   baseline: PlanResult | null;
+  chapterOnly?: boolean;
 }
 
-export function PlanSummary({ result, today, baseline }: Props) {
+export function PlanSummary({ result, today, baseline, chapterOnly = false }: Props) {
   const { lang, t } = useI18n();
   const s = result.summary;
   const verses = (n: number) => t('plan.summary.verses', { n: fmt(n, lang) });
   const chapters = (n: number) => t('plan.summary.chapters', { n: fmt(n, lang) });
 
   const todayTarget =
-    today.kind === 'no-target' ? t('plan.summary.noTodayTarget') : verses(today.verses);
+    today.kind === 'no-target' ? t('plan.summary.noTodayTarget') : (chapterOnly ? chapters(today.verses) : verses(today.verses));
   const todayAchievement =
     today.kind === 'no-target'
       ? t('plan.summary.na')
@@ -53,7 +54,17 @@ export function PlanSummary({ result, today, baseline }: Props) {
         ? t('plan.summary.notEntered')
         : `${fmt(today.pct, lang, 1)}%`;
 
-  const items: Array<[MessageKey, string]> = [
+  const items: Array<[MessageKey, string]> = chapterOnly ? [
+    ['plan.summary.progress', `${fmt(s.progressPct, lang, 1)}%`],
+    ['plan.summary.targetChapters', chapters(s.targetChapters)],
+    ['plan.summary.readChapters', chapters(s.targetChapters - s.remainingChapters)],
+    ['plan.summary.remainingChaptersPlain', chapters(s.remainingChapters)],
+    ['plan.summary.readingDays', String(fmt(s.readingDays, lang))],
+    ['plan.summary.assignedDays', String(fmt(s.assignedDays, lang))],
+    ['plan.summary.avgChapters', s.avgVersesPerDay === null ? t('plan.summary.na') : t('plan.summary.chapters', { n: fmt(s.avgVersesPerDay, lang, 1) })],
+    ['plan.summary.todayTarget', todayTarget],
+    ['plan.summary.todayAchievement', todayAchievement],
+  ] : [
     ['plan.summary.progress', `${fmt(s.progressPct, lang, 1)}%`],
     ['plan.summary.targetVerses', verses(s.targetVerses)],
     ['plan.summary.targetChapters', chapters(s.targetChapters)],
@@ -70,7 +81,7 @@ export function PlanSummary({ result, today, baseline }: Props) {
   return (
     <section className="plan-summary" aria-labelledby="plan-summary-heading">
       <h4 id="plan-summary-heading">{t('plan.summary.heading')}</h4>
-      <ProgressChart read={s.readVerses} total={s.targetVerses} pct={s.progressPct} />
+      <ProgressChart read={s.readVerses} total={s.targetVerses} pct={s.progressPct} chapterOnly={chapterOnly} />
       <dl className="stat-grid">
         {items.map(([key, value]) => (
           <div key={key} className="stat">
@@ -102,8 +113,8 @@ export function PlanSummary({ result, today, baseline }: Props) {
             {(
               [
                 ['plan.compare.readingDays', (r: PlanResult) => fmt(r.summary.readingDays, lang)],
-                ['plan.compare.remainingVerses', (r: PlanResult) => fmt(r.summary.remainingVerses, lang)],
-                ['plan.compare.avg', (r: PlanResult) => (r.summary.avgVersesPerDay === null ? '-' : fmt(r.summary.avgVersesPerDay, lang, 1))],
+                [chapterOnly ? 'plan.compare.remainingChapters' : 'plan.compare.remainingVerses', (r: PlanResult) => fmt(r.summary.remainingVerses, lang)],
+                [chapterOnly ? 'plan.compare.avgChapters' : 'plan.compare.avg', (r: PlanResult) => (r.summary.avgVersesPerDay === null ? '-' : fmt(r.summary.avgVersesPerDay, lang, 1))],
               ] as const
             ).map(([key, get]) => (
               <tr key={key}>

@@ -21,6 +21,17 @@ export function formatPassageText(ranges: readonly RangeLike[], lang: Lang): str
   return ranges.map((r) => formatRangeText(r, lang)).join(lang === 'ko' ? ', ' : '; ');
 }
 
+/** 절 번호를 쓰지 않는 장 단위 계획의 날짜별 읽기 범위. */
+export function formatChapterPassageText(ranges: readonly RangeLike[], lang: Lang): string {
+  return ranges.map((r) => {
+    const book = bookName(r.bookId, lang);
+    const span = r.start.chapter === r.end.chapter
+      ? String(r.start.chapter)
+      : `${r.start.chapter}–${r.end.chapter}`;
+    return lang === 'ko' ? `${book} ${span}장` : `${book} ${span}`;
+  }).join(lang === 'ko' ? ', ' : '; ');
+}
+
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /**

@@ -137,7 +137,7 @@ function layoutList(model: ExportModel, rows: ExportRow[], month: string | null,
     b.page.ops.push({ type: 'text', x: colCheck, y, size: 9, text: t('export.col.check') });
     b.page.ops.push({ type: 'text', x: colDate, y, size: 9, text: `${t('export.col.date')} (${t('export.col.weekday')})` });
     b.page.ops.push({ type: 'text', x: colRange, y, size: 9, text: t('export.col.range') });
-    b.page.ops.push({ type: 'text', x: colVerses, y, size: 9, text: t('export.col.verses') });
+    b.page.ops.push({ type: 'text', x: colVerses, y, size: 9, text: t(model.chapterOnly ? 'export.col.chapters' : 'export.col.verses') });
     b.page.ops.push({ type: 'line', x1: MARGIN, y1: b.y - 16, x2: size.width - MARGIN, y2: b.y - 16 });
     b.y -= 20;
   };
@@ -161,7 +161,7 @@ function layoutList(model: ExportModel, rows: ExportRow[], month: string | null,
     partial.forEach((l, i) => {
       b.page.ops.push({ type: 'text', x: colRange, y: top - 12 - lines.length * 13 - i * 10.5 + 1, size: 8, text: l, gray: 0.4 });
     });
-    if (assigned) b.page.ops.push({ type: 'text', x: colVerses, y: top - 12, size: 10, text: String(r.verseCount) });
+    if (assigned) b.page.ops.push({ type: 'text', x: colVerses, y: top - 12, size: 10, text: String(model.chapterOnly ? r.chapterCount : r.verseCount) });
     b.page.ops.push({ type: 'line', x1: MARGIN, y1: top - h, x2: size.width - MARGIN, y2: top - h });
     b.y -= h;
   }

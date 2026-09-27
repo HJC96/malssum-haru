@@ -13,12 +13,12 @@ const row = (bookId: string, sc: string, sv: string, ec: string, ev: string) => 
 });
 
 describe('defaultForm', () => {
-  it('오늘부터 365일, 매일, 절 수 배분, 처음 시작', () => {
+  it('오늘부터 365일, 매일, 장 수 배분, 처음 시작', () => {
     const f = defaultForm(TODAY);
     expect(f.startDate).toBe('2026-09-24');
     expect(f.endDate).toBe('2027-09-23');
     expect(f.weekdays).toEqual([0, 1, 2, 3, 4, 5, 6]);
-    expect(f.distribution).toBe('verses');
+    expect(f.distribution).toBe('chapters');
     expect(f.readMode).toBe('none');
     expect(f.recalc).toBe(false);
   });

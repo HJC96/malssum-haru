@@ -20,7 +20,7 @@ export function PlanPrintSheet({ model }: { model: ExportModel }) {
             <th>{t('export.col.check')}</th>
             <th>{t('export.col.date')}</th>
             <th>{t('export.col.range')}</th>
-            <th>{t('export.col.verses')}</th>
+            <th>{t(model.chapterOnly ? 'export.col.chapters' : 'export.col.verses')}</th>
           </tr>
         </thead>
         <tbody>
@@ -34,7 +34,7 @@ export function PlanPrintSheet({ model }: { model: ExportModel }) {
                 {r.displayText}
                 {r.partialText && ` (${t('export.col.partial')}: ${r.partialText})`}
               </td>
-              <td>{r.status === 'assigned' ? r.verseCount : ''}</td>
+              <td>{r.status === 'assigned' ? (model.chapterOnly ? r.chapterCount : r.verseCount) : ''}</td>
             </tr>
           ))}
         </tbody>

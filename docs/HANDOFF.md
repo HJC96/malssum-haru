@@ -1,5 +1,9 @@
 # 말씀하루 인수인계 문서
 
+> **2026-09-27 기능 명칭:** 현재 화면의 `일독 계획` 명칭을 `성경 읽기 계획`으로 변경했다. 성경 전체 외에도 구약·신약·선택한 책과 원하는 기간을 지원한다. 탭·안내·브라우저 제목·Excel/PDF 기본 이름에 적용했으며, 아래 과거 작업 기록의 ‘일독’은 당시 용어다.
+
+> **2026-09-27 운영 설계 인계:** [백엔드·CI/CD·도메인 계획](plans/BACKEND_ARCHITECTURE_PLAN.md)을 추가했다. 코드 확인 결과 날짜별 말씀 파일 공급 자동화와 CD가 필요하고, 방문수는 요청한 전체 누적과 달리 날짜별 초기화로 구현되어 있다. 신규 구현은 B0~B6 순서로 진행한다. 아래 과거 구현 기록의 언어·본문 정책·수집 중심 구조보다 새 계획의 현재 상태 표를 우선한다. 이번 작업은 문서 작성이며 실행 코드·AWS 자원은 변경하지 않았다.
+
 > **최신 제품 계획 (2026-09-26):** `오늘의 QT` 탭은 구약 한 절·신약 한 절과 각각의 해설을 메인으로 보여 주고, 아래 매일성경·생명의삶 버튼은 공식 페이지로 직접 연결한다. 따라서 QT 제공처의 장절 자동 수집은 이 메인 경험의 선행조건이 아니다. 번역본의 표시·정적 배포 권리와 출처를 먼저 확인해야 하며, 승인 전 실제 본문 데이터는 넣지 않는다. 다음 계획은 [오늘의 말씀 메인 계획](plans/DAILY_WORD_MAIN_PLAN.md), 실행 작업은 [W01–W05](team/TASKS.md)다. 아래의 두 탭 구현 기록과 일독 개선(U06–U09)은 각각 완료/별도 계획으로 유지한다.
 
 - 작성: 2026-09-24, 2026-09-25 갱신 — Claude 인수인계 이후 이어서 진행한 상태를 반영했다.
@@ -28,7 +32,7 @@
 | `.github/workflows/ci.yml` | CI(web·qt·infra, **배포 단계 없음**) | GitHub Actions |
 | `docs/contracts/` | 서비스 간 계약: `qt-today.md`, `plan-result.md`, `ai-explain.md` | - |
 | `docs/` | PRD, 구현 계획, 권리 매트릭스, 데이터 출처, 비용표, QA 결과, 팀 작업 목록 | - |
-| `labs/spring-cloud/` | (아직 없음) M6 실습 | - |
+| `services/daily-content/` | 승인된 말씀 후보 검증·하루 콘텐츠 선택/직렬화(구현 중) | Java 21, Spring |
 
 개발 중에는 영역별 담당 에이전트가 파일을 나눠 소유했다(`docs/team/TASKS.md` 상단 표). 사람이 이어받을 때는 이 소유 규칙을 지킬 필요는 없지만, **계약 문서(`docs/contracts/**`)를 바꾸면 그 계약을 쓰는 코드·테스트를 함께 바꿔야 한다.**
 
@@ -99,9 +103,9 @@ pnpm run dev:qt:live                                             # 제공처에 
 3. 배포 후: 실제 청구와 비용표 비교(`docs/cost-estimate.md` 15장), Lambda 콜드 스타트·조회 응답 p95 1초 측정(PRD 성능 목표), `DynamoDB` PutItem/TTL 실제 동작 확인, 제공처 날짜 전환(서울 자정 전후) 관찰.
 4. 취득을 끄는 법(제공처 회신·차단 등): `-c qtAcquisitionEnabled=false` 또는 제공처별 disabled 환경 변수(`QT_PROVIDER_MAEIL_SEONGYEONG=disabled`, `QT_PROVIDER_SAENGMYEONG_UI_SAM=disabled`). 취득이 꺼지면 카드에 공식 링크만 나온다.
 
-### C. 학습 트랙·최종 검수
+### C. 제외 범위·최종 검수
 
-- **M6 Spring Cloud 실습(`labs/spring-cloud/`)**: T20 todo, 아직 실습 파일 없음. Gateway 라우팅, Config 분리, Eureka 검색(정적 주소와 비교), CircuitBreaker(AI 중단 시 QT 링크 응답 유지)를 로컬에서 실습. AI 서비스는 모의 응답 사용. 공개 구성에 상시 실행 MSA 인프라를 자동 포함하지 않는다(월 10,000원 예산).
+- **Spring Cloud MSA 실습**: 이전 요청으로 만든 `labs/spring-cloud/`는 2026-09-27 제거했다. 현재 제품은 단일 일일 콘텐츠 모듈을 사용하며 MSA 실습은 범위에서 제외한다.
 - **M7 최종 검수**: PRD 11장 AC 전체를 결과와 함께 점검, 동시 사용자 20명·1년 계획 성능 측정, 모바일·다크모드·스크린리더 실측, README에 배포법·운영 중지법 정리. AI 관련 AC(AC12~AC16·AC21·AC22·AC25)는 AI를 공개하지 않으면 "보류·대체 상태"로 기록.
 - **PRD·구현 계획 문서**: PRD 0.9의 일부 일반 설명은 조건부 AI 기능을 기술한다. 확정 경계(QT는 장절+링크만, WEB은 AI 내부 입력 전용, 실제 LLM 비활성화)와 충돌하는 문구가 없는지 M7에서 AC 전체와 함께 최종 대조한다.
 
@@ -142,7 +146,7 @@ pnpm run dev:qt:live                                             # 제공처에 
 | ai-content | `services/ai/**` | A1 |
 | qa-review | `docs/qa/**`(읽기 전용) | A2, A3, M7 |
 | platform-cost | `infra/**`, `.github/workflows/**`, `docs/cost-estimate.md` | 배포 승인 뒤 배포 지원, 접근 제어 구현 |
-| msa-lab | `labs/spring-cloud/**` | M6 |
+| msa-lab | 취소됨. 현재 구현 범위에서 제외 |
 | qt-backend | `services/qt/**` | 배포 후 실측 반영, 제공처 변경 대응 |
 | web-experience | `web/src/{app,components,export,i18n,styles}/**`, `web/public/**` | AI 설명 화면(AI 공개 시), 실기 접근성 수정 |
 | planner-core | `web/src/{domain,data}/**` | 개역개정 확정 데이터 반영 |

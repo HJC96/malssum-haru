@@ -9,7 +9,7 @@ import { buildExportModel } from './planExport';
 
 const fontBytes = new Uint8Array(readFileSync(resolve(process.cwd(), 'public', PDF_FONT_PATH)));
 const norm = (s: string) => s.replace(/\s+/g, '');
-const model = (over = {}, lang: 'ko' | 'en' = 'ko', planName = '내 일독 계획') =>
+const model = (over = {}, lang: 'ko' | 'en' = 'ko', planName = '내 성경 읽기 계획') =>
   buildExportModel(samplePlan(over), { lang, planName, generatedOn: '2026-09-24' });
 
 describe('buildPdf (EXP02)', () => {
@@ -18,7 +18,7 @@ describe('buildPdf (EXP02)', () => {
     expect(new TextDecoder().decode(bytes.slice(0, 5))).toBe('%PDF-');
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBeGreaterThanOrEqual(1);
-    expect(doc.getTitle()).toBe('내 일독 계획');
+    expect(doc.getTitle()).toBe('내 성경 읽기 계획');
     // pdf-lib의 재서브셋은 일부 글리프를 잃으므로 쓰지 않는다: 폰트 파일이 원본 그대로 들어 있어야 한다.
     const ctx = doc.context;
     const sizes: number[] = [];
@@ -57,7 +57,7 @@ describe('buildPdf (EXP02)', () => {
       expect(text).toContain(norm(r.date));
       expect(text).toContain(norm(r.displayText));
     }
-    expect(text).toContain(norm('내 일독 계획'));
+    expect(text).toContain(norm('내 성경 읽기 계획'));
   });
 
   it('월간형 PDF도 모든 배정 범위를 포함한다', async () => {

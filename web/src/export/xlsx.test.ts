@@ -14,25 +14,25 @@ async function read(bytes: Uint8Array) {
 
 describe('buildXlsx (EXP01)', () => {
   it('실제 xlsx(zip) 파일이고 다시 읽힌다', async () => {
-    const model = buildExportModel(samplePlan(), { lang: 'ko', planName: '내 일독', generatedOn: '2026-09-24' });
+    const model = buildExportModel(samplePlan(), { lang: 'ko', planName: '내 성경 읽기', generatedOn: '2026-09-24' });
     const bytes = await buildXlsx(model);
     expect(Array.from(bytes.slice(0, 2))).toEqual([0x50, 0x4b]); // "PK"
     const ws = await read(bytes);
-    expect(ws.name).toBe('일독 계획');
+    expect(ws.name).toBe('성경 읽기 계획');
   });
 
   it('메타: 계획 이름, 기간, 언어, 장절 기준, 계산 기준, 생성일, 데이터 버전', async () => {
     const plan = samplePlan();
-    const model = buildExportModel(plan, { lang: 'ko', planName: '내 일독', generatedOn: '2026-09-24' });
+    const model = buildExportModel(plan, { lang: 'ko', planName: '내 성경 읽기', generatedOn: '2026-09-24' });
     const ws = await read(await buildXlsx(model));
     const meta = new Map<string, string>();
     for (let r = 1; r <= 8; r++) meta.set(String(ws.getCell(r, 1).value), String(ws.getCell(r, 2).value));
-    expect(meta.get('계획 이름')).toBe('내 일독');
+    expect(meta.get('계획 이름')).toBe('내 성경 읽기');
     expect(meta.get('기간')).toBe('2026-10-01 ~ 2026-10-31');
     expect(meta.get('언어')).toBe('한국어');
     expect(meta.get('장절 기준')).toBe(plan.versificationSystem);
     expect(meta.get('데이터 버전')).toBe('sample-0');
-    expect(meta.get('계산 기준')).toContain('절 수');
+    expect(meta.get('계산 기준')).toContain('절 단위');
     expect(meta.get('재계산')).toBe('최초 계획');
     expect(meta.get('생성일')).toBe('2026-09-24');
   });
@@ -77,7 +77,7 @@ describe('buildXlsx (EXP01)', () => {
     expect(String(wsKo.getCell(XLSX_HEADER_ROW + 1, 3).value)).toContain('창세기');
     expect(String(wsEn.getCell(XLSX_HEADER_ROW + 1, 3).value)).toContain('Genesis');
     expect(wsEn.getCell(XLSX_HEADER_ROW + 1, 3).alignment?.wrapText).toBe(true);
-    expect(wsEn.name).toBe('Reading plan');
+    expect(wsEn.name).toBe('Bible reading plan');
   });
 
   it('선택한 월의 행만 내보낼 수 있다', async () => {

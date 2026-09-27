@@ -47,7 +47,7 @@ export type ReadInput =
   | { mode: 'continuous'; through: { bookId: BookId; chapter: number; verse: number } } // 목표 범위 시작 ~ through
   | { mode: 'ranges'; ranges: VerseRange[] };   // 겹침 허용, 합집합으로 계산
 
-export type Distribution = 'chapters' | 'verses'; // 'verses' = 절 수를 고려하되 장 끝에서 마침(기본값)
+export type Distribution = 'chapters' | 'verses'; // 'verses' = 장 중간에서도 끊을 수 있는 절 단위 배분
 
 export interface PlanInput {
   bible: BibleData;
@@ -129,7 +129,7 @@ export function computePlan(input: PlanInput): PlanOutcome;
 2. `Σ days[*].verseCount = summary.remainingVerses` (단, `NO_DAYS_LEFT_WITH_REMAINING`이면 오류).
 3. `0 ≤ progressPct ≤ 100`. `targetVerses = readVerses + remainingVerses`.
 4. 요일·제외일로 읽지 않는 날은 `off`, 읽는 날인데 배정이 없으면 `empty`. `off`/`empty`/`elapsed`는 완료·미완료로 표기하지 않는다.
-5. `distribution: 'chapters'`는 장 단위(부분 장이 없는 한)로 나누고, `'verses'`는 절 수를 균등에 가깝게 하되 각 날의 끝을 장 끝에 맞춘다. 읽은 범위 때문에 남은 장이 부분 장이면 그 부분 장이 첫 배정 단위가 된다.
+5. `distribution: 'chapters'`는 장 단위(부분 장이 없는 한)로 나누고, `'verses'`는 남은 절을 읽기 날짜에 고르게 나눈다. 절 단위에서는 한 장이 여러 날에 걸칠 수 있다.
 6. `todayRead`가 없으면 `todayAchievementPct`는 `null`이다. 오늘 배정이 없으면 `null`이다. 0으로 나누지 않는다.
 7. 같은 입력 → 항상 같은 출력.
 
@@ -152,8 +152,8 @@ export const SAMPLE_BIBLE: BibleData;             // 테스트/개발용 작은 
 
 ## 해석 합의 (planner-core 제안 승인, 2026-09-24)
 
-- 배분 단위 = '한 장의 남은 절 전체'(읽은 범위 때문에 남은 조각이 여럿이어도 한 날에 함께). 날의 끝은 항상 단위 끝이다.
-- `chapters`: 단위 N개·읽기 날짜 D일이면 앞쪽 (N mod D)일이 하나 더 받고, N<D면 앞에서부터 하루 한 단위, 나머지는 `empty`. `verses`: 남은 절 ÷ 남은 날로 그날 목표를 다시 잡아 가장 가까운 단위 경계에서 끊고, N≥D이면 `empty` 날을 만들지 않는다.
+- `chapters`: 남은 장 N개·읽기 날짜 D일이면 앞쪽 (N mod D)일이 하나 더 받고, N<D면 앞에서부터 하루 한 장, 나머지는 `empty`.
+- `verses`: 남은 절 V개를 날짜 순으로 고르게 배분한다. 앞쪽 (V mod D)일에 한 절씩 더 배정하며, V<D면 뒤쪽은 `empty`. 장 중간에서도 날짜별 범위를 끊을 수 있다.
 - `asOf`: max(asOf, startDate) 이전은 요일과 무관하게 `elapsed`. `recalculatedFrom`은 asOf가 startDate보다 뒤일 때만 값, 아니면 null. 이후 읽기 날짜 0개 + 미독 있음 → `NO_DAYS_LEFT_WITH_REMAINING`, 미독 0이면 정상(avgVersesPerDay null). `NO_READING_DAYS`는 전체 기간 기준.
 - `todayTarget`: asOf 없거나 그날이 `assigned`가 아니면 null. `todayRead`는 undefined/빈 배열이면 미입력(null 달성률)이며 `remainingRanges`에서 빼지 않는다(오늘 목표의 분모 고정, PRD 8장). 달성률 = |todayRead ∩ todayTarget| ÷ |todayTarget|.
 - `progressPct`·`avgVersesPerDay`는 반올림 없는 원값. 반올림은 화면 책임.

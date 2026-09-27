@@ -8,7 +8,7 @@ const measure: Measure = (text, size) =>
 
 const norm = (s: string) => s.replace(/\s+/g, '');
 const model = (over = {}, lang: 'ko' | 'en' = 'ko') =>
-  buildExportModel(samplePlan(over), { lang, planName: '내 일독 계획', generatedOn: '2026-09-24' });
+  buildExportModel(samplePlan(over), { lang, planName: '내 성경 읽기 계획', generatedOn: '2026-09-24' });
 
 describe('wrapText', () => {
   it('폭을 넘으면 공백에서 줄을 바꾸고 글자를 버리지 않는다', () => {
@@ -92,9 +92,11 @@ describe('목록형 레이아웃 (EXP02)', () => {
     }
   });
 
-  it('부분 장이 있으면 표시한다', () => {
+  it('절 단위 계획은 절 범위를 표시하고 부분 장 문구는 반복하지 않는다', () => {
     const m = model({ endDate: '2026-10-10', read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 2, verse: 1 } } });
-    expect(layoutText(layoutPdf(m, { kind: 'list', month: null, measure }))).toContain('부분장:');
+    const text = layoutText(layoutPdf(m, { kind: 'list', month: null, measure }));
+    expect(text).toContain('창세기2:2');
+    expect(text).not.toContain('부분장:');
   });
 });
 

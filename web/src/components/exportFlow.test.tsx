@@ -61,7 +61,7 @@ describe('화면·Excel·PDF는 같은 계획을 보여 준다 (AC17, AC10)', ()
     const rows = screenRows();
     await userEvent.click(screen.getByRole('button', { name: /Excel/ }));
     const { blob, name } = await lastDownload();
-    expect(name).toMatch(/^일독 계획-2026-09-24_2026-10-23\.xlsx$/);
+    expect(name).toMatch(/^성경 읽기 계획-2026-09-24_2026-10-23\.xlsx$/);
     expect(blob.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
     const wb = new ExcelJS.Workbook();
@@ -198,12 +198,12 @@ describe('내보내기 상태와 실패 격리', () => {
   });
 
   it('내려받은 파일 이름과 내용에 입력한 계획 이름이 들어간다', async () => {
-    renderPlan({ initialForm: { ...planWithPartials, planName: '2027 일독' } });
+    renderPlan({ initialForm: { ...planWithPartials, planName: '2027 성경 읽기' } });
     await userEvent.click(screen.getByRole('button', { name: /Excel/ }));
     const { name, blob } = await lastDownload();
-    expect(name.startsWith('2027 일독-')).toBe(true);
+    expect(name.startsWith('2027 성경 읽기-')).toBe(true);
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await blob.arrayBuffer());
-    expect(wb.worksheets[0]!.getCell(1, 2).value).toBe('2027 일독');
+    expect(wb.worksheets[0]!.getCell(1, 2).value).toBe('2027 성경 읽기');
   });
 });

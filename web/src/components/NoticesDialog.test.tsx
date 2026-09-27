@@ -42,15 +42,17 @@ describe('데이터 출처·라이선스 고지', () => {
 });
 
 describe('장절 기준 안내', () => {
-  it('잠정 데이터에는 알려진 제한을 한 줄 더 보인다', () => {
+  it('절 수 배분의 기준 안내 블록은 표시하지 않고 별도 한계 안내는 유지한다', async () => {
     render(<App initialLang="ko" initialService="plan" now={LOCAL_NOON} qtFetcher={qtFetcher} />);
-    expect(screen.getByText('장절 기준 안내')).toBeInTheDocument();
-    expect(screen.getByText(/사도행전 15:25-26/, { exact: false })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('radio', { name: '절 단위 계획' }));
+    expect(screen.queryByText('계획 기준 안내')).not.toBeInTheDocument();
+    expect(screen.queryByText(/사도행전 15:25-26/, { exact: false })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '절 단위 계획의 한계 안내' })).toBeInTheDocument();
   });
 
-  it('샘플 데이터에는 제한 줄이 없다', () => {
+  it('샘플 데이터에서도 기준 안내 블록은 표시하지 않는다', () => {
     render(<App initialLang="ko" initialService="plan" now={LOCAL_NOON} qtFetcher={qtFetcher} planBible={SAMPLE_BIBLE} />);
-    expect(screen.getByText('장절 기준 안내')).toBeInTheDocument();
+    expect(screen.queryByText('계획 기준 안내')).not.toBeInTheDocument();
     expect(screen.queryByText(/사도행전 15:25-26/)).not.toBeInTheDocument();
   });
 });

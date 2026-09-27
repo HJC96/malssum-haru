@@ -7,10 +7,11 @@ interface Props {
   onChange: (rows: RangeDraft[]) => void;
   /** 행이 하나도 없어도 되는지(오늘 읽은 범위는 선택 입력). */
   allowEmpty?: boolean;
+  chapterOnly?: boolean;
 }
 
 /** 개별 장절 범위 입력 행들. 겹치는 범위는 계산 쪽에서 합집합으로 한 번만 센다. */
-export function RangeRows({ rows, bookIds, onChange, allowEmpty = false }: Props) {
+export function RangeRows({ rows, bookIds, onChange, allowEmpty = false, chapterOnly = false }: Props) {
   const { lang, t } = useI18n();
   const update = (i: number, patch: Partial<RangeDraft>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
@@ -39,7 +40,7 @@ export function RangeRows({ rows, bookIds, onChange, allowEmpty = false }: Props
                 ['endChapter', 'plan.range.endChapter'],
                 ['endVerse', 'plan.range.endVerse'],
               ] as const
-            ).map(([field, labelKey]) => (
+            ).filter(([field]) => !chapterOnly || field === 'startChapter' || field === 'endChapter').map(([field, labelKey]) => (
               <label key={field} className="field field--num">
                 <span>{t(labelKey)}</span>
                 <input

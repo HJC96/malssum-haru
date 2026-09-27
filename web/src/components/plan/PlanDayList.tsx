@@ -5,7 +5,7 @@ import type { ExportRow } from '@/export/planExport';
  * 날짜별 목록. 캘린더·Excel·PDF와 같은 ExportRow를 쓴다(AC10, AC17).
  * 쉬는 날·빈 날·재계산 이전 날짜는 완료나 미완료로 표시하지 않고 상태만 알린다.
  */
-export function PlanDayList({ rows }: { rows: ExportRow[] }) {
+export function PlanDayList({ rows, chapterOnly = false }: { rows: ExportRow[]; chapterOnly?: boolean }) {
   const { t } = useI18n();
   return (
     <table className="day-list">
@@ -15,7 +15,7 @@ export function PlanDayList({ rows }: { rows: ExportRow[] }) {
           <th scope="col">{t('plan.list.date')}</th>
           <th scope="col">{t('plan.list.weekday')}</th>
           <th scope="col">{t('plan.list.range')}</th>
-          <th scope="col">{t('plan.list.verses')}</th>
+          {!chapterOnly && <th scope="col">{t('plan.list.verses')}</th>}
           <th scope="col">{t('plan.list.chapters')}</th>
         </tr>
       </thead>
@@ -30,7 +30,7 @@ export function PlanDayList({ rows }: { rows: ExportRow[] }) {
               {r.displayText}
               {r.partialText && <span className="day-row__partial"> ({t('plan.day.partial', { chapters: r.partialText })})</span>}
             </td>
-            <td className="day-row__num">{r.status === 'assigned' ? t('plan.day.verses', { n: r.verseCount }) : ''}</td>
+            {!chapterOnly && <td className="day-row__num">{r.status === 'assigned' ? t('plan.day.verses', { n: r.verseCount }) : ''}</td>}
             <td className="day-row__num">{r.status === 'assigned' ? t('plan.day.chapters', { n: r.chapterCount }) : ''}</td>
           </tr>
         ))}

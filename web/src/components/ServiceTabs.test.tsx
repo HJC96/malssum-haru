@@ -15,7 +15,7 @@ describe('ServiceTabs', () => {
     );
     view();
     const qt = screen.getByRole('tab', { name: '오늘의 QT' });
-    const plan = screen.getByRole('tab', { name: '일독 계획' });
+    const plan = screen.getByRole('tab', { name: '성경 읽기 계획' });
     expect(qt).toHaveAttribute('aria-selected', 'true');
     expect(qt).toHaveAttribute('tabindex', '0');
     expect(plan).toHaveAttribute('tabindex', '-1');
@@ -35,7 +35,7 @@ describe('ServiceTabs', () => {
     const user = userEvent.setup();
     render(<I18nProvider initialLang="en"><ServiceTabs value="plan" onChange={vi.fn()} /></I18nProvider>);
     const qt = screen.getByRole('tab', { name: "Today's QT" });
-    const plan = screen.getByRole('tab', { name: 'Reading plan' });
+    const plan = screen.getByRole('tab', { name: 'Bible reading plan' });
     plan.focus();
     await user.keyboard('{Home}');
     expect(qt).toHaveFocus();

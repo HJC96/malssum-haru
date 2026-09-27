@@ -37,7 +37,7 @@ export type ReadInput =
   | { mode: 'continuous'; through: { bookId: BookId; chapter: number; verse: number } } // 목표 범위 시작 ~ through
   | { mode: 'ranges'; ranges: VerseRange[] }; // 겹침 허용, 합집합으로 계산
 
-export type Distribution = 'chapters' | 'verses'; // 'verses' = 절 수를 고려하되 장 끝에서 마침(기본값)
+export type Distribution = 'chapters' | 'verses'; // 'verses' = 장 중간에서도 끊을 수 있는 절 단위 배분
 
 export interface PlanInput {
   bible: BibleData;

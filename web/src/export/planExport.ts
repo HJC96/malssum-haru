@@ -1,5 +1,5 @@
 import type { DayStatus, IsoDate, PlanResult, Weekday } from '@/domain';
-import { bookName, formatPassageText, translate, type Lang, type MessageKey } from '@/i18n';
+import { bookName, formatChapterPassageText, formatPassageText, translate, type Lang, type MessageKey } from '@/i18n';
 
 /**
  * 화면(목록·캘린더·인쇄), Excel, PDF가 모두 이 모델의 행을 쓴다(AC10, AC17).
@@ -40,6 +40,7 @@ export interface ExportMeta {
 export interface ExportModel {
   meta: ExportMeta;
   rows: ExportRow[];
+  chapterOnly?: boolean;
 }
 
 export interface BuildExportOptions {
@@ -57,11 +58,12 @@ const STATUS_KEY: Record<Exclude<DayStatus, 'assigned'>, MessageKey> = {
 
 export function buildExportModel(result: PlanResult, opts: BuildExportOptions): ExportModel {
   const { lang } = opts;
+  const chapterOnly = result.versificationSystem === 'chapter-only-66';
   const t = (key: MessageKey, params?: Record<string, string | number>) => translate(lang, key, params);
 
   const rows: ExportRow[] = result.days.map((d) => {
     const assigned = d.status === 'assigned';
-    const rangeText = assigned ? formatPassageText(d.ranges, lang) : '';
+    const rangeText = assigned ? (chapterOnly ? formatChapterPassageText(d.ranges, lang) : formatPassageText(d.ranges, lang)) : '';
     const statusLabel = d.status === 'assigned' ? '' : t(STATUS_KEY[d.status]);
     return {
       date: d.date,
@@ -73,7 +75,8 @@ export function buildExportModel(result: PlanResult, opts: BuildExportOptions): 
       displayText: rangeText || statusLabel,
       verseCount: d.verseCount,
       chapterCount: d.chapterCount,
-      partialText: d.partialChapters
+      // 절 범위에는 시작·끝 절이 이미 드러나므로 매일 반복되는 부분 장 설명은 생략한다.
+      partialText: result.distribution === 'verses' ? '' : d.partialChapters
         .map((p) => t('plan.day.chapterLabel', { book: bookName(p.bookId, lang), chapter: p.chapter }))
         .join(', '),
     };
@@ -83,14 +86,15 @@ export function buildExportModel(result: PlanResult, opts: BuildExportOptions): 
   const last = result.days[result.days.length - 1];
   const name = opts.planName.trim();
   return {
+    chapterOnly,
     meta: {
       planName: name === '' ? t('export.defaultName') : name,
       lang,
       languageLabel: t(lang === 'ko' ? 'export.language.ko' : 'export.language.en'),
       startDate: first?.date ?? '',
       endDate: last?.date ?? '',
-      versificationSystem: result.versificationSystem,
-      dataVersion: result.dataVersion,
+      versificationSystem: chapterOnly ? t('plan.chapterBasisShort') : result.versificationSystem,
+      dataVersion: chapterOnly ? t('plan.chapterDataVersion') : result.dataVersion,
       basisLabel: t(result.distribution === 'verses' ? 'export.basis.verses' : 'export.basis.chapters'),
       recalculatedLabel: result.recalculatedFrom
         ? t('export.meta.recalculatedFrom', { date: result.recalculatedFrom })

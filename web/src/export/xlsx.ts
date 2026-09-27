@@ -28,7 +28,9 @@ export async function buildXlsx(model: ExportModel, rows: ExportRow[] = model.ro
     views: [{ state: 'frozen', ySplit: XLSX_HEADER_ROW }],
     pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
   });
-  ws.columns = [
+  ws.columns = model.chapterOnly ? [
+    { width: 13 }, { width: 8 }, { width: 46 }, { width: 12 }, { width: 9 },
+  ] : [
     { width: 13 },
     { width: 8 },
     { width: 46 },
@@ -56,13 +58,14 @@ export async function buildXlsx(model: ExportModel, rows: ExportRow[] = model.ro
     row.getCell(1).font = { bold: true };
     row.getCell(2).value = value;
     row.getCell(2).alignment = { wrapText: true, vertical: 'top' };
-    ws.mergeCells(i + 1, 2, i + 1, 7);
+    ws.mergeCells(i + 1, 2, i + 1, model.chapterOnly ? 5 : 7);
   });
 
   const header = ws.getRow(XLSX_HEADER_ROW);
-  (
-    ['export.col.date', 'export.col.weekday', 'export.col.range', 'export.col.verses', 'export.col.chapters', 'export.col.partial', 'export.col.check'] as const
-  ).forEach((key, i) => {
+  const headers = model.chapterOnly
+    ? ['export.col.date', 'export.col.weekday', 'export.col.range', 'export.col.chapters', 'export.col.check'] as const
+    : ['export.col.date', 'export.col.weekday', 'export.col.range', 'export.col.verses', 'export.col.chapters', 'export.col.partial', 'export.col.check'] as const;
+  headers.forEach((key, i) => {
     const cell = header.getCell(i + 1);
     cell.value = t(key);
     cell.font = { bold: true };
@@ -79,13 +82,16 @@ export async function buildXlsx(model: ExportModel, rows: ExportRow[] = model.ro
     row.getCell(2).value = r.weekdayLabel;
     row.getCell(3).value = r.displayText;
     if (assigned) {
-      row.getCell(4).value = r.verseCount;
-      row.getCell(5).value = r.chapterCount;
-      if (r.partialText) row.getCell(6).value = r.partialText;
+      row.getCell(4).value = model.chapterOnly ? r.chapterCount : r.verseCount;
+      if (!model.chapterOnly) {
+        row.getCell(5).value = r.chapterCount;
+        if (r.partialText) row.getCell(6).value = r.partialText;
+      }
     }
-    row.getCell(7).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
-    for (const c of [1, 2, 3, 4, 5, 6, 7]) {
-      row.getCell(c).alignment = { vertical: 'top', wrapText: true, horizontal: c === 3 || c === 6 ? 'left' : 'center' };
+    const checkColumn = model.chapterOnly ? 5 : 7;
+    row.getCell(checkColumn).border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+    for (let c = 1; c <= checkColumn; c++) {
+      row.getCell(c).alignment = { vertical: 'top', wrapText: true, horizontal: c === 3 || (!model.chapterOnly && c === 6) ? 'left' : 'center' };
     }
     if (!assigned) row.getCell(3).font = { italic: true, color: { argb: 'FF666666' } };
   });

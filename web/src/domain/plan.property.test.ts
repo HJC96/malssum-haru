@@ -230,33 +230,39 @@ function checkInvariants(c: Case, r: PlanResult, exp: Expectation): void {
   expect(s.avgVersesPerDay).toBe(readingDays === 0 ? null : s.remainingVerses / readingDays);
   expect(r.recalculatedFrom).toBe(input.asOf !== undefined && Date.parse(input.asOf) > c.startMs ? input.asOf : null);
 
-  // 불변식 5: 장 단위 배분
+  // 불변식 5: 장/절 단위 배분과 부분 장 표시
   const remainingByChapter = new Map<string, number>();
   for (const k of exp.remaining) remainingByChapter.set(chapterKey(k), (remainingByChapter.get(chapterKey(k)) ?? 0) + 1);
-  const dayOfChapter = new Map<string, number>();
-  r.days.forEach((d, i) => {
+  const assignedByChapter = new Map<string, number>();
+  r.days.forEach((d) => {
     const perChapter = new Map<string, number>();
     for (const k of expandOrdered(bible, d.ranges)) perChapter.set(chapterKey(k), (perChapter.get(chapterKey(k)) ?? 0) + 1);
     for (const [ch, n] of perChapter) {
-      expect(dayOfChapter.has(ch)).toBe(false); // 한 장의 남은 절은 한 날에만
-      dayOfChapter.set(ch, i);
-      expect(n).toBe(remainingByChapter.get(ch));
+      if (input.distribution === 'chapters') {
+        expect(assignedByChapter.has(ch)).toBe(false); // 장 단위라면 한 장은 한 날에만
+        expect(n).toBe(remainingByChapter.get(ch));
+      }
+      assignedByChapter.set(ch, (assignedByChapter.get(ch) ?? 0) + n);
     }
     // 부분 장 = 그 날의 배정이 장 전체(절 수)보다 적은 장
     const partial = [...perChapter].filter(([ch, n]) => n < chapterTotal(bible, ch)).map(([ch]) => ch);
     expect(d.partialChapters.map((p) => `${p.bookId} ${p.chapter}`)).toEqual(partial);
   });
+  expect(assignedByChapter).toEqual(remainingByChapter);
   const readingDayList = r.days.filter((d) => d.status === 'assigned' || d.status === 'empty');
   const chapterCounts = readingDayList.map((d) => d.chapterCount);
-  if (r.summary.remainingChapters >= readingDays) {
-    // 장이 날짜보다 많거나 같으면 빈 날이 없다
-    if (readingDays > 0) expect(readingDayList.every((d) => d.status === 'assigned')).toBe(true);
+  if (input.distribution === 'chapters') {
+    if (s.remainingChapters >= readingDays) {
+      if (readingDays > 0) expect(readingDayList.every((d) => d.status === 'assigned')).toBe(true);
+    } else {
+      expect(s.assignedDays).toBe(s.remainingChapters);
+      expect(Math.max(0, ...chapterCounts)).toBeLessThanOrEqual(1);
+    }
+    if (readingDays > 0) expect(Math.max(...chapterCounts) - Math.min(...chapterCounts)).toBeLessThanOrEqual(1);
   } else {
-    expect(s.assignedDays).toBe(s.remainingChapters);
-    expect(Math.max(0, ...chapterCounts)).toBeLessThanOrEqual(1);
-  }
-  if (input.distribution === 'chapters' && readingDays > 0) {
-    expect(Math.max(...chapterCounts) - Math.min(...chapterCounts)).toBeLessThanOrEqual(1);
+    expect(s.assignedDays).toBe(Math.min(s.remainingVerses, readingDays));
+    const verseCounts = readingDayList.map((d) => d.verseCount);
+    if (verseCounts.length > 0) expect(Math.max(...verseCounts) - Math.min(...verseCounts)).toBeLessThanOrEqual(1);
   }
   // 읽은 범위 때문에 부분 장이 첫 배정 단위이다: 남은 첫 절이 장 중간이면 첫 배정 범위가 그 절에서 시작한다
   const firstAssigned = r.days.find((d) => d.status === 'assigned');

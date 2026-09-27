@@ -11,7 +11,7 @@ interface State {
 }
 
 /**
- * 한 영역의 렌더 오류를 그 영역에 가둔다. QT 화면이 깨져도 일독 계획 화면은 계속 동작해야 한다.
+ * 한 영역의 렌더 오류를 그 영역에 가둔다. QT 화면이 깨져도 성경 읽기 계획 화면은 계속 동작해야 한다.
  * 오류 내용을 서버나 저장소로 보내지 않는다.
  */
 export class ErrorBoundary extends Component<Props, State> {

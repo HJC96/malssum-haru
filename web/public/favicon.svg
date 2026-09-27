@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>말씀하루</title>
+  <rect width="64" height="64" rx="18" fill="#fff8e1" />
+  <path d="M32 48c-7-5-14-6-21-4V17c8-2 15 0 21 5 6-5 13-7 21-5v27c-7-2-14-1-21 4Z" fill="#fffdf6" stroke="#315b45" stroke-linejoin="round" stroke-width="3" />
+  <path d="M32 23v24M17 25c4 0 7 1 10 3m20-3c-4 0-7 1-10 3M17 33c4 0 7 1 10 3m20-3c-4 0-7 1-10 3" fill="none" stroke="#315b45" stroke-linecap="round" stroke-width="2.5" />
+  <path d="M32 19c-4-5-3-10 0-13 3 3 4 8 0 13Z" fill="#d6a84f" />
+  <path d="M32 18c-5-4-9-3-11 0 4 2 8 2 11 0Zm0 0c5-4 9-3 11 0-4 2-8 2-11 0Z" fill="#5f8a60" />
+  <path d="M32 18v5" fill="none" stroke="#315b45" stroke-linecap="round" stroke-width="2" />
+</svg>

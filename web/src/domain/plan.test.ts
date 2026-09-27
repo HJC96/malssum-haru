@@ -153,12 +153,12 @@ describe('AC05 날짜별 범위의 합 = 선택한 범위', () => {
     expect(four.days[1]?.ranges).toEqual([range('GEN', 5, 1, 5, 9), range('PSA', 1, 1, 3, 40)]);
   });
 
-  it('verses: 절 수가 비슷하도록 나누되 장 끝에서 마친다(GEN 49절)', () => {
+  it('verses: 장 중간에서도 끊고 날짜별 절 수를 고르게 배분한다(GEN 49절)', () => {
     const two = mustPlan(baseInput({ target: { kind: 'books', bookIds: ['GEN'] }, endDate: '2026-01-02' }));
-    expect(two.days.map((d) => d.ranges)).toEqual([[range('GEN', 1, 1, 2, 3)], [range('GEN', 3, 1, 5, 9)]]);
-    expect(two.days.map((d) => d.verseCount)).toEqual([15, 34]);
+    expect(two.days.map((d) => d.ranges)).toEqual([[range('GEN', 1, 1, 3, 10)], [range('GEN', 3, 11, 5, 9)]]);
+    expect(two.days.map((d) => d.verseCount)).toEqual([25, 24]);
     const three = mustPlan(baseInput({ target: { kind: 'books', bookIds: ['GEN'] }, endDate: '2026-01-03' }));
-    expect(three.days.map((d) => d.verseCount)).toEqual([15, 20, 14]);
+    expect(three.days.map((d) => d.verseCount)).toEqual([17, 16, 16]);
   });
 
   it('장을 건너는 연속 범위는 하나의 범위로 합쳐진다', () => {
@@ -171,31 +171,35 @@ describe('AC05 날짜별 범위의 합 = 선택한 범위', () => {
     const byChapters = mustPlan(baseInput({ ...args, distribution: 'chapters' }));
     const byVerses = mustPlan(baseInput({ ...args, distribution: 'verses' }));
     expect(byChapters.days.map((d) => d.chapterCount)).toEqual([3, 2]);
-    expect(byVerses.days.map((d) => d.chapterCount)).toEqual([2, 3]);
+    expect(byVerses.days.map((d) => d.chapterCount)).toEqual([3, 3]);
+    expect(byVerses.days[0]?.ranges[0]?.end).toEqual({ chapter: 3, verse: 10 });
+    expect(byVerses.days[1]?.ranges[0]?.start).toEqual({ chapter: 3, verse: 11 });
     expect(byChapters.distribution).toBe('chapters');
   });
 
-  it('한 장이 매우 길어도 장을 쪼개지 않는다(PSA 3장 40절)', () => {
+  it('긴 장은 날짜 사이에서 이어 읽는다(PSA 3장 40절)', () => {
     const r = mustPlan(baseInput({ target: { kind: 'books', bookIds: ['PSA'] }, endDate: '2026-01-02' }));
-    expect(r.days.map((d) => d.ranges)).toEqual([[range('PSA', 1, 1, 2, 2)], [range('PSA', 3, 1, 3, 40)]]);
+    expect(r.days.map((d) => d.ranges)).toEqual([[range('PSA', 1, 1, 3, 16)], [range('PSA', 3, 17, 3, 40)]]);
   });
 });
 
 describe('AC06 장 수보다 날짜가 많을 때', () => {
   it('OBA 1장을 5일에: 첫 날만 배정하고 나머지는 empty', () => {
-    const r = mustPlan(baseInput({ target: { kind: 'books', bookIds: ['OBA'] }, endDate: '2026-01-05' }));
+    const r = mustPlan(baseInput({ target: { kind: 'books', bookIds: ['OBA'] }, endDate: '2026-01-05', distribution: 'chapters' }));
     expect(r.days.map((d) => d.status)).toEqual(['assigned', 'empty', 'empty', 'empty', 'empty']);
     expect(r.summary).toMatchObject({ readingDays: 5, assignedDays: 1 });
     expect(r.days[1]).toMatchObject({ ranges: [], verseCount: 0, chapterCount: 0, partialChapters: [] });
   });
 
-  it('두 배분 방식 모두 empty 날을 만들고, 읽지 않는 날은 off로 구분한다', () => {
+  it('장 단위는 장이 부족하면 empty, 절 단위는 절이 남으면 배정하며 off를 구분한다', () => {
     for (const distribution of ['chapters', 'verses'] as const) {
       // 3장(PSA)을 목~다음주 화(6일) 중 월·화·목·금만 읽기
       const r = mustPlan(
         baseInput({ target: { kind: 'books', bookIds: ['PSA'] }, endDate: '2026-01-06', weekdays: [1, 2, 4, 5], distribution }),
       );
-      expect(r.days.map((d) => d.status)).toEqual(['assigned', 'assigned', 'off', 'off', 'assigned', 'empty']);
+      expect(r.days.map((d) => d.status)).toEqual(distribution === 'chapters'
+        ? ['assigned', 'assigned', 'off', 'off', 'assigned', 'empty']
+        : ['assigned', 'assigned', 'off', 'off', 'assigned', 'assigned']);
     }
   });
 });
@@ -224,6 +228,7 @@ describe('읽은 범위 입력과 부분 장 (AC23)', () => {
         target: { kind: 'books', bookIds: ['GEN'] },
         read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 1, verse: 5 } },
         endDate: '2026-01-02',
+        distribution: 'chapters',
       }),
     );
     expect(r.remainingRanges).toEqual([range('GEN', 1, 6, 5, 9)]);
@@ -396,14 +401,14 @@ describe('AC24 오늘 달성률', () => {
   it('오늘 읽은 범위를 입력하지 않으면 0%가 아니라 null', () => {
     expect(mustPlan(gen2days()).summary.todayAchievementPct).toBeNull();
     expect(mustPlan(gen2days({ todayRead: [] })).summary.todayAchievementPct).toBeNull();
-    expect(mustPlan(gen2days()).summary.todayTarget?.verses).toBe(15);
+    expect(mustPlan(gen2days()).summary.todayTarget?.verses).toBe(25);
   });
 
   it('입력한 범위 중 오늘 목표에 속한 절의 비율', () => {
-    // 오늘 목표 GEN 1:1–2:3 (15절)
-    expect(mustPlan(gen2days({ todayRead: [range('GEN', 1, 1, 1, 12)] })).summary.todayAchievementPct).toBeCloseTo(80, 10);
-    expect(mustPlan(gen2days({ todayRead: [range('GEN', 1, 1, 2, 3)] })).summary.todayAchievementPct).toBe(100);
-    expect(mustPlan(gen2days({ todayRead: [range('GEN', 1, 1, 1, 6), range('GEN', 1, 4, 1, 12)] })).summary.todayAchievementPct).toBeCloseTo(80, 10);
+    // 오늘 목표 GEN 1:1–3:10 (25절)
+    expect(mustPlan(gen2days({ todayRead: [range('GEN', 1, 1, 1, 12)] })).summary.todayAchievementPct).toBeCloseTo(48, 10);
+    expect(mustPlan(gen2days({ todayRead: [range('GEN', 1, 1, 3, 10)] })).summary.todayAchievementPct).toBe(100);
+    expect(mustPlan(gen2days({ todayRead: [range('GEN', 1, 1, 1, 6), range('GEN', 1, 4, 1, 12)] })).summary.todayAchievementPct).toBeCloseTo(48, 10);
   });
 
   it('오늘 목표 밖의 읽은 범위는 분자에 넣지 않고 100을 넘지 않는다', () => {

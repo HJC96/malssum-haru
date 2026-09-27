@@ -1,4 +1,4 @@
-// 일독 계산 엔진의 공개 API. 화면·내보내기는 이 모듈만 import한다(계약: docs/contracts/plan-result.md).
+// 성경 읽기 계획 계산 엔진의 공개 API. 화면·내보내기는 이 모듈만 import한다(계약: docs/contracts/plan-result.md).
 export type {
   BibleData,
   BookId,

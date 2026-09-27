@@ -40,12 +40,12 @@ describe('buildExportModel', () => {
     expect(model.rows.some((r) => r.status === 'empty' && r.displayText === '배정 없음')).toBe(true);
   });
 
-  it('부분 장을 식별할 수 있게 표시한다', () => {
+  it('절 단위 계획은 시작·끝 절로 범위를 보여주고 부분 장 설명을 반복하지 않는다', () => {
     const plan = samplePlan({ endDate: '2026-10-10', distribution: 'verses', read: { mode: 'continuous', through: { bookId: 'GEN', chapter: 2, verse: 1 } } });
     const model = buildExportModel(plan, opts);
-    const rowsWithPartial = model.rows.filter((r) => r.partialText !== '');
-    expect(rowsWithPartial.length).toBeGreaterThan(0);
-    expect(rowsWithPartial[0]?.partialText).toMatch(/창세기 \d+장/);
+    expect(plan.days.some((d) => d.partialChapters.length > 0)).toBe(true);
+    expect(model.rows.every((r) => r.partialText === '')).toBe(true);
+    expect(model.rows.some((r) => r.rangeText.includes(':'))).toBe(true);
   });
 
   it('언어를 바꾸면 이름과 문구만 바뀌고 날짜별 절 수는 같다(AC18)', () => {
@@ -80,8 +80,8 @@ describe('월 선택과 파일 이름', () => {
   it('파일 이름에서 위험한 문자를 바꾼다', () => {
     expect(safeFileStem('a/b\\c:d*e?"f<g>h|i')).toBe('a_b_c_d_e__f_g_h_i');
     expect(safeFileStem('   ')).toBe('plan');
-    const model = buildExportModel(samplePlan(), { ...opts, planName: '내 일독/계획' });
-    expect(exportFileName(model, 'xlsx', null)).toBe('내 일독_계획-2026-10-01_2026-10-31.xlsx');
-    expect(exportFileName(model, 'pdf', '2026-10', '-month')).toBe('내 일독_계획-2026-10-month.pdf');
+    const model = buildExportModel(samplePlan(), { ...opts, planName: '내 성경 읽기/계획' });
+    expect(exportFileName(model, 'xlsx', null)).toBe('내 성경 읽기_계획-2026-10-01_2026-10-31.xlsx');
+    expect(exportFileName(model, 'pdf', '2026-10', '-month')).toBe('내 성경 읽기_계획-2026-10-month.pdf');
   });
 });

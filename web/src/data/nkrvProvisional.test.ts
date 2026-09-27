@@ -148,15 +148,20 @@ describe('실제 66권 규모의 계획 (AC03 AC05 AC06 AC23)', () => {
       expect(r.days).toHaveLength(365);
       expect(r.summary).toMatchObject({ targetChapters: 1189, targetVerses: 31103, remainingVerses: 31103, readingDays: 365, assignedDays: 365 });
       expect(r.days.reduce((a, d) => a + d.verseCount, 0)).toBe(31103);
-      expect(r.days.reduce((a, d) => a + d.chapterCount, 0)).toBe(1189);
-      expect(r.days.every((d) => d.status === 'assigned' && d.partialChapters.length === 0)).toBe(true);
+      expect(r.days.every((d) => d.status === 'assigned')).toBe(true);
       // 날짜별 범위를 합하면 전체와 같고 서로 겹치지 않는다
       const all = r.days.flatMap((d) => d.ranges);
       expect(verseCount(DEFAULT_BIBLE, all)).toBe(31103);
       expect(r.dataVersion).toBe('eng.vrs@71c66cb+REV12=17');
       if (distribution === 'chapters') {
+        expect(r.days.reduce((a, d) => a + d.chapterCount, 0)).toBe(1189);
+        expect(r.days.every((d) => d.partialChapters.length === 0)).toBe(true);
         const counts = r.days.map((d) => d.chapterCount);
         expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1);
+      } else {
+        const counts = r.days.map((d) => d.verseCount);
+        expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1);
+        expect(r.days.some((d) => d.partialChapters.length > 0)).toBe(true);
       }
     });
   }
@@ -167,10 +172,10 @@ describe('실제 66권 규모의 계획 (AC03 AC05 AC06 AC23)', () => {
     if (!ot.ok || !nt.ok) throw new Error('expected ok');
     expect(ot.result.summary).toMatchObject({ targetChapters: 929, targetVerses: 23145 });
     expect(nt.result.summary).toMatchObject({ targetChapters: 260, targetVerses: 7958, readingDays: 90 });
-    // 요한3서(1장)를 30일에: 하루만 배정
+    // 요한3서(1장 15절)를 30일에: 앞 15일에 한 절씩 배정
     const jn = computePlan(base({ target: { kind: 'books', bookIds: ['3JN'] }, endDate: '2027-01-30' }));
     if (!jn.ok) throw new Error('expected ok');
-    expect(jn.result.summary).toMatchObject({ readingDays: 30, assignedDays: 1, targetVerses: 15 });
+    expect(jn.result.summary).toMatchObject({ readingDays: 30, assignedDays: 15, targetVerses: 15 });
   });
 
   it('무작위 입력(시드 고정) 300건: 배정 합계·중복 없음·진행률이 실제 데이터에서도 성립', () => {

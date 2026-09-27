@@ -420,12 +420,20 @@ p {
 }
 
 :root[data-theme='dark'] .welcome-hero__button::before {
-  filter: brightness(0.94);
+  filter: brightness(0.3) sepia(0.16);
 }
 
 :root[data-theme='dark'] .welcome-hero__button--primary,
 :root[data-theme='dark'] .welcome-hero__button--secondary {
-  color: #493019;
+  color: #f3e8d0;
+}
+
+:root[data-theme='dark'] .welcome-hero__button {
+  filter: drop-shadow(0 5px 10px rgb(0 0 0 / 0.38));
+}
+
+:root[data-theme='dark'] .welcome-hero__button:hover::before {
+  filter: brightness(0.39) sepia(0.16);
 }
 
 .service-step {
@@ -477,20 +485,30 @@ p {
 }
 
 :root[data-theme='dark'] .service-tabs::before {
-  filter: brightness(0.96) sepia(0.08);
+  filter: brightness(0.4) sepia(0.15);
 }
 
 :root[data-theme='dark'] .service-tabs__tab {
-  color: #493019;
+  color: #e4d4ba;
 }
 
 :root[data-theme='dark'] .service-tabs__tab[aria-selected='true'] {
-  color: #493019;
+  color: #fff0d6;
+  background: radial-gradient(ellipse at center, rgb(213 171 108 / 0.18), transparent 72%);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.7);
 }
 
-:root[data-theme='dark'] .welcome-hero__button--primary,
-:root[data-theme='dark'] .welcome-hero__button--secondary {
-  color: #493019;
+:root[data-theme='dark'] .service-tabs__tab[aria-selected='true']::after {
+  background: #d2aa77;
+}
+
+:root[data-theme='dark'] .service-tabs__tab + .service-tabs__tab::before {
+  background: linear-gradient(transparent, rgb(225 201 165 / 0.45) 18%, rgb(225 201 165 / 0.45) 82%, transparent);
+}
+
+:root[data-theme='dark'] .service-tabs__tab:hover:not([aria-selected='true']) {
+  color: #fff0d6;
+  background: radial-gradient(ellipse at center, rgb(213 171 108 / 0.13), transparent 72%);
 }
 
 @media (max-width: 40rem) {

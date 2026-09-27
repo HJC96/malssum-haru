@@ -2,6 +2,8 @@
 
 ## 성경 장절 구조 데이터 (`nkrvProvisional.ts`)
 
+기본 성경 읽기 계획의 `chapterBible.ts`는 아래 공개 구조표에서 책 순서와 책별 장 수만 사용한다. 각 장을 한 계산 단위로 표현하며 절 수와 본문은 포함하지 않는다. 절 수 기준 배분을 선택할 때만 아래의 잠정 장절표를 사용한다.
+
 Chapter/verse counts derived from `examples/eng.vrs` (Paratext English versification) in https://github.com/ubsicap/versification_json at commit 71c66cb6ddfa6158919bc9798d124141a8168b14. Modified: REV 12 set to 17.
 
 - 원본: 18,787 바이트, SHA-256 `003981c7f43c69b73b60d40a3f35f72e7ee017a686a6fb206f19a1b721157541`

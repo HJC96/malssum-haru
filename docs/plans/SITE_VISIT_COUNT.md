@@ -1,20 +1,23 @@
-# 오늘 방문 횟수
+# 사이트 전체 누적 방문 횟수
+
+사이트 전체 페이지 로드 누적 횟수를 제공한다. 이는 고유 방문자 수가 아니다.
 
 ## 동작 계약
 
 - 브라우저에서 페이지를 처음 로드할 때 `POST /api/visits`를 한 번 보낸다. 새로고침은 새 페이지 로드이므로 다시 센다. 같은 화면에서 QT·계획 탭을 오가는 행동은 세지 않는다.
 - 요청 본문, 쿠키, 사용자 ID가 없다. 프런트 요청은 `credentials: 'omit'`이며 브라우저 저장소를 사용하지 않는다.
-- 성공: HTTP 200, `Content-Type: application/json`, `Cache-Control: no-store, max-age=0`, 본문 `{ "count": 123 }`. `count`는 한국 시간 날짜별 페이지 로드 수이며 매일 1부터 다시 시작한다.
+- 성공: HTTP 200, `Content-Type: application/json`, `Cache-Control: no-store, max-age=0`, 본문 `{ "count": 123 }`. `count`는 사이트 오픈 이후의 전체 페이지 로드 누적값이며 날짜가 바뀌어도 초기화하지 않는다.
 - 실패: HTTP 503 `{ "error": "visit_count_unavailable" }`. 화면은 숫자 대신 이용 불가 상태를 보여주되 다른 기능을 막지 않는다.
 - 이 값은 **고유 방문자 수가 아니다**. 같은 사람의 새로고침·새 탭, 자동화된 호출도 각각 증가한다. 쿠키/식별자 없이 이를 구분하지 않는다.
 
 ## 구현과 개인정보 경계
 
 - CloudFront의 `/api/visits` 동작만 POST를 허용하고 캐시를 비활성화한다. 기존 `/api/*` QT GET 캐시는 유지한다.
-- 별도 Node.js Lambda가 한국 시간 날짜(`Asia/Seoul`)로 DynamoDB `SiteVisits` 테이블의 `id=daily#YYYY-MM-DD` 항목에 `UpdateItem ADD count :one`을 실행하고 `UPDATED_NEW` 값을 그대로 반환한다. 읽고 쓴 뒤 더하는 두 단계가 아니라 원자적 쓰기 한 번이므로 동시 요청에서 증가분이 유실되지 않는다.
-- 방문 테이블에는 TTL이 없고 삭제 보호와 CloudFormation `Retain`을 적용한다. 날짜별로 한 항목씩 저장하며 QT 일별 항목이나 개인 계획·진도와 섞지 않는다. Lambda에는 이 테이블의 `UpdateItem` 권한만 준다.
+- 별도 Node.js Lambda가 DynamoDB `SiteVisits` 테이블의 `id=site#total` 항목에 `UpdateItem ADD count :one`을 실행하고 `UPDATED_NEW` 값을 그대로 반환한다. 읽고 쓴 뒤 더하는 두 단계가 아니라 원자적 쓰기 한 번이므로 동시 요청에서 증가분이 유실되지 않는다.
+- 방문 테이블에는 TTL이 없고 삭제 보호와 CloudFormation `Retain`을 적용한다. 사이트 누적값 하나만 저장하며 QT 일별 항목이나 개인 계획·진도와 섞지 않는다. Lambda에는 이 테이블의 `UpdateItem` 권한만 준다.
 - API Gateway 액세스 로그와 CloudFront 접속 로그는 꺼져 있다. 방문 Lambda는 요청 헤더·IP·User-Agent·본문을 기록하지 않는다. Lambda 기본 실행 로그는 14일 보존한다.
 - React 개발 환경의 StrictMode effect 재실행을 고려해 프런트는 한 페이지 로드 동안 단일 Promise를 재사용한다. 탭 전환에서 호출하지 않는다.
+- Vite 개발 미들웨어는 서버 프로세스가 살아 있는 동안 동일한 누적 카운터를 사용한다. 개발 서버를 재시작하면 초기화되며 운영 데이터와 별개다.
 
 ## 운영·정확도 한계
 

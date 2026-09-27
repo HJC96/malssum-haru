@@ -1,5 +1,7 @@
 # 말씀하루 월 운영비 추정과 IaC 변경 내역 (AWS + LLM)
 
+> **2026-09-27 재산정 필요:** 아래 자동 생성 표는 기존 구조의 비용 가정이다. [새 백엔드 계획](plans/BACKEND_ARCHITECTURE_PLAN.md)의 콘텐츠 배치, 레거시 QT 제외, 실제 이미지 전송량과 도메인 비용을 반영하기 전에는 새 운영안의 견적으로 쓰지 않는다. 특히 아래 Java SnapStart 고정비 민감도는 수정 대상이다. [AWS 공식 문서](https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html)는 Java managed runtime에 별도 SnapStart 요금이 없다고 명시한다. 이번 작업에서는 자동 생성 표와 계산 모델을 수동으로 고치지 않았으며 B0/B5에서 함께 갱신해야 한다.
+
 - 작성: platform-cost, 2026-09-24
 - 상태: **추정치와 배포 정의 초안**. 실제 배포·청구 전에는 월 10,000원 달성을 주장하지 않는다. 실제 AWS 계정에는 아무것도 만들지 않았다.
 - 표는 `infra/cost/` 의 모델에서 나온다. `node infra/cost/update-doc.mjs` 가 `<!-- model:... -->` 표시 사이의 표를 다시 쓰고, `--check` 로 문서가 모델과 같은지 검사한다(3-3절).

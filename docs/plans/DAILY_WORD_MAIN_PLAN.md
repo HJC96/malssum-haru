@@ -132,7 +132,7 @@
 | W01 | lead + source-rights | `docs/data-sources.md`, `docs/rights-matrix.md`는 담당자만; `docs/PRD.md`는 lead | KBS 공식 저작권 FAQ와 CrossWire KorRV 배포 조건 확인; 개역한글판 원문 사용, 저작자 표시·원문 동일성 유지 |
 | W02 | content-data | 신규 `web/public/daily-word/**`, loader/validator | 날짜 artifact와 승인 번역 레지스트리, exact-date·single-verse 오류 검사 |
 | W03 | daily-ui | `web/src/app/dailyWord/**`, 신규 `web/src/components/dailyWord/**`, `styles/daily-word.css` | 두 절 카드, 로딩/오늘 자료 없음/오류, 날짜, 하단 공식 버튼 구성 |
-| W04 | lead + platform-cost/msa-lab | 루트 화면·i18n·CDK·`labs/spring-cloud/**`는 각 owner와 협의 | static source 연결, bilingual/SEO/cache 전략, 후속 Lambda 흐름을 계약 수준에서 확인. 서버리스 자원은 기존 비용 상한 검토 전 배포하지 않음 |
+| W04 | lead + platform-cost | 루트 화면·i18n·CDK는 각 owner와 협의 | static source 연결, SEO/cache 전략, 후속 Lambda 흐름을 계약 수준에서 확인. Spring Cloud MSA 학습 경로는 현재 범위에서 제외 |
 | W05 | qa + lead | `docs/qa/daily-word-review.md`, lead는 공통 통합 | 날짜 경계, 구약/신약 검증, 링크 fallback, 화면·접근성·언어·새로고침 및 회귀 확인 |
 
 병렬화 전에 W01의 콘텐츠 사용 조건과 W02/W03의 JSON/UI 계약을 lead가 정한다. W01은 실제 외부 출처 본문 다운로드 없이 공식 권리/라이선스 문서와 기존 조사 자료로 근거를 확인하는 단계부터 시작한다. 저작권자에게 연락·계정 생성·비용이 필요한 작업은 별도 작업 요청으로 다룬다.

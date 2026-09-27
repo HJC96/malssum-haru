@@ -55,7 +55,7 @@ export const emptyRange = (bookId = ''): RangeDraft => ({
   endVerse: '',
 });
 
-/** 기본값: 오늘부터 364일 뒤까지(365일), 매일, 절 수 배분(기본), 처음 시작. */
+/** 기본값: 오늘부터 364일 뒤까지(365일), 매일, 장 수 배분, 처음 시작. */
 export function defaultForm(today: IsoDate): PlanFormState {
   return {
     scopeKind: 'all',
@@ -64,7 +64,7 @@ export function defaultForm(today: IsoDate): PlanFormState {
     endDate: addDays(today, 364),
     weekdays: [...ALL_WEEKDAYS],
     excludedDates: [],
-    distribution: 'verses',
+    distribution: 'chapters',
     readMode: 'none',
     through: { bookId: '', chapter: '', verse: '' },
     readRanges: [emptyRange()],
@@ -83,22 +83,25 @@ export interface FormIssue {
 /** 화면이 보여 줄 오류. 폼 단계(FORM_*)와 계산 단계(PlanError)를 같은 모양으로 다룬다. */
 export type PlanIssue = { code: FormIssueCode; field: string } | (PlanError & { field?: string });
 
-const isBlank = (r: RangeDraft) =>
-  r.startChapter.trim() === '' && r.startVerse.trim() === '' && r.endChapter.trim() === '' && r.endVerse.trim() === '';
+const isBlank = (r: RangeDraft, chapterOnly = false) =>
+  r.startChapter.trim() === '' && r.endChapter.trim() === '' &&
+  (chapterOnly || (r.startVerse.trim() === '' && r.endVerse.trim() === ''));
 
 const INT = /^[1-9]\d*$/;
 
 type RangeParse = { ok: true; ranges: VerseRange[] } | { ok: false; code: FormIssueCode };
 
 /** 완전히 빈 행은 무시하고, 채우다 만 행은 오류로 돌려준다. */
-function parseRanges(drafts: RangeDraft[]): RangeParse {
+function parseRanges(drafts: RangeDraft[], chapterOnly = false): RangeParse {
   const ranges: VerseRange[] = [];
   for (const d of drafts) {
-    if (d.bookId === '' && isBlank(d)) continue;
-    const parts = [d.startChapter, d.startVerse, d.endChapter, d.endVerse].map((s) => s.trim());
+    if (d.bookId === '' && isBlank(d, chapterOnly)) continue;
+    const parts = (chapterOnly ? [d.startChapter, d.endChapter] : [d.startChapter, d.startVerse, d.endChapter, d.endVerse]).map((s) => s.trim());
     if (d.bookId === '' || parts.some((p) => p === '')) return { ok: false, code: 'FORM_INCOMPLETE' };
     if (!parts.every((p) => INT.test(p))) return { ok: false, code: 'FORM_NOT_INTEGER' };
-    const [sc, sv, ec, ev] = parts.map(Number) as [number, number, number, number];
+    const [sc, sv, ec, ev] = chapterOnly
+      ? [Number(d.startChapter), 1, Number(d.endChapter), 1]
+      : parts.map(Number) as [number, number, number, number];
     ranges.push({ bookId: d.bookId, start: { chapter: sc, verse: sv }, end: { chapter: ec, verse: ev } });
   }
   return { ok: true, ranges };
@@ -117,24 +120,25 @@ export type BuildResult = { ok: true; input: PlanInput } | { ok: false; issues: 
  */
 export function buildPlanInput(form: PlanFormState, bible: BibleData, today: IsoDate): BuildResult {
   const issues: PlanIssue[] = [];
+  const chapterOnly = bible.versificationSystem === 'chapter-only-66';
 
   let read: ReadInput = { mode: 'none' };
   if (form.readMode === 'continuous') {
     const { bookId, chapter, verse } = form.through;
-    if (bookId === '' || chapter.trim() === '' || verse.trim() === '') {
+    if (bookId === '' || chapter.trim() === '' || (!chapterOnly && verse.trim() === '')) {
       issues.push({ code: 'FORM_INCOMPLETE', field: 'read' });
-    } else if (!INT.test(chapter.trim()) || !INT.test(verse.trim())) {
+    } else if (!INT.test(chapter.trim()) || (!chapterOnly && !INT.test(verse.trim()))) {
       issues.push({ code: 'FORM_NOT_INTEGER', field: 'read' });
     } else {
-      read = { mode: 'continuous', through: { bookId, chapter: Number(chapter), verse: Number(verse) } };
+      read = { mode: 'continuous', through: { bookId, chapter: Number(chapter), verse: chapterOnly ? 1 : Number(verse) } };
     }
   } else if (form.readMode === 'ranges') {
-    const parsed = parseRanges(form.readRanges);
+    const parsed = parseRanges(form.readRanges, chapterOnly);
     if (parsed.ok) read = { mode: 'ranges', ranges: parsed.ranges };
     else issues.push({ code: parsed.code, field: 'read' });
   }
 
-  const todayParsed = parseRanges(form.todayRead);
+  const todayParsed = parseRanges(form.todayRead, chapterOnly);
   if (!todayParsed.ok) issues.push({ code: todayParsed.code, field: 'todayRead' });
 
   if (issues.length > 0 || !todayParsed.ok) return { ok: false, issues };

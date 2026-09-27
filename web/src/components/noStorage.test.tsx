@@ -27,7 +27,7 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
 
     render(app());
     await screen.findByRole('status');
-    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
+    await userEvent.click(screen.getByRole('tab', { name: '성경 읽기 계획' }));
     setDate('시작일', '2026-09-10');
     await userEvent.click(screen.getByRole('radio', { name: /건너뛰어 읽었습니다/ }));
     const readGroup = screen.getByRole('group', { name: '현재 읽은 분량' });
@@ -49,15 +49,15 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
 
   it('새로 열면(새로고침·재방문) 이전 입력이 복원되지 않고 기본값으로 시작한다', async () => {
     const first = render(app());
-    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
+    await userEvent.click(screen.getByRole('tab', { name: '성경 읽기 계획' }));
     setDate('마감일', '2026-09-30');
     await userEvent.click(screen.getByRole('radio', { name: /처음부터 어디까지/ }));
     expect(screen.getByLabelText('마감일')).toHaveValue('2026-09-30');
     first.unmount();
 
     render(app());
-    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
-    await userEvent.click(screen.getByRole('button', { name: '언제까지 읽을까요?' }));
+    await userEvent.click(screen.getByRole('tab', { name: '성경 읽기 계획' }));
+    await userEvent.click(screen.getByText('시작일·빠른 기간 설정', { selector: 'summary' }));
     expect(screen.getByRole('button', { name: '30일' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('radio', { name: /처음 시작합니다/ })).toBeChecked();
     expect(screen.queryByLabelText('마지막으로 읽은 곳')).not.toBeInTheDocument();
@@ -85,7 +85,7 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     const { fetchQtToday, QT_TODAY_PATH } = await import('@/app/qt/fetchQtToday');
     const fetchImpl = vi.fn(async () => new Response(JSON.stringify(scenario('mixed')), { status: 200 }));
     render(app());
-    await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
+    await userEvent.click(screen.getByRole('tab', { name: '성경 읽기 계획' }));
     setDate('시작일', '2026-09-10');
     await fetchQtToday({ source: 'api', fetchImpl });
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
