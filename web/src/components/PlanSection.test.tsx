@@ -8,11 +8,14 @@ import { fillRange, LOCAL_NOON, LOCAL_TODAY, renderPlan, setDate, stat } from '@
 
 const readGroup = () => screen.getByRole('group', { name: '현재 읽은 분량' });
 const openProgressEditor = async () => userEvent.click(screen.getByText('진도 기록', { selector: 'summary' }));
+const openPlanSection = async (name: string) => userEvent.click(screen.getByRole('button', { name }));
 const openAdvancedSettings = async () => {
-  const details = screen.getByText('세부 설정', { selector: 'summary' });
-  if (details.getAttribute('aria-expanded') !== 'true') await userEvent.click(details);
+  await openPlanSection('세부 설정');
 };
-const chooseCustomWeekdays = async () => userEvent.click(screen.getByRole('button', { name: '요일 직접 선택' }));
+const chooseCustomWeekdays = async () => {
+  await openPlanSection('일주일에 며칠 읽을까요?');
+  await userEvent.click(screen.getByRole('button', { name: '요일 직접 선택' }));
+};
 
 describe('계획 입력과 결과 (AC03~AC06)', () => {
   it('범위와 기간을 고르면 다음 설정 단계로 이동하고 요일 선택 후 결과로 이동한다', async () => {
@@ -21,13 +24,14 @@ describe('계획 입력과 결과 (AC03~AC06)', () => {
     const scope = within(steps).getByRole('button', { name: '무엇을 읽을까요?' });
     const period = within(steps).getByRole('button', { name: '언제까지 읽을까요?' });
     const days = within(steps).getByRole('button', { name: '일주일에 며칠 읽을까요?' });
-    expect(scope).toHaveAttribute('aria-current', 'step');
+    expect(scope).toHaveAttribute('aria-pressed', 'true');
     await userEvent.click(screen.getByRole('radio', { name: '구약' }));
-    expect(period).toHaveAttribute('aria-current', 'step');
+    expect(period).toHaveAttribute('aria-pressed', 'true');
     await userEvent.click(screen.getByRole('button', { name: '90일' }));
-    expect(days).toHaveAttribute('aria-current', 'step');
+    expect(days).toHaveAttribute('aria-pressed', 'true');
     await userEvent.click(screen.getByRole('button', { name: '주 5일' }));
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: '계획 결과' }));
+    await userEvent.click(screen.getByRole('button', { name: '계획 미리보기' }));
+    expect(screen.getByRole('region', { name: '계획 결과' })).toHaveAttribute('data-mobile-active', 'true');
   });
 
   it('책을 직접 고를 때는 여러 권을 체크한 뒤 다음 단계로 갈 수 있다', async () => {
@@ -38,22 +42,25 @@ describe('계획 입력과 결과 (AC03~AC06)', () => {
     await userEvent.click(within(screen.getByRole('group', { name: '책 선택' })).getByRole('checkbox', { name: '창세기' }));
     expect(next).toBeEnabled();
     await userEvent.click(next);
-    expect(within(screen.getByRole('group', { name: '계획 설정 단계' })).getByRole('button', { name: '언제까지 읽을까요?' })).toHaveAttribute('aria-current', 'step');
+    expect(within(screen.getByRole('group', { name: '계획 설정 단계' })).getByRole('button', { name: '언제까지 읽을까요?' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('빠른 설정은 기본값으로 미리보기를 제공하고 기간 프리셋을 적용한다', async () => {
     renderPlan();
+    await openPlanSection('언제까지 읽을까요?');
     expect(screen.getByRole('button', { name: '30일' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByText(/총 167절 · 읽는 날 30일/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: '1년' }));
+    await openPlanSection('언제까지 읽을까요?');
     await userEvent.click(screen.getByRole('button', { name: '직접 날짜' }));
     expect(screen.getByLabelText('마감일')).toHaveValue('2027-09-23');
     await userEvent.click(screen.getByRole('button', { name: '계획 미리보기' }));
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: '계획 결과' }));
+    expect(screen.getByRole('region', { name: '계획 결과' })).toHaveAttribute('data-mobile-active', 'true');
   });
 
   it('읽는 요일 프리셋과 직접 선택이 계산에 반영된다', async () => {
     const { container } = renderPlan();
+    await openPlanSection('일주일에 며칠 읽을까요?');
     await userEvent.click(screen.getByRole('button', { name: '주 5일' }));
     expect(stat(container, 'plan.summary.readingDays')).toBe('22');
     await userEvent.click(screen.getByRole('button', { name: '요일 직접 선택' }));
@@ -141,18 +148,19 @@ describe('계획 입력과 결과 (AC03~AC06)', () => {
     expect(screen.queryByText(/마태복음/, { selector: '.day-row__range' })).not.toBeInTheDocument();
   });
 
-  it('장 수 기준으로 바꾸면 분량 설명도 바뀐다', async () => {
+  it('배분 방식을 바꾸면 분량 설명도 바뀐다', async () => {
     renderPlan();
     await openAdvancedSettings();
+    await userEvent.click(screen.getByRole('radio', { name: /절 수를 고려해 배분/ }));
     expect(screen.getByText(/장 끝을 우선합니다/)).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('radio', { name: '장 수 기준으로 배분' }));
+    await userEvent.click(screen.getByRole('radio', { name: /장 수 기준으로 배분/ }));
     expect(screen.getByText(/장마다 실제 분량은 다를 수 있습니다/)).toBeInTheDocument();
   });
 
   it('장보다 읽기 날짜가 많으면 빈 날을 미완료가 아닌 "배정 없음"으로 표시한다 (AC06)', async () => {
     renderPlan();
     await openAdvancedSettings();
-    await userEvent.click(screen.getByRole('radio', { name: '장 수 기준으로 배분' }));
+    await userEvent.click(screen.getByRole('radio', { name: /장 수 기준으로 배분/ }));
     const empties = document.querySelectorAll('tr.day-row--empty');
     expect(empties.length).toBeGreaterThan(0);
     for (const tr of empties) {

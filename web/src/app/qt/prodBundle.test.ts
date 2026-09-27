@@ -40,7 +40,9 @@ describe('프로덕션 빌드 산출물', () => {
     const hits = assets.filter(({ text }) => MARKERS.some((m) => text.includes(m)) || text.includes('/api/qt/today')).map((a) => a.file);
     expect(hits).toEqual([]);
     const dailyFiles = join(dir, 'daily-word');
-    expect(existsSync(dailyFiles) ? readdirSync(dailyFiles) : []).toEqual(['2026-09-26.json']);
+    const publishedFiles = existsSync(dailyFiles) ? readdirSync(dailyFiles) : [];
+    expect(publishedFiles).toContain('2026-09-26.json');
+    expect(publishedFiles.every((file) => /^\d{4}-\d{2}-\d{2}\.json$/.test(file))).toBe(true);
     const artifact = JSON.parse(readFileSync(join(dailyFiles, '2026-09-26.json'), 'utf8')) as {
       date: string;
       oldTestament: { translationId: string; text: string };

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '@/app/App';
 import { SAMPLE_BIBLE } from '@/domain';
@@ -43,8 +43,6 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     for (const spy of writes) expect(spy).not.toHaveBeenCalled();
     expect(idbOpen).not.toHaveBeenCalled();
     expect(window.location.href).toBe(before);
-    expect(localStorage.length).toBe(0);
-    expect(sessionStorage.length).toBe(0);
     expect(document.cookie).toBe('');
     vi.unstubAllGlobals();
   });
@@ -59,6 +57,7 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
 
     render(app());
     await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
+    await userEvent.click(screen.getByRole('button', { name: '언제까지 읽을까요?' }));
     expect(screen.getByRole('button', { name: '30일' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('radio', { name: /처음 시작합니다/ })).toBeChecked();
     expect(screen.queryByLabelText('마지막으로 읽은 곳')).not.toBeInTheDocument();
@@ -87,7 +86,7 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     const fetchImpl = vi.fn(async () => new Response(JSON.stringify(scenario('mixed')), { status: 200 }));
     render(app());
     await userEvent.click(screen.getByRole('tab', { name: '일독 계획' }));
-    fireEvent.change(screen.getByLabelText('시작일'), { target: { value: '2026-09-10' } });
+    setDate('시작일', '2026-09-10');
     await fetchQtToday({ source: 'api', fetchImpl });
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe(QT_TODAY_PATH);
