@@ -138,17 +138,24 @@ test('웹 산출물 폴더가 있으면 정적 파일 배포 리소스가 붙는
   const { json } = build({ ...WITH_EMAIL, webDistPath: 'test/fixtures/web-dist' });
   const deployment = resourcesOfType(json, 'Custom::CDKBucketDeployment');
   assert.equal(deployment.length, 1);
-  assert.deepEqual(deployment[0]![1].Properties!.DistributionPaths, ['/index.html', '/daily-word/*']);
+  assert.deepEqual(deployment[0]![1].Properties!.DistributionPaths, ['/index.html']);
 });
 
-test('날짜별 JSON도 정적 S3 경로로 제공되고 SPA 재작성 대상에서 제외된다', () => {
+test('날짜별 JSON은 별도 보존 버킷으로 제공되고 웹 배포에서 제외된다', () => {
   const { json } = build({ ...WITH_EMAIL, webDistPath: 'test/fixtures/web-dist' });
   const rewrite = resourcesOfType(json, 'AWS::CloudFront::Function').find(([id]) => id.startsWith('SpaRewrite'))![1].Properties!.FunctionCode;
   assert.match(rewrite, /uri\.indexOf\('\.'\) === -1/);
   assert.match(rewrite, /request\.uri = '\/index\.html'/);
-  // 날짜별 .json 요청은 확장자를 가지므로 SPA fallback을 통과하고, 같은 배포에서 edge cache도 무효화된다.
+  const content = resourcesOfType(json, 'AWS::S3::Bucket').find(([id]) => id.startsWith('DailyWordBucket'))!;
+  assert.equal(content[1].DeletionPolicy, 'Retain');
+  assert.equal(content[1].Properties!.VersioningConfiguration.Status, 'Enabled');
+  const distribution = resourcesOfType(json, 'AWS::CloudFront::Distribution')[0]![1].Properties!.DistributionConfig;
+  const behavior = distribution.CacheBehaviors.find((b: { PathPattern: string }) => b.PathPattern === '/daily-word/*');
+  assert.ok(behavior);
+  assert.equal(behavior.FunctionAssociations, undefined);
   const deployment = resourcesOfType(json, 'Custom::CDKBucketDeployment')[0]![1].Properties!;
-  assert.ok((deployment.DistributionPaths as string[]).includes('/daily-word/*'));
+  assert.ok(!(deployment.DistributionPaths as string[]).includes('/daily-word/*'));
+  assert.notDeepEqual(deployment.DestinationBucketName, content[1].Properties!.BucketName);
 });
 
 test('CloudFront /api/* 동작과 기본 동작이 분리되어 있고 SPA 재작성 함수는 기본 동작에만 붙는다', () => {

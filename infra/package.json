@@ -14,7 +14,8 @@
     "synth": "cdk synth --quiet",
     "diff": "cdk diff",
     "cost": "node cost/model.mjs",
-    "cost:test": "node --test cost/model.test.mjs",
+    "cost:test": "node --test cost/*.test.mjs",
+    "cost:current": "node cost/current-model.mjs",
     "synth:ci": "cdk synth --quiet -c alertEmail=ci@example.com",
     "cost:doc": "node cost/update-doc.mjs",
     "cost:doc:check": "node cost/update-doc.mjs --check"

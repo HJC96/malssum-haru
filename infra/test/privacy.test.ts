@@ -117,7 +117,7 @@ test('S3는 공개 접근이 막혀 있고 CloudFront 접속 로그는 꺼져 �
   });
   const dist = resourcesOfType(json, 'AWS::CloudFront::Distribution')[0]![1].Properties!.DistributionConfig;
   assert.equal(dist.Logging, undefined);
-  assert.equal(dist.CacheBehaviors.length, 2);
+  assert.equal(dist.CacheBehaviors.length, 3);
   const qt = dist.CacheBehaviors.find((b: { PathPattern: string }) => b.PathPattern === '/api/*');
   assert.deepEqual(qt.AllowedMethods, ['GET', 'HEAD']);
 });

@@ -61,14 +61,17 @@ public final class CatalogLoader {
                     + reference.chapter() + ":" + reference.verse())) {
                 throw new IllegalArgumentException("Duplicate candidate reference: " + candidate.id());
             }
-            boolean oldTestamentBook = switch (reference.bookId()) {
+            CandidateCatalog.Testament actualTestament = switch (reference.bookId()) {
                 case "GEN", "EXO", "LEV", "NUM", "DEU", "JOS", "JDG", "RUT", "1SA", "2SA",
                         "1KI", "2KI", "1CH", "2CH", "EZR", "NEH", "EST", "JOB", "PSA", "PRO",
                         "ECC", "SNG", "ISA", "JER", "LAM", "EZK", "DAN", "HOS", "JOL", "AMO",
-                        "OBA", "JON", "MIC", "NAM", "HAB", "ZEP", "HAG", "ZEC", "MAL" -> true;
-                default -> false;
+                        "OBA", "JON", "MIC", "NAM", "HAB", "ZEP", "HAG", "ZEC", "MAL" -> CandidateCatalog.Testament.oldTestament;
+                case "MAT", "MRK", "LUK", "JHN", "ACT", "ROM", "1CO", "2CO", "GAL", "EPH", "PHP", "COL",
+                        "1TH", "2TH", "1TI", "2TI", "TIT", "PHM", "HEB", "JAS", "1PE", "2PE", "1JN",
+                        "2JN", "3JN", "JUD", "REV" -> CandidateCatalog.Testament.newTestament;
+                default -> throw new IllegalArgumentException("Unsupported Bible book: " + reference.bookId());
             };
-            if (oldTestamentBook != (candidate.testament() == CandidateCatalog.Testament.oldTestament)) {
+            if (actualTestament != candidate.testament()) {
                 throw new IllegalArgumentException("Testament does not match book for candidate: " + candidate.id());
             }
             if (candidate.approval() == null || candidate.approval().textStatus() == null

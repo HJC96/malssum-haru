@@ -23,6 +23,7 @@ import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
@@ -54,6 +55,7 @@ export class MalssumStack extends Stack {
   readonly api: apigwv2.HttpApi;
   readonly distribution: cloudfront.Distribution;
   readonly webBucket: s3.Bucket;
+  readonly dailyWordBucket: s3.Bucket;
   readonly usesPlaceholderAsset: boolean;
 
   constructor(scope: Construct, id: string, props: MalssumStackProps) {
@@ -181,6 +183,31 @@ export class MalssumStack extends Stack {
       autoDeleteObjects: true,
     });
 
+    // 날짜별 말씀은 웹 빌드와 별도 소유권을 갖는다. 웹 재배포가 발행된 말씀을 지울 수 없다.
+    this.dailyWordBucket = new s3.Bucket(this, 'DailyWordBucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      versioned: true,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+    if (cfg.githubOidcProviderArn && cfg.githubEnvironment) {
+      const publisher = new iam.Role(this, 'DailyWordPublisherRole', {
+        assumedBy: new iam.WebIdentityPrincipal(cfg.githubOidcProviderArn, {
+          StringEquals: {
+            'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
+            'token.actions.githubusercontent.com:sub': `repo:HJC96/malssum-haru:environment:${cfg.githubEnvironment}`,
+          },
+        }),
+        description: `GitHub Actions ${cfg.githubEnvironment} daily word publisher`,
+      });
+      publisher.addToPolicy(new iam.PolicyStatement({
+        actions: ['s3:PutObject', 's3:GetObject'],
+        resources: [this.dailyWordBucket.arnForObjects('daily-word/*')],
+      }));
+      new CfnOutput(this, 'DailyWordPublisherRoleArn', { value: publisher.roleArn });
+    }
+
     const spaRewrite = new cloudfront.Function(this, 'SpaRewrite', {
       runtime: cloudfront.FunctionRuntime.JS_2_0,
       comment: '확장자 없는 경로를 /index.html 로 재작성(기본 동작에만 연결, /api/* 는 제외)',
@@ -240,6 +267,18 @@ export class MalssumStack extends Stack {
         functionAssociations: [{ function: spaRewrite, eventType: cloudfront.FunctionEventType.VIEWER_REQUEST }],
       },
       additionalBehaviors: {
+        '/daily-word/*': {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(this.dailyWordBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: new cloudfront.CachePolicy(this, 'DailyWordCachePolicy', {
+            minTtl: Duration.seconds(0),
+            defaultTtl: Duration.seconds(60),
+            maxTtl: Duration.seconds(300),
+          }),
+          responseHeadersPolicy: responseHeaders,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          compress: true,
+        },
         '/api/visits': {
           origin: new origins.HttpOrigin(apiDomain, { protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY }),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
@@ -262,13 +301,16 @@ export class MalssumStack extends Stack {
     const webDist = resolve(INFRA_ROOT, cfg.webDistPath);
     if (existsSync(webDist)) {
       new s3deploy.BucketDeployment(this, 'WebDeployment', {
-        sources: [s3deploy.Source.asset(webDist)],
+        sources: [s3deploy.Source.asset(webDist, { exclude: [
+          'daily-word/**',
+          'shepherd-hillside.png', 'shepherd-night.png',
+          'shepherd-day-v2.png', 'shepherd-night-v2.png',
+          'qt-parchment.png', 'qt-parchment-mobile.png',
+        ] })],
         destinationBucket: this.webBucket,
         distribution: this.distribution,
-        // 배포는 web/dist 전체(재귀적)를 S3 루트에 복사한다. Vite가 web/public/daily-word/** 를
-        // web/dist/daily-word/** 로 복사하므로 artifact 파일도 그대로 공개 경로에 놓인다.
-        // 같은 날짜 파일을 교정해 재배포할 수 있으므로 해당 CDN 경로도 무효화한다.
-        distributionPaths: ['/index.html', '/daily-word/*'],
+        // 날짜별 JSON은 다른 버킷에서 검토·발행한다. 웹 배포는 그 경로를 건드리지 않는다.
+        distributionPaths: ['/index.html'],
       });
     } else {
       Annotations.of(this).addWarningV2('malssum:web-dist-missing', `웹 산출물이 없어 정적 파일 배포 리소스를 만들지 않았다: ${webDist}`);
@@ -371,6 +413,7 @@ export class MalssumStack extends Stack {
     new CfnOutput(this, 'CloudFrontDomainName', { value: this.distribution.distributionDomainName });
     new CfnOutput(this, 'QtTableName', { value: this.table.tableName });
     new CfnOutput(this, 'VisitTableName', { value: this.visitTable.tableName });
+    new CfnOutput(this, 'DailyWordBucketName', { value: this.dailyWordBucket.bucketName });
     new CfnOutput(this, 'DeploymentNotice', {
       value: cfg.qtAcquisitionEnabled
         ? 'private-preview: provider acquisition ON, provider permission unconfirmed. Not for public release.'

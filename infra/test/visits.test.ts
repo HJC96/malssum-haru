@@ -32,7 +32,8 @@ test('POST route and CloudFront behavior accept uncached writes without changing
   const qt = cfg.CacheBehaviors.find((b: { PathPattern: string }) => b.PathPattern === '/api/*');
   assert.ok(visit);
   assert.ok(qt);
-  assert.equal(cfg.CacheBehaviors[0].PathPattern, '/api/visits'); // CloudFront는 첫 일치 동작을 사용한다.
+  assert.ok(cfg.CacheBehaviors.findIndex((b: { PathPattern: string }) => b.PathPattern === '/api/visits')
+    < cfg.CacheBehaviors.findIndex((b: { PathPattern: string }) => b.PathPattern === '/api/*')); // 더 구체적인 경로가 먼저다.
   assert.equal(visit.CachePolicyId, '4135ea2d-6df8-44a3-9df3-4b5a84be39ad'); // AWS managed CachingDisabled
   assert.ok(visit.AllowedMethods.includes('POST'));
   assert.equal(visit.FunctionAssociations, undefined);

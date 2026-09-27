@@ -46,6 +46,9 @@ export interface StackConfig {
   alertEmail?: string;
   /** 빌드된 웹 산출물 경로(web/dist). 폴더가 없으면 배포 자산은 만들지 않는다 */
   webDistPath: string;
+  /** 기존 계정의 GitHub OIDC provider ARN. 설정한 환경에만 콘텐츠 게시 역할을 만든다. */
+  githubOidcProviderArn?: string;
+  githubEnvironment?: 'staging' | 'production';
 }
 
 export const PLACEHOLDER_ASSET = 'assets/qt-placeholder';
@@ -146,12 +149,22 @@ export function resolveConfig(get: ContextGetter): StackConfig {
     budgetMonthlyUsd: asNum(get('budgetMonthlyUsd'), DEFAULTS.budgetMonthlyUsd, 'budgetMonthlyUsd'),
     alertEmail: alertEmail === '' ? undefined : alertEmail,
     webDistPath: asStr(get('webDistPath'), DEFAULTS.webDistPath),
+    githubOidcProviderArn: asStr(get('githubOidcProviderArn'), '') || undefined,
+    githubEnvironment: asStr(get('githubEnvironment'), '') as StackConfig['githubEnvironment'],
   };
   validate(cfg);
   return cfg;
 }
 
 export function validate(cfg: StackConfig): void {
+  if (cfg.githubOidcProviderArn || cfg.githubEnvironment) {
+    if (!/^arn:aws:iam::\d{12}:oidc-provider\/token\.actions\.githubusercontent\.com$/.test(cfg.githubOidcProviderArn ?? '')) {
+      throw new Error('githubOidcProviderArn must name the existing GitHub Actions OIDC provider');
+    }
+    if (cfg.githubEnvironment !== 'staging' && cfg.githubEnvironment !== 'production') {
+      throw new Error('githubEnvironment must be staging or production');
+    }
+  }
   if (cfg.collectorTimesKst.length === 0 || cfg.collectorTimesKst.some((t) => !/^([01]\d|2[0-3]):[0-5]\d$/.test(t))) {
     throw new Error(`collectorTimesKst 는 HH:MM(00:00~23:59) 목록이어야 한다: ${cfg.collectorTimesKst.join(',')}`);
   }

@@ -54,6 +54,9 @@ class CatalogLoaderTest {
         var wrongTestament = candidate("bad-book", CandidateCatalog.Testament.newTestament, "PSA", "text", approved());
         var mismatchPath = writeCatalog(List.of(wrongTestament));
         assertThatThrownBy(() -> new CatalogLoader(mapper).load(mismatchPath)).hasMessageContaining("Testament does not match");
+        var unsupported = candidate("bad-book", CandidateCatalog.Testament.newTestament, "ZZZ", "text", approved());
+        assertThatThrownBy(() -> new CatalogLoader(mapper).load(writeCatalog(List.of(unsupported))))
+                .hasMessageContaining("Unsupported Bible book");
     }
 
     private java.nio.file.Path writeCatalog(List<CandidateCatalog.Candidate> candidates) throws Exception {

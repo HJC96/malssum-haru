@@ -63,4 +63,6 @@ pnpm run dev:web:api
 
 현재 화면의 오늘 말씀과 해설은 날짜별 정적 파일에서 읽습니다. 실시간 AI 생성 기능은 연결하지 않았습니다. 공개 운영 전에는 번역본 표시 권리, 후보 데이터 검토와 배포 절차를 완료해야 합니다.
 
+승인 후 날짜별 콘텐츠를 준비하고 수동으로 게시하는 코드가 마련되어 있습니다. 실제 후보 승인은 대기 중이고 AWS에는 배포하지 않았습니다. 절차와 남은 조건은 [콘텐츠 준비·게시 안내](docs/CONTENT_RELEASE.md)에 정리했습니다.
+
 개발·검증 명령과 서비스별 세부 내용은 [인수인계 문서](docs/HANDOFF.md), [QT 서비스 README](services/qt/README.md), [일별 콘텐츠 README](services/daily-content/README.md)를 참고하세요.

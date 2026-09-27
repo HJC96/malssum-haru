@@ -31,7 +31,7 @@ class DailyContentPublisherTest {
         assertThat(json.path("schemaVersion").asText()).isEqualTo("1");
         assertThat(json.path("date").asText()).isEqualTo("2026-10-01");
         assertThat(json.path("timeZone").asText()).isEqualTo("Asia/Seoul");
-        assertThat(json.path("contentVersion").asText()).isEqualTo("daily-word-2026-10-01-v1");
+        assertThat(json.path("contentVersion").asText()).matches("daily-word-2026-10-01-[a-f0-9]{16}");
         assertThat(json.path("oldTestament").path("reference").path("bookId").asText()).isEqualTo("PSA");
         assertThat(json.path("newTestament").path("reference").path("bookId").asText()).isEqualTo("JHN");
         assertThat(json.path("oldTestament").path("explanation").path("kind").asText()).isEqualTo("editorial");

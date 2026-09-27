@@ -11,7 +11,7 @@ html {
 body {
   margin: 0;
   background-color: var(--bg);
-  background-image: linear-gradient(rgb(247 250 252 / 0.12), rgb(242 248 244 / 0.14)), url('/shepherd-day-v2.png?v=20260927');
+  background-image: linear-gradient(rgb(247 250 252 / 0.12), rgb(242 248 244 / 0.14)), url('/shepherd-day-v2.webp?v=20260927');
   background-position: center;
   background-size: cover;
   background-attachment: fixed;
@@ -25,7 +25,7 @@ body {
 }
 
 :root[data-theme='dark'] body {
-  background-image: url('/shepherd-night-v2.png?v=20260927-aligned');
+  background-image: url('/shepherd-night-v2.webp?v=20260927-aligned');
 }
 
 @media (max-width: 64rem) {

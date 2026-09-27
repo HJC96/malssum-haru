@@ -10,7 +10,7 @@
   min-height: 42rem;
   padding: clamp(1.5rem, 3vw, 2.2rem) clamp(1.5rem, 4.3vw, 3.7rem) clamp(2.5rem, 5vw, 4rem);
   border: 0;
-  background: url('/qt-parchment.png') center / 100% 100% no-repeat;
+  background: url('/qt-parchment.webp') center / 100% 100% no-repeat;
   color: var(--paper-ink);
   filter: drop-shadow(0 16px 24px rgb(52 42 25 / 0.23));
   font-family: 'Nanum Myeongjo', 'AppleMyungjo', Batang, serif;
@@ -335,7 +335,7 @@
   position: absolute;
   z-index: -1;
   inset: 0;
-  background: url('/qt-parchment.png') center / 100% 100% no-repeat;
+  background: url('/qt-parchment.webp') center / 100% 100% no-repeat;
   filter: brightness(0.36) sepia(0.22);
   content: '';
   pointer-events: none;
@@ -442,14 +442,14 @@
 
 @media (max-width: 47.999rem) {
   .daily-word {
-    background-image: url('/qt-parchment-mobile.png');
+    background-image: url('/qt-parchment-mobile.webp');
     padding: 2.5rem clamp(1.4rem, 4vw, 2.3rem) 4.5rem;
   }
 
   .daily-word__cards > li + li > .daily-word-card { padding-top: 1.65rem; }
 
   :root[data-theme='dark'] .daily-word::before {
-    background-image: url('/qt-parchment-mobile.png');
+    background-image: url('/qt-parchment-mobile.webp');
   }
 }
 

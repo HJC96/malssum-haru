@@ -866,6 +866,128 @@
         "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
       ]
     },
+    "DailyWordBucketD542A277": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "Tags": [
+          {
+            "Key": "project",
+            "Value": "malssum-haru"
+          }
+        ],
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        }
+      },
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain"
+    },
+    "DailyWordBucketPolicy4125B138": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "DailyWordBucketD542A277"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*"
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "DailyWordBucketD542A277",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "DailyWordBucketD542A277",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": "s3:GetObject",
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":cloudfront::",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        ":distribution/",
+                        {
+                          "Ref": "Cdn9963B1AD"
+                        }
+                      ]
+                    ]
+                  }
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudfront.amazonaws.com"
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "DailyWordBucketD542A277",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      }
+    },
     "SpaRewrite1C145184": {
       "Type": "AWS::CloudFront::Function",
       "Properties": {
@@ -945,6 +1067,30 @@
         }
       }
     },
+    "DailyWordCachePolicyA3D50249": {
+      "Type": "AWS::CloudFront::CachePolicy",
+      "Properties": {
+        "CachePolicyConfig": {
+          "DefaultTTL": 60,
+          "MaxTTL": 300,
+          "MinTTL": 0,
+          "Name": "MalssumHaruDailyWordCachePolicy97AECBD2-ap-northeast-2",
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "CookiesConfig": {
+              "CookieBehavior": "none"
+            },
+            "EnableAcceptEncodingBrotli": false,
+            "EnableAcceptEncodingGzip": false,
+            "HeadersConfig": {
+              "HeaderBehavior": "none"
+            },
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "none"
+            }
+          }
+        }
+      }
+    },
     "CdnOrigin1S3OriginAccessControl6AC0AEFC": {
       "Type": "AWS::CloudFront::OriginAccessControl",
       "Properties": {
@@ -956,11 +1102,38 @@
         }
       }
     },
+    "CdnOrigin2S3OriginAccessControl7449658C": {
+      "Type": "AWS::CloudFront::OriginAccessControl",
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Name": "MalssumHaruCdnOrigin2S3OriginAccessControlCF0ED2DF",
+          "OriginAccessControlOriginType": "s3",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4"
+        }
+      }
+    },
     "Cdn9963B1AD": {
       "Type": "AWS::CloudFront::Distribution",
       "Properties": {
         "DistributionConfig": {
           "CacheBehaviors": [
+            {
+              "AllowedMethods": [
+                "GET",
+                "HEAD"
+              ],
+              "CachePolicyId": {
+                "Ref": "DailyWordCachePolicyA3D50249"
+              },
+              "Compress": true,
+              "PathPattern": "/daily-word/*",
+              "ResponseHeadersPolicyId": {
+                "Ref": "ResponseHeaders84BC52D6"
+              },
+              "TargetOriginId": "MalssumHaruCdnOrigin22711AC56",
+              "ViewerProtocolPolicy": "redirect-to-https"
+            },
             {
               "AllowedMethods": [
                 "GET",
@@ -977,7 +1150,7 @@
               "ResponseHeadersPolicyId": {
                 "Ref": "ResponseHeaders84BC52D6"
               },
-              "TargetOriginId": "MalssumHaruCdnOrigin22711AC56",
+              "TargetOriginId": "MalssumHaruCdnOrigin3EA5D6C0F",
               "ViewerProtocolPolicy": "https-only"
             },
             {
@@ -993,7 +1166,7 @@
               "ResponseHeadersPolicyId": {
                 "Ref": "ResponseHeaders84BC52D6"
               },
-              "TargetOriginId": "MalssumHaruCdnOrigin3EA5D6C0F",
+              "TargetOriginId": "MalssumHaruCdnOrigin45FBA4B15",
               "ViewerProtocolPolicy": "https-only"
             }
           ],
@@ -1046,29 +1219,22 @@
               }
             },
             {
-              "CustomOriginConfig": {
-                "OriginProtocolPolicy": "https-only",
-                "OriginSSLProtocols": [
-                  "TLSv1.2"
-                ]
-              },
               "DomainName": {
-                "Fn::Select": [
-                  2,
-                  {
-                    "Fn::Split": [
-                      "/",
-                      {
-                        "Fn::GetAtt": [
-                          "HttpApiF5A9A8A7",
-                          "ApiEndpoint"
-                        ]
-                      }
-                    ]
-                  }
+                "Fn::GetAtt": [
+                  "DailyWordBucketD542A277",
+                  "RegionalDomainName"
                 ]
               },
-              "Id": "MalssumHaruCdnOrigin22711AC56"
+              "Id": "MalssumHaruCdnOrigin22711AC56",
+              "OriginAccessControlId": {
+                "Fn::GetAtt": [
+                  "CdnOrigin2S3OriginAccessControl7449658C",
+                  "Id"
+                ]
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": ""
+              }
             },
             {
               "CustomOriginConfig": {
@@ -1094,6 +1260,31 @@
                 ]
               },
               "Id": "MalssumHaruCdnOrigin3EA5D6C0F"
+            },
+            {
+              "CustomOriginConfig": {
+                "OriginProtocolPolicy": "https-only",
+                "OriginSSLProtocols": [
+                  "TLSv1.2"
+                ]
+              },
+              "DomainName": {
+                "Fn::Select": [
+                  2,
+                  {
+                    "Fn::Split": [
+                      "/",
+                      {
+                        "Fn::GetAtt": [
+                          "HttpApiF5A9A8A7",
+                          "ApiEndpoint"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "Id": "MalssumHaruCdnOrigin45FBA4B15"
             }
           ],
           "PriceClass": "PriceClass_200"
@@ -1573,6 +1764,11 @@
     "VisitTableName": {
       "Value": {
         "Ref": "SiteVisitsCBBBAD50"
+      }
+    },
+    "DailyWordBucketName": {
+      "Value": {
+        "Ref": "DailyWordBucketD542A277"
       }
     },
     "DeploymentNotice": {

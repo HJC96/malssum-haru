@@ -24,9 +24,15 @@ After the catalog has both Old and New Testament candidates with approved metada
 java -jar target/daily-content-0.1.0-SNAPSHOT.jar \
   --date=2026-10-01 \
   --output=target/generated-daily-word/2026-10-01.json
+
+# 승인된 후보에서 14일분을 준비할 때
+java -jar target/daily-content-0.1.0-SNAPSHOT.jar \
+  --date=2026-10-01 --days=14 --output-dir=target/generated-daily-word
 ```
 
 An existing identical file is treated as a successful retry. A different existing file is never overwritten automatically; corrections require an explicit review/versioning workflow. The CLI does not upload or publish files.
+
+For the reviewed S3 publish path and remaining operational prerequisites, see [`docs/CONTENT_RELEASE.md`](../../docs/CONTENT_RELEASE.md).
 
 ## Selection contract
 

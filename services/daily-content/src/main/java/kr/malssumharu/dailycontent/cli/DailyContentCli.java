@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import kr.malssumharu.dailycontent.catalog.CatalogLoader;
 import kr.malssumharu.dailycontent.publish.DailyContentPublisher;
@@ -26,29 +27,51 @@ public final class DailyContentCli {
     private static void execute(String[] args) throws Exception {
         Map<String, String> options = parse(args);
         if (options.containsKey("help")) {
-            System.out.println("Usage: DailyContentCli --date=YYYY-MM-DD [--catalog=path] [--output=path]");
+            System.out.println("Usage: DailyContentCli --date=YYYY-MM-DD [--days=1..30] [--catalog=path] [--output=path | --output-dir=path]");
             return;
         }
         if (!options.containsKey("date")) throw new IllegalArgumentException("--date=YYYY-MM-DD is required");
         LocalDate date = LocalDate.parse(options.get("date"));
+        int days = Integer.parseInt(options.getOrDefault("days", "1"));
+        if (days < 1 || days > 30) throw new IllegalArgumentException("--days must be between 1 and 30");
+        if (days > 1 && options.containsKey("output")) {
+            throw new IllegalArgumentException("Use --output-dir for multiple days");
+        }
+        if (options.containsKey("output") && options.containsKey("output-dir")) {
+            throw new IllegalArgumentException("Choose --output or --output-dir");
+        }
         Path catalogPath = Path.of(options.getOrDefault("catalog", "src/main/resources/catalog/candidate-catalog-v1.json"));
-        Path output = Path.of(options.getOrDefault("output", "target/generated-daily-word/" + date + ".json"));
+        Path outputDir = Path.of(options.getOrDefault("output-dir", "target/generated-daily-word"));
 
         var mapper = new ObjectMapper().findAndRegisterModules().enable(SerializationFeature.INDENT_OUTPUT);
         var catalog = new CatalogLoader(mapper).load(catalogPath);
-        var published = new DailyContentPublisher(catalog, mapper).render(new PublishRequest(date));
-        Files.createDirectories(output.toAbsolutePath().getParent());
-        try {
-            Files.writeString(output, published.json(), java.nio.file.StandardOpenOption.CREATE_NEW);
-            System.out.println("Created " + output + " (" + published.contentVersion() + ")");
-        } catch (java.nio.file.FileAlreadyExistsException exists) {
-            String existing = Files.readString(output);
-            if (existing.equals(published.json())) {
-                System.out.println("Already exists with identical content: " + output);
-                return;
+        var publisher = new DailyContentPublisher(catalog, mapper);
+        var planned = new LinkedHashMap<Path, kr.malssumharu.dailycontent.publish.PublishedContent>();
+        // Validate every day and preflight all conflicts before writing the first file.
+        for (int index = 0; index < days; index++) {
+            LocalDate targetDate = date.plusDays(index);
+            Path output = options.containsKey("output") ? Path.of(options.get("output"))
+                    : outputDir.resolve(targetDate + ".json");
+            var published = publisher.render(new PublishRequest(targetDate));
+            if (Files.exists(output) && !Files.readString(output).equals(published.json())) {
+                throw new IllegalStateException("Refusing to overwrite different content at " + output
+                        + "; use an explicit correction workflow");
             }
-            throw new IllegalStateException("Refusing to overwrite different content at " + output
-                    + "; use an explicit correction workflow", exists);
+            planned.put(output, published);
+        }
+        for (var entry : planned.entrySet()) {
+            Path output = entry.getKey();
+            var published = entry.getValue();
+            Files.createDirectories(output.toAbsolutePath().getParent());
+            try {
+                Files.writeString(output, published.json(), java.nio.file.StandardOpenOption.CREATE_NEW);
+                System.out.println("Created " + output + " (" + published.contentVersion() + ")");
+            } catch (java.nio.file.FileAlreadyExistsException exists) {
+                if (!Files.readString(output).equals(published.json())) {
+                    throw new IllegalStateException("Concurrent conflicting content at " + output, exists);
+                }
+                System.out.println("Already exists with identical content: " + output);
+            }
         }
     }
 
@@ -73,6 +96,6 @@ public final class DailyContentCli {
     }
 
     private static final class SetOfOptions {
-        private static final java.util.Set<String> ALLOWED = java.util.Set.of("date", "catalog", "output");
+        private static final java.util.Set<String> ALLOWED = java.util.Set.of("date", "days", "catalog", "output", "output-dir");
     }
 }

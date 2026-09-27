@@ -3,6 +3,9 @@ package kr.malssumharu.dailycontent.publish;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,7 +35,7 @@ public final class DailyContentPublisher {
         var newCandidate = selector.select(catalog.catalogVersion(), targetDate,
                 CandidateCatalog.Testament.newTestament, eligibleNew);
         String date = targetDate.toString();
-        String contentVersion = "daily-word-" + date + "-v1";
+        String contentVersion = contentVersion(date, oldCandidate, newCandidate);
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("schemaVersion", "1");
         payload.put("date", date);
@@ -44,6 +47,19 @@ public final class DailyContentPublisher {
             return new PublishedContent(date, mapper.writeValueAsString(payload) + "\n", contentVersion);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Could not serialize DailyWordContent v1", exception);
+        }
+    }
+
+    private String contentVersion(String date, CandidateCatalog.Candidate oldCandidate,
+            CandidateCatalog.Candidate newCandidate) {
+        String identity = String.join("\n", "daily-word-v1", date, catalog.catalogVersion(),
+                oldCandidate.id(), oldCandidate.text(), oldCandidate.explanation().text(),
+                newCandidate.id(), newCandidate.text(), newCandidate.explanation().text());
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(identity.getBytes(StandardCharsets.UTF_8));
+            return "daily-word-" + date + "-" + java.util.HexFormat.of().formatHex(hash, 0, 8);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
         }
     }
 

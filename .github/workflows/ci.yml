@@ -66,7 +66,7 @@ jobs:
       - run: mvn -B -ntp verify
         working-directory: services/daily-content
       - run: node tools/daily-catalog/validate.mjs
-      - run: node --test tools/daily-catalog/validate.test.mjs
+      - run: node --test tools/daily-catalog/*.test.mjs
 
   infra:
     name: infra (typecheck, test, synth, cost model)

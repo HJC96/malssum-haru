@@ -1,0 +1,70 @@
+# 수동으로 승인된 하루 콘텐츠만 게시한다. 일반 push/PR은 AWS 자격을 받지 않는다.
+name: Publish daily word
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: '발행할 서울 날짜 (YYYY-MM-DD)'
+        required: true
+        type: string
+      environment:
+        description: '대상 GitHub 환경'
+        required: true
+        type: choice
+        options: [staging, production]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-word-${{ inputs.environment }}-${{ inputs.date }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      CONTENT_DATE: ${{ inputs.date }}
+      CONTENT_BUCKET: ${{ vars.DAILY_WORD_BUCKET_NAME }}
+      PUBLISH_ROLE: ${{ vars.DAILY_WORD_PUBLISH_ROLE_ARN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: services/daily-content/pom.xml
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - name: Check deployment configuration and date
+        run: |
+          test -n "$CONTENT_BUCKET" && test -n "$PUBLISH_ROLE"
+          node -e 'const d=process.env.CONTENT_DATE; const p=/^\d{4}-\d{2}-\d{2}$/; if(!p.test(d)||new Date(d+"T00:00:00Z").toISOString().slice(0,10)!==d) process.exit(1)'
+      - name: Test and generate reviewed artifact
+        working-directory: services/daily-content
+        run: |
+          mvn -B -ntp verify
+          java -jar target/daily-content-0.1.0-SNAPSHOT.jar "--date=$CONTENT_DATE" "--output=$RUNNER_TEMP/$CONTENT_DATE.json"
+      - name: Validate exact catalog match before credentials
+        run: |
+          node tools/daily-catalog/publish.mjs "--file=$RUNNER_TEMP/$CONTENT_DATE.json" \
+            --catalog=services/daily-content/src/main/resources/catalog/candidate-catalog-v1.json \
+            "--bucket=$CONTENT_BUCKET"
+      - uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          aws-region: ap-northeast-2
+          role-to-assume: ${{ env.PUBLISH_ROLE }}
+      - name: Publish only when date key is absent or identical
+        run: |
+          node tools/daily-catalog/publish.mjs "--file=$RUNNER_TEMP/$CONTENT_DATE.json" \
+            --catalog=services/daily-content/src/main/resources/catalog/candidate-catalog-v1.json \
+            "--bucket=$CONTENT_BUCKET" --publish
