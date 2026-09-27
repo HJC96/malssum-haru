@@ -22,7 +22,12 @@ export function renderPlan(opts: { lang?: Lang; initialForm?: Partial<PlanFormSt
   // Keep this in the test helper so product behavior remains user-driven.
   fireEvent.click(screen.getByRole('button', { name: opts.lang === 'en' ? 'Results' : '결과' }));
   const tools = rendered.container.querySelector<HTMLDialogElement>('.plan-tools-dialog');
-  if (tools) tools.setAttribute('open', '');
+  if (tools) {
+    // jsdom does not implement the native dialog methods used by the two entry buttons.
+    tools.showModal ??= () => tools.setAttribute('open', '');
+    tools.close ??= () => tools.removeAttribute('open');
+    tools.setAttribute('open', '');
+  }
   return rendered;
 }
 

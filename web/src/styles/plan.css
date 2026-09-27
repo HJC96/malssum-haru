@@ -1076,6 +1076,7 @@
   box-shadow: 0 18px 48px rgb(2 8 22 / 0.22);
 }
 .plan-result__header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.plan-result__actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 0.5rem; }
 .plan-result__export-jump {
   display: inline-flex;
   align-items: center;
@@ -1092,6 +1093,7 @@
   cursor: pointer;
 }
 .plan-result__export-jump:hover { background: #38356d; color: #fff; }
+.plan-result__export-jump--secondary { border-color: #59657a; color: #d3dbea; }
 .plan-overview {
   display: grid;
   grid-template-columns: 1.1fr repeat(4, minmax(0, 1fr));
@@ -1197,6 +1199,25 @@
 .export-panel { border-color: #2b3b51; border-radius: 14px; background: #152238; }
 .plan-summary h4,
 .export-panel h4 { margin: 0; }
+.plan-summary__highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+}
+.plan-summary__highlights > div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+}
+.plan-summary__highlights dt { color: var(--text-muted); font-size: 0.83rem; }
+.plan-summary__highlights dd { margin: 0; font-size: 1.05rem; font-weight: 750; }
+.plan-summary__details > summary { min-height: 2.6rem; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
+.plan-summary__details[open] { display: grid; gap: 0.75rem; }
+.export-panel__action { justify-self: start; min-width: 10rem; }
 .stat { background: #1b2940; }
 .plan-result .btn { border-color: #7167e8; color: #b6aeff; }
 .plan-result .btn:hover { background: #312e62; color: #fff; }
@@ -1215,6 +1236,7 @@
   .plan-weekdays { gap: 0.2rem; }
   .plan-weekdays .choice { min-width: 0; padding-inline: 0; }
   .plan-result__header { align-items: center; }
+  .plan-result__actions { justify-content: start; }
   .plan-result__header p { font-size: 0.82rem; }
   .plan-tools-dialog {
     width: calc(100vw - 1rem);

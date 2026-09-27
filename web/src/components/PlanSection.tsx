@@ -17,6 +17,7 @@ import { ProgressEditor, type ProgressFields } from './plan/ProgressEditor';
 
 type View = 'list' | 'calendar';
 type MobilePanel = 'setup' | 'result';
+type ToolsView = 'progress' | 'export';
 
 /**
  * 성경 읽기 계획 영역. 입력과 결과는 이 컴포넌트의 메모리 상태로만 있고 저장소·URL·서버로 나가지 않는다(AC20).
@@ -45,6 +46,8 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
   const [view, setView] = useState<View>('calendar');
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('setup');
   const [weekStart, setWeekStart] = useState<Weekday>(0);
+  const [toolsView, setToolsView] = useState<ToolsView>('progress');
+  const [progressOpenRequest, setProgressOpenRequest] = useState(0);
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const toolsDialog = useRef<HTMLDialogElement>(null);
   const basisProgress = useRef<Partial<Record<Distribution, ProgressFields>>>({});
@@ -157,7 +160,10 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
               <h3 id="plan-result-heading" ref={resultHeading} tabIndex={-1}>{t('plan.preview.heading')}</h3>
               <p>{t('plan.preview.subtitle')}</p>
             </div>
-            <button type="button" className="plan-result__export-jump" onClick={() => toolsDialog.current?.showModal()}><NotebookIcon size={18} aria-hidden="true" />{t('plan.tools.open')}</button>
+            <div className="plan-result__actions">
+              <button type="button" className="plan-result__export-jump" onClick={() => { setToolsView('progress'); setProgressOpenRequest((n) => n + 1); toolsDialog.current?.showModal(); }}><NotebookIcon size={18} aria-hidden="true" />{t('plan.tools.progress')}</button>
+              <button type="button" className="plan-result__export-jump plan-result__export-jump--secondary" onClick={() => { setToolsView('export'); toolsDialog.current?.showModal(); }}><NotebookIcon size={18} aria-hidden="true" />{t('plan.tools.export')}</button>
+            </div>
           </header>
 
           {overview && <dl className="plan-overview">
@@ -183,10 +189,11 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
 
           <dialog ref={toolsDialog} className="plan-tools-dialog" aria-labelledby="plan-tools-dialog-title">
           <header className="plan-tools-dialog__header">
-            <h3 id="plan-tools-dialog-title">{t('plan.tools.heading')}</h3>
+            <h3 id="plan-tools-dialog-title">{t(toolsView === 'progress' ? 'plan.tools.progressHeading' : 'plan.tools.exportHeading')}</h3>
             <button type="button" className="btn btn--small" onClick={() => toolsDialog.current?.close()}>{t('plan.tools.close')}</button>
           </header>
           <div className="plan-tools-dialog__content">
+          {toolsView === 'progress' ? <>
           <PlanSummary
             result={progressComputed.ok
               ? { ...progressComputed.outcome.result, recalculatedFrom: computed.outcome.result.recalculatedFrom }
@@ -198,6 +205,7 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
           <ProgressEditor
             form={form}
             bible={activeBible}
+            openRequest={progressOpenRequest}
             onApply={(fields) => {
               const candidate = { ...form, ...fields, recalc: false };
               const validation = computeFromForm(candidate, activeBible, today);
@@ -210,8 +218,8 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
             }}
           />
           <section className="schedule-adjustment" aria-label={t('plan.recalc.previewTitle')}>
-            <button type="button" className="btn btn--small" onClick={() => setShowSchedulePreview((shown) => !shown)}>
-              {t('plan.recalc.preview')}
+            <button type="button" className="btn" onClick={() => setShowSchedulePreview((shown) => !shown)}>
+              {t(showSchedulePreview ? 'plan.recalc.preview' : 'plan.recalc.cta')}
             </button>
             {showSchedulePreview && (
               <div className="schedule-adjustment__preview" role="region" aria-label={t('plan.recalc.previewTitle')}>
@@ -229,8 +237,9 @@ export function PlanSection({ now, initialForm, bible = BIBLE }: Props) {
               </div>
             )}
           </section>
-
+          </> :
           <ExportPanel model={model} weekStart={weekStart} />
+          }
           </div>
           </dialog>
           <PlanPrintSheet model={model} />

@@ -1,33 +1,66 @@
 # 말씀하루 (malssum-haru)
 
-QT 통합 대시보드와 성경 일독 계획 웹서비스.
+오늘의 QT와 성경 읽기 계획을 한 화면에서 이용하는 웹 앱입니다. 구약·신약의 오늘 말씀을 읽고, 원하는 책과 기간에 맞춰 날짜별 읽기 계획을 만들 수 있습니다. 현재는 로컬에서 화면과 핵심 계산 기능을 개발하고 있으며 AWS 배포는 진행하지 않았습니다.
 
-- 생명의삶·매일성경의 오늘 QT 장절 범위와 공식 링크 (성경 본문은 제공처에서 확인)
-- AI 설명 서비스 개발 골격은 있으나, 기본 설정에서 실제 AI 생성은 비활성화
-- 시작일·마감일 기반 성경 일독 분량 계산, 캘린더, 진행률, Excel/PDF 내보내기
-- 회원가입 없음, 개인 진도 비저장
+## 지금 할 수 있는 일
 
-이어서 작업하려면 먼저 [인수인계 문서](docs/HANDOFF.md)를 읽는다. 요구사항은 [PRD](docs/PRD.md), 이어서 진행할 작업은 [구현 인계 계획](docs/IMPLEMENTATION_PLAN.md) 참고. Claude Code 에이전트 팀용 [시작 프롬프트](docs/CLAUDE_TEAM_PROMPT.md)도 준비되어 있다.
+| 영역 | 기능 |
+| --- | --- |
+| 오늘의 QT | 서울 날짜를 기준으로 구약·신약 한 절씩과 해설을 표시합니다. 매일성경·생명의삶·날마다 솟는 샘물의 공식 페이지로 이동할 수 있습니다. |
+| 성경 읽기 계획 | 성경 전체, 구약, 신약 또는 선택한 책을 대상으로 시작일·마감일·읽는 요일·쉬는 날짜를 정합니다. 책의 순서도 바꿀 수 있습니다. |
+| 분량과 진도 | 기본은 장 단위 배분이며 절 단위 배분도 제공합니다. 캘린더와 날짜별 목록에서 일정을 보고, 이어서 읽은 지점이나 여러 읽은 구간을 입력해 진행률을 확인합니다. 남은 일정은 미리 본 뒤 적용합니다. |
+| 내보내기 | 계획 전체 또는 한 달을 Excel, PDF 목록형, PDF 월간형으로 내려받거나 인쇄합니다. |
+| 화면 | 낮·밤 테마와 한국어·영어 표시를 지원합니다. |
+
+회원가입은 없습니다. 개인 계획과 읽은 진도는 현재 열린 화면의 메모리에서 계산하며 새로고침하면 사라집니다. 내보낸 파일은 확인·출력용이고 앱에 다시 불러올 수 없습니다. 절 단위 계획은 공개 영어 성경의 장절표를 사용하므로 개역개정과 일부 읽기 범위가 다를 수 있습니다.
+
+## 화면 미리보기
+
+2026년 9월 27일 로컬 개발 화면을 캡처했습니다. 오늘의 QT 예시는 저장소에 포함된 해당 날짜의 콘텐츠를 보여 줍니다.
+
+| 오늘의 QT · 낮 | 오늘의 QT · 밤 |
+| --- | --- |
+| <img src="docs/screenshots/qt-day.png" alt="낮 배경의 오늘의 QT. 양피지에 구약과 신약 말씀, 해설, 공식 QT 링크가 표시된다" width="420"> | <img src="docs/screenshots/qt-night.png" alt="밤 배경의 오늘의 QT. 같은 말씀을 어두운 양피지와 별이 있는 마을 배경에 표시한다" width="420"> |
+
+**성경 읽기 계획:** 범위·기간·요일을 정하면 달력에 날짜별 읽을 범위가 표시됩니다.
+
+<img src="docs/screenshots/reading-plan.png" alt="왼쪽에서 읽기 계획 조건을 고르고 오른쪽 달력에서 날짜별 배정을 확인하는 화면" width="800">
+
+**진도 기록:** 읽은 범위를 입력하고 현재 진행률과 남은 분량을 확인합니다. 상세 통계와 내보내기는 각각 필요한 때 열 수 있습니다.
+
+<img src="docs/screenshots/progress-dialog.png" alt="읽은 범위 입력을 펼친 진도 기록 팝업과 진행률 요약" width="800">
 
 ## 로컬 실행
 
-Node 20.20(`.nvmrc`), pnpm 9.4, Java 21, Maven 3.9가 필요하다. 실제 AWS 계정에는 아무것도 배포하지 않는다.
+Node.js 20.20 이상(`.nvmrc`), pnpm 9.4가 필요합니다. QT API와 콘텐츠 생성 코어를 실행하려면 Java 21과 Maven 3.9도 필요합니다.
 
 ```sh
-pnpm install                                   # 루트에서 한 번
-pnpm run dev:qt:links                          # QT API(8081): 외부 요청 없음, 공식 링크만
-pnpm run dev:web:api                            # 웹(5173): 로컬 QT API 연결
-pnpm --filter malssum-haru-web dev             # 웹(5173): QT 샘플 데이터와 샘플 배너
-pnpm --filter malssum-haru-web test            # 웹 테스트
-pnpm --filter malssum-haru-web typecheck
-pnpm --filter malssum-haru-web build
-
-pnpm run dev:qt:live                            # QT API(8081): 제공처에 실제 요청, 개인 로컬 실험 전용
-cd services/qt && mvn -q -B test              # QT 서비스 테스트(인터넷 불필요)
-
-pnpm --filter malssum-haru-infra test          # IaC 테스트(배포 없음)
+pnpm install
+pnpm --filter malssum-haru-web dev
 ```
 
-`dev:qt:links`와 `dev:qt:live`는 같은 8081 포트를 사용하므로 한 번에 하나만 실행한다. `live`는 제공처 페이지에 실제 HTTP 요청을 보낸다. 접근 허용 여부가 확인되지 않아 첫 모드인 `links`를 기본으로 사용하고, `live`는 외부 요청을 의도한 로컬 점검에서만 선택한다. 매일성경·생명의삶은 실제 장절을 확인하면 장절 범위를 표시하고, 성경 전문은 각 공식 페이지에서 읽는다.
+웹 앱은 `http://localhost:5173/`에서 열립니다. 이 개발 모드에서 QT 제공처 데이터는 샘플이며 방문 수는 개발 서버의 로컬 카운터를 사용합니다. 오늘의 말씀은 요청한 날짜의 `web/public/daily-word/YYYY-MM-DD.json` 파일을 읽습니다. 현재 저장소에는 2026-09-26과 2026-09-27 파일이 있으며, 다른 날짜에 파일이 없으면 다른 날의 말씀으로 대체하지 않고 이용 불가 상태를 표시합니다.
 
-QT 서비스 세부는 [services/qt/README.md](services/qt/README.md), 작업 진행은 [docs/team/TASKS.md](docs/team/TASKS.md)를 본다.
+QT 서비스의 공식 링크 API를 연결하려면 두 터미널에서 실행합니다. `links` 모드는 제공처에 외부 요청을 보내지 않습니다.
+
+```sh
+pnpm run dev:qt:links
+pnpm run dev:web:api
+```
+
+`dev:qt:live`는 제공처에 실제 요청을 보내는 개인 로컬 실험용 모드입니다. `dev:qt:links`와 같은 8081 포트를 사용하므로 동시에 실행하지 않습니다.
+
+## 저장소 구성과 진행 상태
+
+| 경로 | 역할 |
+| --- | --- |
+| [`web/`](web/) | React 화면, 성경 읽기 계획 계산·달력·진도·파일 내보내기 |
+| [`services/qt/`](services/qt/) | 공식 QT 링크와 오늘 장절 범위를 다루는 Java 서비스 |
+| [`services/daily-content/`](services/daily-content/) | 검토·승인된 구약·신약 후보에서 날짜별 콘텐츠 JSON을 만드는 Java 코어. 현재 내장 후보의 승인 상태가 대기 중이어서 공개용 파일 생성을 차단합니다. |
+| [`services/visits/`](services/visits/) | 사이트 전체 누적 페이지 로드 수를 기록하는 방문 API 코드. 로컬 웹 개발 서버에서는 별도 카운터를 사용합니다. |
+| [`infra/`](infra/) | AWS 인프라 코드. 이 저장소에서 실제 배포는 아직 하지 않았습니다. |
+| [`docs/`](docs/) | [요구사항](docs/PRD.md), [인수인계](docs/HANDOFF.md), [구현 계획](docs/IMPLEMENTATION_PLAN.md) |
+
+현재 화면의 오늘 말씀과 해설은 날짜별 정적 파일에서 읽습니다. 실시간 AI 생성 기능은 연결하지 않았습니다. 공개 운영 전에는 번역본 표시 권리, 후보 데이터 검토와 배포 절차를 완료해야 합니다.
+
+개발·검증 명령과 서비스별 세부 내용은 [인수인계 문서](docs/HANDOFF.md), [QT 서비스 README](services/qt/README.md), [일별 콘텐츠 README](services/daily-content/README.md)를 참고하세요.

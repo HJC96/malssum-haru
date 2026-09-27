@@ -1,4 +1,4 @@
-import { useId, useState, type SyntheticEvent } from 'react';
+import { useEffect, useId, useState, type SyntheticEvent } from 'react';
 import { listBooks, type BibleData } from '@/domain';
 import { bookName, useI18n, type MessageKey } from '@/i18n';
 import type { PlanFormState, ReadMode } from '@/app/plan/planForm';
@@ -17,10 +17,11 @@ interface Props {
   form: PlanFormState;
   bible: BibleData;
   onApply: (fields: ProgressFields) => boolean;
+  openRequest?: number;
 }
 
 /** Progress entry is collapsed below the progress summary and commits only when the user applies it. */
-export function ProgressEditor({ form, bible, onApply }: Props) {
+export function ProgressEditor({ form, bible, onApply, openRequest = 0 }: Props) {
   const { lang, t } = useI18n();
   const idBase = useId();
   const [draft, setDraft] = useState(() => fieldsFrom(form));
@@ -34,9 +35,16 @@ export function ProgressEditor({ form, bible, onApply }: Props) {
     setOpen(nextOpen);
   };
 
+  useEffect(() => {
+    if (openRequest > 0) {
+      setDraft(fieldsFrom(form));
+      setOpen(true);
+    }
+  }, [openRequest]);
+
   return (
     <details className="progress-editor" open={open} onToggle={toggle}>
-      <summary>{t(form.readMode === 'none' ? 'plan.progressEditor.open' : 'plan.progressEditor.edit')}</summary>
+      <summary>{t(form.readMode === 'none' ? 'plan.progressEditor.enterRange' : 'plan.progressEditor.editRange')}</summary>
       <p className="qt-note">{t('plan.progressEditor.storage')}</p>
       <fieldset>
         <legend>{t('plan.read.legend')}</legend>

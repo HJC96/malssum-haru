@@ -7,7 +7,7 @@ import { scenario } from '@/app/test/render';
 import { closePlanTools, fillRange, LOCAL_NOON, LOCAL_TODAY, openPlanTools, renderPlan, setDate, stat } from '@/app/test/planUi';
 
 const readGroup = () => screen.getByRole('group', { name: '현재 읽은 분량' });
-const openProgressEditor = async () => userEvent.click(screen.getByText('진도 기록', { selector: 'summary' }));
+const openProgressEditor = async () => userEvent.click(screen.getByText(/읽은 범위 (입력|수정)/, { selector: 'summary' }));
 const openAdvancedSettings = async () => {
   await userEvent.click(screen.getByText('제외일·계획 이름', { selector: 'summary' }));
 };
@@ -290,9 +290,10 @@ describe('재계산 (AC08)', () => {
     await openProgressEditor();
     await userEvent.click(within(readGroup()).getByRole('radio', { name: /처음 시작/ }));
     await userEvent.click(screen.getByRole('button', { name: '진도 반영' }));
-    await userEvent.click(screen.getByRole('button', { name: '남은 일정 조정' }));
+    await userEvent.click(screen.getByRole('button', { name: '남은 분량으로 일정 조정' }));
     await userEvent.click(screen.getByRole('button', { name: '이 일정으로 적용' }));
     expect(screen.getByText(/2026-09-24부터 남은 읽기 날짜에/)).toBeInTheDocument();
+    await userEvent.click(screen.getByText('상세 통계 보기', { selector: 'summary' }));
     expect(screen.getByRole('table', { name: '최초 계획과 비교' })).toBeInTheDocument();
     // 오늘 이전 날짜는 완료로 추정하지 않고 상태만 표시한다
     const elapsed = document.querySelectorAll('tr.day-row--elapsed');
@@ -303,7 +304,7 @@ describe('재계산 (AC08)', () => {
 
   it('남은 읽기 날짜가 없는데 미독이 있으면 마감일 변경을 안내한다', async () => {
     renderPlan({ initialForm: { startDate: '2026-09-01', endDate: '2026-09-20' } });
-    await userEvent.click(screen.getByRole('button', { name: '남은 일정 조정' }));
+    await userEvent.click(screen.getByRole('button', { name: '남은 분량으로 일정 조정' }));
     expect(screen.getByRole('alert')).toHaveTextContent('마감일을 조정해 주세요');
   });
 

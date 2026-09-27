@@ -34,7 +34,7 @@ describe('개인 계획·진도는 저장하지 않는다 (AC20, AC19)', () => {
     await userEvent.click(screen.getByRole('radio', { name: /건너뛰어 읽었습니다/ }));
     const readGroup = screen.getByRole('group', { name: '현재 읽은 분량' });
     fillRange(within(readGroup).getByRole('group', { name: '범위 1' }), { book: 'GEN', sc: '1', sv: '1', ec: '1', ev: '8' });
-    await userEvent.click(screen.getByRole('button', { name: '남은 일정 조정' }));
+    await userEvent.click(screen.getByRole('button', { name: '남은 분량으로 일정 조정' }));
     await userEvent.click(screen.getByRole('button', { name: '이 일정으로 적용' }));
     await userEvent.click(within(screen.getByRole('group', { name: '오늘 읽은 범위 (선택)' })).getByRole('button', { name: '범위 추가' }));
     await userEvent.click(screen.getByRole('button', { name: '월간 캘린더' }));

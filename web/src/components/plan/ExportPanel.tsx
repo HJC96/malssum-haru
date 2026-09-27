@@ -12,6 +12,7 @@ interface Props {
 }
 
 type Phase = { kind: 'idle' } | { kind: 'working' } | { kind: 'done'; file: string } | { kind: 'failed' };
+type ExportKind = 'xlsx' | 'pdf-list' | 'pdf-month' | 'print';
 
 /**
  * Excel·PDF·인쇄. 파일은 화면과 같은 ExportModel로 브라우저 안에서 만들고 서버로 보내지 않는다.
@@ -20,11 +21,13 @@ type Phase = { kind: 'idle' } | { kind: 'working' } | { kind: 'done'; file: stri
 export function ExportPanel({ model, weekStart, onFile = downloadBlob }: Props) {
   const { t } = useI18n();
   const [month, setMonth] = useState<string>('');
+  const [format, setFormat] = useState<ExportKind>('pdf-list');
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
   const months = monthsOf(model);
   const monthSel = months.includes(month) ? month : null;
 
-  const run = async (kind: 'xlsx' | 'pdf-list' | 'pdf-month') => {
+  const run = async (kind: ExportKind) => {
+    if (kind === 'print') { window.print(); return; }
     setPhase({ kind: 'working' });
     try {
       if (kind === 'xlsx') {
@@ -62,20 +65,18 @@ export function ExportPanel({ model, weekStart, onFile = downloadBlob }: Props) 
           ))}
         </select>
       </label>
-      <div className="export-panel__buttons">
-        <button type="button" className="btn" disabled={busy} onClick={() => void run('xlsx')}>
-          {t('plan.export.xlsx')}
-        </button>
-        <button type="button" className="btn" disabled={busy} onClick={() => void run('pdf-list')}>
-          {t('plan.export.pdfList')}
-        </button>
-        <button type="button" className="btn" disabled={busy} onClick={() => void run('pdf-month')}>
-          {t('plan.export.pdfMonth')}
-        </button>
-        <button type="button" className="btn" onClick={() => window.print()}>
-          {t('plan.export.print')}
-        </button>
-      </div>
+      <label className="field field--inline">
+        <span>{t('plan.export.format')}</span>
+        <select value={format} onChange={(e) => setFormat(e.target.value as ExportKind)}>
+          <option value="xlsx">{t('plan.export.format.xlsx')}</option>
+          <option value="pdf-list">{t('plan.export.format.pdfList')}</option>
+          <option value="pdf-month">{t('plan.export.format.pdfMonth')}</option>
+          <option value="print">{t('plan.export.format.print')}</option>
+        </select>
+      </label>
+      <button type="button" className="btn export-panel__action" disabled={busy} onClick={() => void run(format)}>
+        {t(format === 'print' ? 'plan.export.actionPrint' : 'plan.export.action')}
+      </button>
       <p role="status" className="export-panel__status">
         {phase.kind === 'working' && t('plan.export.working')}
         {phase.kind === 'done' && t('plan.export.done', { file: phase.file })}

@@ -82,6 +82,14 @@ export function PlanSummary({ result, today, baseline, chapterOnly = false }: Pr
     <section className="plan-summary" aria-labelledby="plan-summary-heading">
       <h4 id="plan-summary-heading">{t('plan.summary.heading')}</h4>
       <ProgressChart read={s.readVerses} total={s.targetVerses} pct={s.progressPct} chapterOnly={chapterOnly} />
+      <dl className="plan-summary__highlights">
+        <div><dt>{t('plan.summary.progress')}</dt><dd>{fmt(s.progressPct, lang, 1)}%</dd></div>
+        <div><dt>{t(chapterOnly ? 'plan.summary.readChapters' : 'plan.summary.readVerses')}</dt><dd>{chapterOnly ? chapters(s.targetChapters - s.remainingChapters) : verses(s.readVerses)}</dd></div>
+        <div><dt>{t(chapterOnly ? 'plan.summary.remainingChaptersPlain' : 'plan.summary.remainingVerses')}</dt><dd>{chapterOnly ? chapters(s.remainingChapters) : verses(s.remainingVerses)}</dd></div>
+        <div><dt>{t('plan.summary.todayTarget')}</dt><dd>{todayTarget}</dd></div>
+      </dl>
+      <details className="plan-summary__details">
+        <summary>{t('plan.summary.moreDetails')}</summary>
       <dl className="stat-grid">
         {items.map(([key, value]) => (
           <div key={key} className="stat">
@@ -126,6 +134,7 @@ export function PlanSummary({ result, today, baseline, chapterOnly = false }: Pr
           </tbody>
         </table>
       )}
+      </details>
     </section>
   );
 }

@@ -79,7 +79,7 @@ describe('캘린더와 목록 (CAL01, AC10)', () => {
 
   it('쉬는 날·경과일을 완료로 표시하지 않고 상태만 알린다', async () => {
     renderPlan({ initialForm: { startDate: '2026-09-14', endDate: '2026-10-10', weekdays: [1, 2, 3, 4, 5] } });
-    await userEvent.click(screen.getByRole('button', { name: '남은 일정 조정' }));
+    await userEvent.click(screen.getByRole('button', { name: '남은 분량으로 일정 조정' }));
     await userEvent.click(screen.getByRole('button', { name: '이 일정으로 적용' }));
     await openCalendar();
     expect(screen.getByRole('button', { name: /^2026-09-26 .*쉬는 날/ })).toBeInTheDocument(); // 토
